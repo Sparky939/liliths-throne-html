@@ -17,3 +17,9 @@ desktop.ini
 *.ltjson
 *.ltjsave
 saves/
+
+# TypeScript tooling
+node_modules/
+*.js.map
+# vitest test sources compile alongside src/ but aren't part of the game bundle
+js/**/*.test.js
