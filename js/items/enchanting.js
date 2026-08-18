@@ -392,6 +392,9 @@
         if (!found)
             return false;
         if (found.equipped) {
+            // found.equipped guarantees `next` was shape-copied from an
+            // originally-equipped ClothingItem (see craftEnchantedItem's shallow
+            // key copy) — a runtime invariant CarriedThing can't express statically.
             player.equipped[found.slot] = next;
             LT.reapplyWornEnchantments(player);
             return true;

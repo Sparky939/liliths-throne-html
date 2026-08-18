@@ -195,7 +195,16 @@ declare global {
   // different mix of fields (level/lootMoney for enemies, playerKnowsName for
   // story NPCs, etc.), so only the fields genuinely shared/read across
   // npcs.ts's own logic are named — the index signature covers the rest.
-  interface Npc extends Combatant, NpcGearCarrier, StatusEffectCarrier, ItemOwner {
+  //
+  // Deliberately does NOT also extend NpcGearCarrier: that interface types
+  // items/equipped/wardrobe/weapons/mainWeapon/offhandWeapon with the loose
+  // NpcGearItem bag, while Combatant/ItemOwner type the same field names
+  // with the stricter Item — TS requires identical (not just compatible)
+  // types for a property named by multiple extended interfaces, so all
+  // three together don't typecheck. Real Npc objects still satisfy
+  // NpcGearCarrier structurally (Item is narrower than NpcGearItem, so it's
+  // assignable) without needing the formal extends.
+  interface Npc extends Combatant, StatusEffectCarrier, ItemOwner {
     id?: string;
     name?: string;
     surname?: string;
