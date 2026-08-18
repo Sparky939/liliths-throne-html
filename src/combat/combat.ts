@@ -331,7 +331,8 @@
 
   LT.combat.bar = function (ch, colour) {
     var max = ch.maxHealth || 1;
-    var hp = Math.max(0, ch.health || 0);
+    // Ported from upstream PR #2 (crabtaster): floor for regen-over-time display.
+    var hp = Math.floor(Math.max(0, ch.health || 0));
     var pct = Math.max(0, Math.min(100, (hp / max) * 100));
     var lust = Math.max(0, ch.lust || 0);
     var lustPct = Math.max(0, Math.min(100, (lust / (LT.MAX_LUST || 100)) * 100));

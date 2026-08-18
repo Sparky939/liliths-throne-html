@@ -304,6 +304,10 @@
     function bodyHairHtml() {
         var p = LT.game.player;
         ensureAppearanceExtras(p);
+        // ensureAppearanceExtras() only backfills facialHair/pubicHair/
+        // underarmHair/assHair, and only if p.body already exists — real player
+        // characters always have a body by the time this screen is reachable
+        // (createBody runs during character creation, before this UI).
         var b = p.body;
         var feminine = p.isFeminine && p.isFeminine();
         var html = note();
@@ -398,10 +402,14 @@
                     slotId = slot.id;
             });
             if (slotId) {
-                var colour = rest.slice(slotId.length + 1);
-                p.makeup[slotId] = { colour: colour, modifier: "MAKEUP" };
+                // TS can't narrow slotId through the forEach closure above (it only
+                // sees the `= null` initializer for control-flow purposes), hence
+                // the explicit cast rather than relying on the `if (slotId)` check.
+                var foundSlotId = slotId;
+                var colour = rest.slice(foundSlotId.length + 1);
+                p.makeup[foundSlotId] = { colour: colour, modifier: "MAKEUP" };
                 if (p.body && p.body.coverings)
-                    p.body.coverings[slotId] = { type: slotId, primary: colour, secondary: colour, pattern: "NONE", modifier: "MAKEUP" };
+                    p.body.coverings[foundSlotId] = { type: foundSlotId, primary: colour, secondary: colour, pattern: "NONE", modifier: "MAKEUP" };
             }
         }
         else if (act.indexOf("PIERCE_") === 0) {
@@ -431,6 +439,8 @@
         }
         else if (act.indexOf("FACIAL_") === 0) {
             ensureAppearanceExtras(p);
+            // Real player characters always have a body by the time this UI is
+            // reachable (see bodyHairHtml's identical assumption above).
             p.body.facialHair = act.slice(7);
         }
         else if (act.indexOf("PUBIC_") === 0) {

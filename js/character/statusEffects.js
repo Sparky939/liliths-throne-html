@@ -448,6 +448,10 @@
                 !LT.hasStatusEffect(ch, "PREGNANT_2"));
         },
     });
+    // Callers only ever invoke this after already checking `ch` is truthy, so
+    // the param is typed non-nullable here — the `!ch` branch below is
+    // unreachable in practice but kept for parity with the original defensive
+    // check rather than removed as a behavior change.
     function bag(ch) {
         if (!ch)
             return null;
@@ -522,14 +526,16 @@
         var bonus = emptyBonus();
         if (!ch)
             return bonus;
-        LT.listStatusEffects(ch).forEach(function (entry) {
+        var carrier = ch;
+        LT.listStatusEffects(carrier).forEach(function (entry) {
             var attrs = entry.def.attributes;
             if (typeof attrs === "function")
-                attrs = attrs(ch);
+                attrs = attrs(carrier);
             if (!attrs)
                 return;
-            Object.keys(attrs).forEach(function (key) {
-                bonus[key] = (bonus[key] || 0) + attrs[key];
+            var resolved = attrs;
+            Object.keys(resolved).forEach(function (key) {
+                bonus[key] = (bonus[key] || 0) + (resolved[key] || 0);
             });
         });
         return bonus;
@@ -556,19 +562,22 @@
     LT.refreshConditionalStatusEffects = function (ch) {
         if (!ch)
             return;
+        var carrier = ch;
         Object.keys(LT.STATUS_EFFECTS).forEach(function (id) {
             var def = LT.STATUS_EFFECTS[id];
             if (!def.conditions)
                 return;
-            var ok = !!def.conditions(ch);
-            if (ok && !LT.hasStatusEffect(ch, id)) {
-                LT.addStatusEffect(ch, id, { secondsRemaining: -1 });
+            var ok = !!def.conditions(carrier);
+            if (ok && !LT.hasStatusEffect(carrier, id)) {
+                LT.addStatusEffect(carrier, id, { secondsRemaining: -1 });
                 if (id === "WEATHER_STORM_VULNERABLE") {
-                    ch.lust = Math.max(ch.lust || 0, LT.getRestingLust(ch));
+                    carrier.lust = Math.max(carrier.lust || 0, LT.getRestingLust(carrier));
                 }
             }
-            else if (!ok && LT.hasStatusEffect(ch, id) && (ch.statusEffects[id].secondsRemaining == null || ch.statusEffects[id].secondsRemaining < 0)) {
-                LT.removeStatusEffect(ch, id);
+            else if (!ok &&
+                LT.hasStatusEffect(carrier, id) &&
+                (carrier.statusEffects[id].secondsRemaining == null || carrier.statusEffects[id].secondsRemaining < 0)) {
+                LT.removeStatusEffect(carrier, id);
             }
         });
     };
@@ -654,8 +663,9 @@
         if (typeof attrs === "function")
             attrs = attrs(ch);
         if (attrs) {
-            Object.keys(attrs).forEach(function (key) {
-                var n = attrs[key];
+            var resolvedAttrs = attrs;
+            Object.keys(resolvedAttrs).forEach(function (key) {
+                var n = resolvedAttrs[key];
                 if (!n)
                     return;
                 lines.push((n > 0 ? "+" : "") + n + " " + key);
@@ -708,9 +718,10 @@
     LT.serializeStatusEffects = function (ch) {
         if (!ch || !ch.statusEffects)
             return {};
+        var statusEffects = ch.statusEffects;
         var out = {};
-        Object.keys(ch.statusEffects).forEach(function (id) {
-            var rec = ch.statusEffects[id];
+        Object.keys(statusEffects).forEach(function (id) {
+            var rec = statusEffects[id];
             out[id] = {
                 id: id,
                 secondsRemaining: rec.secondsRemaining,
@@ -725,17 +736,19 @@
         if (!ch)
             return;
         ch.statusEffects = {};
+        var statusEffects = ch.statusEffects;
         if (!data)
             return;
-        Object.keys(data).forEach(function (id) {
+        var savedData = data;
+        Object.keys(savedData).forEach(function (id) {
             if (!LT.STATUS_EFFECTS[id])
                 return;
-            ch.statusEffects[id] = {
+            statusEffects[id] = {
                 id: id,
-                secondsRemaining: data[id].secondsRemaining,
-                combatTurns: data[id].combatTurns,
-                lastApplied: data[id].lastApplied || 0,
-                secondsPassed: data[id].secondsPassed || 0,
+                secondsRemaining: savedData[id].secondsRemaining,
+                combatTurns: savedData[id].combatTurns,
+                lastApplied: savedData[id].lastApplied || 0,
+                secondsPassed: savedData[id].secondsPassed || 0,
             };
         });
     };
@@ -760,7 +773,15 @@
         var flash = LT.getAppliedStatus(ch, "FLASH");
         if (!flash)
             return 0;
+        // combatTurns is typed optional (addStatusEffect only sets it when the
+        // duration object explicitly carries a non-null combatTurns), but every
+        // real call path here goes through LT.applyStatus, which always passes
+        // one. Asserted rather than defaulted to preserve the original's exact
+        // (unguarded) arithmetic — see TODO(ts) below.
         var penalty = flash.combatTurns > 0 ? 1 : 0;
+        // TODO(ts): pre-existing — if combatTurns were ever genuinely absent
+        // here, this decrements `undefined` and produces NaN, same as the
+        // original untyped JS. Not fixed here since it's a behavior change.
         flash.combatTurns -= 1;
         if (flash.combatTurns <= 0)
             LT.removeStatusEffect(ch, "FLASH");

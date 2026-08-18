@@ -73,7 +73,9 @@
     list = list || [];
     if (typeof LT.syncSlaveNpcs === "function") LT.syncSlaveNpcs();
     if (LT.game.flags && LT.game.flags.workSex && typeof LT.findSlave === "function" && LT.findSlave(LT.game.flags.workSex) && typeof LT.ResponseSex === "function") {
-      var rec = LT.findSlave(LT.game.flags.workSex);
+      // Already confirmed truthy by the condition above (a second, separate
+      // findSlave call TS can't correlate with the first).
+      var rec = LT.findSlave(LT.game.flags.workSex)!;
       list.push(
         LT.ResponseSex("Join in", "Take " + rec.name + " while they are at work.", {
           partner: LT.slaveAsNpc(rec),
@@ -372,11 +374,12 @@
       var s = selectedSlave();
       var list = [new LT.Response("Back", "Return to the list.", "house.slaves")];
       if (!s) return list;
+      var slave = s;
       list.push(new LT.Response("Jobs & hours", "Assign jobs to each hour of the day.", "house.job"));
       list.push(new LT.Response("Permissions", "Set official behaviour, general, and sex permissions.", "house.perms"));
       list.push(
-        new LT.Response(LT.getCharacterImage(s.id) ? "Change image" : "Set image", "Attach or replace a portrait URL.", "house.slave", function () {
-          var ok = LT.promptCharacterImage(s.id);
+        new LT.Response(LT.getCharacterImage(slave.id) ? "Change image" : "Set image", "Attach or replace a portrait URL.", "house.slave", function () {
+          var ok = LT.promptCharacterImage(slave.id);
           LT.game.textStart = ok
             ? "<p>Portrait updated.</p>"
             : "<p>That was not a usable http(s) image link.</p>";

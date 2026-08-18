@@ -3,7 +3,7 @@
     return '<div class="container-full-width" style="text-align:center;"><i>All of these options can be influenced later on in the game.</i></div>';
   }
 
-  function pill(active: any, act: any, label: any, colour?: any) {
+  function pill(active: boolean, act: string, label: string, colour?: string): string {
     var c = colour || "#dddddd";
     if (active) {
       return '<div class="cosmetics-button active"><span style="color:' + c + ';">' + label + "</span></div>";
@@ -19,7 +19,7 @@
     );
   }
 
-  function pills(title: any, help: any, items: any, currentId: any, prefix: any, hexKey?: any) {
+  function pills(title: string, help: string | null | undefined, items: PillEntry[], currentId: string | null | undefined, prefix: string, hexKey?: string): string {
     var html =
       '<div class="container-full-width" style="text-align:center;"><p style="text-align:center;margin:0;padding:0;"><b>' +
       title +
@@ -33,7 +33,7 @@
     return html;
   }
 
-  function stepper(title: any, act: any, label: any, decOff: any, incOff: any) {
+  function stepper(title: string, act: string, label: string, decOff: boolean, incOff: boolean): string {
     return (
       '<div class="container-full-width" style="text-align:center;"><p style="margin:0;padding:0;"><b>' +
       title +
@@ -54,7 +54,7 @@
     );
   }
 
-  function toggle(title, help, act, on, onLabel, offLabel) {
+  function toggle(title: string, help: string, act: string, on: boolean, onLabel?: string, offLabel?: string): string {
     return (
       '<div class="container-full-width" style="text-align:center;"><p style="margin:0;padding:0;"><b>' +
       title +
@@ -67,7 +67,7 @@
     );
   }
 
-  function stepList(list, current, dir) {
+  function stepList(list: PillEntry[], current: PillEntry, dir: number): PillEntry {
     var i = 0;
     for (; i < list.length; i++) if (list[i] === current || list[i].id === current.id) break;
     if (i >= list.length) i = 0;
@@ -75,8 +75,8 @@
     return list[i];
   }
 
-  function hubHtml() {
-    var p = LT.game.player;
+  function hubHtml(): string {
+    var p: Character = LT.game.player;
     var named =
       p.surname && p.surname.length
         ? p.getName() + " " + p.surname
@@ -102,8 +102,8 @@
     );
   }
 
-  function coreHtml() {
-    var p = LT.game.player;
+  function coreHtml(): string {
+    var p: Character = LT.game.player;
     var shape = p.getBodyShape();
     return (
       note() +
@@ -121,8 +121,8 @@
     );
   }
 
-  function faceHtml() {
-    var p = LT.game.player;
+  function faceHtml(): string {
+    var p: Character = LT.game.player;
     return (
       note() +
       pills("Lip Size", "How large your lips are.", LT.LIP_LIST, p.lipSize.id, "LIP_") +
@@ -131,10 +131,10 @@
     );
   }
 
-  function hairHtml() {
-    var p = LT.game.player;
+  function hairHtml(): string {
+    var p: Character = LT.game.player;
     var lenI = LT.hairLengthIndex(p.hairLength.id);
-    var styles: any[] = [];
+    var styles: HairStyleEntry[] = [];
     for (var i = 0; i < LT.HAIR_STYLE.length; i++) {
       if (LT.HAIR_STYLE[i].minLength <= lenI) styles.push(LT.HAIR_STYLE[i]);
     }
@@ -146,8 +146,8 @@
     );
   }
 
-  function breastsHtml() {
-    var p = LT.game.player;
+  function breastsHtml(): string {
+    var p: Character = LT.game.player;
     return (
       note() +
       pills("Breast Size", "How large your breasts are.", LT.CUP_LIST, p.breastSize.id, "CUP_") +
@@ -158,8 +158,8 @@
     );
   }
 
-  function assHtml() {
-    var p = LT.game.player;
+  function assHtml(): string {
+    var p: Character = LT.game.player;
     return (
       note() +
       pills("Ass Size", "How large your ass is.", LT.SIZE5, p.assSize.id, "ASS_") +
@@ -168,8 +168,8 @@
     );
   }
 
-  function genitalsHtml() {
-    var p = LT.game.player;
+  function genitalsHtml(): string {
+    var p: Character = LT.game.player;
     if (p.hasPenis()) {
       return (
         note() +
@@ -185,15 +185,15 @@
     );
   }
 
-  function ensureAppearanceExtras(p) {
+  function ensureAppearanceExtras(p: Character): void {
     if (typeof LT.ensureCharacterSystems === "function") LT.ensureCharacterSystems(p);
     if (!p.makeup) p.makeup = {};
     (LT.MAKEUP_SLOTS || []).forEach(function (slot) {
-      if (!p.makeup[slot.id]) p.makeup[slot.id] = { colour: "NONE", modifier: "MAKEUP" };
+      if (!p.makeup![slot.id]) p.makeup![slot.id] = { colour: "NONE", modifier: "MAKEUP" };
     });
     if (!p.piercings) p.piercings = {};
     (LT.PIERCING_TYPES || []).forEach(function (slot) {
-      if (p.piercings[slot.id] == null) p.piercings[slot.id] = false;
+      if (p.piercings![slot.id] == null) p.piercings![slot.id] = false;
     });
     if (!p.tattoos) p.tattoos = {};
     if (p.body) {
@@ -204,7 +204,7 @@
     }
   }
 
-  function syncPiercingToBody(p, id, on) {
+  function syncPiercingToBody(p: Character, id: string, on: boolean): void {
     if (!p.body) return;
     if (id === "ear") p.body.ear.pierced = on;
     else if (id === "lip") p.body.face.piercedLip = on;
@@ -216,13 +216,13 @@
     else if (id === "vagina") p.body.vagina.pierced = on;
   }
 
-  function canPierce(p, slot) {
+  function canPierce(p: Character, slot: PiercingType): boolean {
     if (slot.needs === "penis") return !!(p.hasPenis && p.hasPenis());
     if (slot.needs === "vagina") return !!(p.hasVagina && p.hasVagina());
     return true;
   }
 
-  function tattooSlotBlocked(p, slot) {
+  function tattooSlotBlocked(p: Character, slot: TattooSlot): boolean {
     if (!p.body) return false;
     if (slot.needs === "horns") return !p.body.horn || p.body.horn.type === "NONE";
     if (slot.needs === "wings") return !p.body.wing || p.body.wing.type === "NONE";
@@ -232,23 +232,23 @@
     return false;
   }
 
-  function makeupHtml() {
-    var p = LT.game.player;
+  function makeupHtml(): string {
+    var p: Character = LT.game.player;
     ensureAppearanceExtras(p);
     var html = note();
     (LT.MAKEUP_SLOTS || []).forEach(function (slot) {
-      var current = (p.makeup[slot.id] && p.makeup[slot.id].colour) || "NONE";
+      var current = (p.makeup![slot.id] && p.makeup![slot.id]!.colour) || "NONE";
       html += pills(slot.name, slot.help, LT.MAKEUP_COLOURS, current, "MAKEUP_" + slot.id + "_");
     });
     return html;
   }
 
-  function piercingsHtml() {
-    var p = LT.game.player;
+  function piercingsHtml(): string {
+    var p: Character = LT.game.player;
     ensureAppearanceExtras(p);
     var html = note();
     (LT.PIERCING_TYPES || []).forEach(function (slot) {
-      var on = !!p.piercings[slot.id];
+      var on = !!p.piercings![slot.id];
       var ok = canPierce(p, slot);
       html +=
         '<div class="container-full-width" style="text-align:center;"><p style="margin:0;padding:0;"><b>' +
@@ -268,14 +268,14 @@
     return html;
   }
 
-  function tattoosHtml() {
-    var p = LT.game.player;
+  function tattoosHtml(): string {
+    var p: Character = LT.game.player;
     ensureAppearanceExtras(p);
     var html =
       '<div class="container-full-width" style="text-align:center;"><i>Later on in the game, you can get enchanted and glowing tattoos. For now, however, your tattoo choices are limited to more mundane options.</i></div>';
     (LT.TATTOO_SLOTS || []).forEach(function (slot) {
       var blocked = tattooSlotBlocked(p, slot);
-      var tat = p.tattoos[slot.id];
+      var tat = p.tattoos![slot.id];
       html +=
         '<div class="cosmetics-inner-container" style="text-align:center;"><p style="margin:0;"><b>' +
         slot.name.charAt(0).toUpperCase() +
@@ -298,8 +298,8 @@
     return html;
   }
 
-  function tattooAddHtml() {
-    var p = LT.game.player;
+  function tattooAddHtml(): string {
+    var p: Character = LT.game.player;
     ensureAppearanceExtras(p);
     var slotId = LT.game.flags.creationTattooSlot;
     var draft = LT.game.flags.creationTattooDraft || { type: "hearts", colour: "BLACK", writing: "" };
@@ -317,10 +317,14 @@
     );
   }
 
-  function bodyHairHtml() {
-    var p = LT.game.player;
+  function bodyHairHtml(): string {
+    var p: Character = LT.game.player;
     ensureAppearanceExtras(p);
-    var b = p.body;
+    // ensureAppearanceExtras() only backfills facialHair/pubicHair/
+    // underarmHair/assHair, and only if p.body already exists — real player
+    // characters always have a body by the time this screen is reachable
+    // (createBody runs during character creation, before this UI).
+    var b = p.body!;
     var feminine = p.isFeminine && p.isFeminine();
     var html = note();
     html += pills("Body hair colour", "This is the hair that covers all areas other than the head.", LT.HAIR_COLOUR, (b.coverings && b.coverings.BODY_HAIR && b.coverings.BODY_HAIR.primary) || "BROWN", "BHAIRCOL_");
@@ -338,12 +342,12 @@
     return html;
   }
 
-  function backToHub() {
+  function backToHub(): LTResponse[] {
     return [new LT.Response("Back", "Confirm your choices and return to the appearance menu.", "creation.advanced")];
   }
 
-  function handleAct(act) {
-    var p = LT.game.player;
+  function handleAct(act: string): void {
+    var p: Character = LT.game.player;
     if (!p) return;
     if (act === "HEIGHT_DEC") p.heightCm = Math.max(140, p.heightCm - 1);
     else if (act === "HEIGHT_INC") p.heightCm = Math.min(210, p.heightCm + 1);
@@ -379,20 +383,24 @@
     else if (act.indexOf("MAKEUP_") === 0) {
       ensureAppearanceExtras(p);
       var rest = act.slice(7);
-      var slotId: any = null;
+      var slotId: string | null = null;
       (LT.MAKEUP_SLOTS || []).forEach(function (slot) {
         if (rest.indexOf(slot.id + "_") === 0) slotId = slot.id;
       });
       if (slotId) {
-        var colour = rest.slice(slotId.length + 1);
-        p.makeup[slotId] = { colour: colour, modifier: "MAKEUP" };
-        if (p.body && p.body.coverings) p.body.coverings[slotId] = { type: slotId, primary: colour, secondary: colour, pattern: "NONE", modifier: "MAKEUP" };
+        // TS can't narrow slotId through the forEach closure above (it only
+        // sees the `= null` initializer for control-flow purposes), hence
+        // the explicit cast rather than relying on the `if (slotId)` check.
+        var foundSlotId = slotId as string;
+        var colour = rest.slice(foundSlotId.length + 1);
+        p.makeup![foundSlotId] = { colour: colour, modifier: "MAKEUP" };
+        if (p.body && p.body.coverings) p.body.coverings[foundSlotId] = { type: foundSlotId, primary: colour, secondary: colour, pattern: "NONE", modifier: "MAKEUP" };
       }
     } else if (act.indexOf("PIERCE_") === 0) {
       ensureAppearanceExtras(p);
       var pierceOn = /_ON$/.test(act);
       var pierceId = act.replace(/^PIERCE_/, "").replace(/_ON$|_OFF$/, "");
-      p.piercings[pierceId] = pierceOn;
+      p.piercings![pierceId] = pierceOn;
       syncPiercingToBody(p, pierceId, pierceOn);
     } else if (act.indexOf("TATTOO_ADD_") === 0) {
       LT.game.flags.creationTattooSlot = act.slice(11);
@@ -401,7 +409,7 @@
       return;
     } else if (act.indexOf("TATTOO_RM_") === 0) {
       ensureAppearanceExtras(p);
-      delete p.tattoos[act.slice(10)];
+      delete p.tattoos![act.slice(10)];
     } else if (act.indexOf("TTYPE_") === 0) {
       LT.game.flags.creationTattooDraft = LT.game.flags.creationTattooDraft || {};
       LT.game.flags.creationTattooDraft.type = act.slice(6);
@@ -410,20 +418,22 @@
       LT.game.flags.creationTattooDraft.colour = act.slice(5);
     } else if (act.indexOf("FACIAL_") === 0) {
       ensureAppearanceExtras(p);
-      p.body.facialHair = act.slice(7);
+      // Real player characters always have a body by the time this UI is
+      // reachable (see bodyHairHtml's identical assumption above).
+      p.body!.facialHair = act.slice(7);
     } else if (act.indexOf("PUBIC_") === 0) {
       ensureAppearanceExtras(p);
-      p.body.pubicHair = act.slice(6);
+      p.body!.pubicHair = act.slice(6);
     } else if (act.indexOf("UNDERARM_") === 0) {
       ensureAppearanceExtras(p);
-      p.body.underarmHair = act.slice(9);
+      p.body!.underarmHair = act.slice(9);
     } else if (act.indexOf("ASSHAIR_") === 0) {
       ensureAppearanceExtras(p);
-      p.body.assHair = act.slice(8);
+      p.body!.assHair = act.slice(8);
     } else if (act.indexOf("BHAIRCOL_") === 0) {
       ensureAppearanceExtras(p);
-      if (!p.body.coverings) p.body.coverings = {};
-      p.body.coverings.BODY_HAIR = { type: "HUMAN", primary: act.slice(9), secondary: act.slice(9), pattern: "NONE", modifier: "SMOOTH" };
+      if (!p.body!.coverings) p.body!.coverings = {};
+      p.body!.coverings.BODY_HAIR = { type: "HUMAN", primary: act.slice(9), secondary: act.slice(9), pattern: "NONE", modifier: "SMOOTH" };
     } else return;
     if (typeof LT.syncCharacterFromBody === "function") LT.syncCharacterFromBody(p);
     LT.game.setContent(LT.game.currentNode);
@@ -462,7 +472,7 @@
     },
   });
 
-  function editor(id, ui, title, htmlFn) {
+  function editor(id: string, ui: string, title: string, htmlFn: () => string): void {
     LT.defineNode({
       id: id,
       ui: ui,
@@ -506,13 +516,13 @@
     getResponses: function () {
       var draft = (LT.game.flags && LT.game.flags.creationTattooDraft) || { type: "hearts", colour: "BLACK", writing: "" };
       var apply = new LT.Response("Apply", "Add this tattoo.", "creation.tattoos", function () {
-        var p = LT.game.player;
+        var p: Character = LT.game.player;
         ensureAppearanceExtras(p);
         var slotId = LT.game.flags.creationTattooSlot;
         var next = LT.game.flags.creationTattooDraft || { type: "hearts", colour: "BLACK", writing: "" };
         var input: any = document.getElementById("tattoo-writing");
         if (input) next.writing = String(input.value || "").trim();
-        p.tattoos[slotId] = {
+        p.tattoos![slotId] = {
           type: next.type,
           name: next.type === "NONE" ? "writing" : String(next.type).replace(/_/g, " "),
           colour: next.colour,

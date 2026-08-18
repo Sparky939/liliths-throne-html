@@ -1,5 +1,5 @@
 (function () {
-  function slotRow(player, slot) {
+  function slotRow(player: Character, slot: ClothingSlot) {
     var item = player.equipped[slot.id];
     var inner = item
       ? '<div class="inv-item" data-inv-unequip="' +
@@ -15,7 +15,7 @@
     return '<div class="inv-slot"><div class="inv-slot-label">' + slot.label + "</div>" + inner + "</div>";
   }
 
-  function weaponSlotRow(player, slot) {
+  function weaponSlotRow(player: Character, slot: { id: string; label: string }) {
     var twoHanded = slot.id === "offhand" && typeof LT.isTwoHandedEquipped === "function" && LT.isTwoHandedEquipped(player);
     if (twoHanded) {
       var main = player.mainWeapon;

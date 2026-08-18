@@ -23,13 +23,19 @@
     "js/sex/sex.js",
     "js/content/sexNodes.js",
     "js/character/names.js",
+    // items.js moved ahead of character.js/clothing.js: clothing.js's
+    // Clothing class now does `extends LT.Item` at script-load time
+    // (ported from upstream PR #5), so LT.Item must already exist.
+    "js/items/items.js",
+    // character.js (ported from upstream PR #5): GameCharacter as a real
+    // class, split out of player.js, loaded in player.js's old slot.
+    "js/character/character.js",
     "js/character/player.js",
     "js/character/clothing.js",
     "js/character/npcGear.js",
     "js/items/weapons.js",
     "js/items/weaponRuntime.js",
     "js/items/spellBooks.js",
-    "js/items/items.js",
     "js/items/enchanting.js",
     "js/items/tfApply.js",
     "js/character/slavery.js",

@@ -4,13 +4,13 @@
   var PAGE_SIZE = COLS * ROWS;
   var page = 0;
   var tab = 0;
-  var currentResponses: any[] = [];
-  var currentTabs: any[] = [];
+  var currentResponses: LTResponse[] = [];
+  var currentTabs: string[] = [];
   var HOTKEYS = ["1", "2", "3", "4", "5", "q", "w", "e", "r", "t", "a", "s", "d", "f", "g"];
 
-  var pageFlip: any = null;
+  var pageFlip: LTResponse | null = null;
 
-  function lookupResponse(index) {
+  function lookupResponse(index: number): LTResponse | null {
     if (index === 0 && pageFlip) return pageFlip;
     if (!currentResponses) return null;
     var i;
@@ -20,13 +20,13 @@
     return null;
   }
 
-  function activateResponse(response) {
+  function activateResponse(response: LTResponse | null | undefined) {
     if (!response || response.disabled) return;
     if (response._pageFlip) {
       var highest = 0;
       var n;
       for (n = 0; n < currentResponses.length; n++) {
-        if (currentResponses[n] && currentResponses[n]._index > highest) highest = currentResponses[n]._index;
+        if (currentResponses[n] && (currentResponses[n]._index || 0) > highest) highest = currentResponses[n]._index || 0;
       }
       var pages = Math.max(1, Math.ceil(highest / PAGE_SIZE));
       page = (page + 1) % pages;
@@ -36,7 +36,7 @@
     LT.game.choose(response);
   }
 
-  function makeBox(response: any, index: any, hotkey: any, id?: any) {
+  function makeBox(response: LTResponse | null | undefined, index: number, hotkey: string, id?: string) {
     var box = document.createElement("div");
     box.className = "response-box";
     if (id) box.id = id;
@@ -66,7 +66,7 @@
     return box;
   }
 
-  LT.setResponses = function (responses, tabs, selectedTab) {
+  LT.setResponses = function (responses: LTResponse[] | null | undefined, tabs: string[] | null | undefined, selectedTab?: number) {
     currentResponses = responses || [];
     currentTabs = tabs || [];
     page = 0;
@@ -128,7 +128,7 @@
       var zero = lookupResponse(0);
       var highest = 0;
       for (var n = 0; n < currentResponses.length; n++) {
-        if (currentResponses[n] && currentResponses[n]._index > highest) highest = currentResponses[n]._index;
+        if (currentResponses[n] && (currentResponses[n]._index || 0) > highest) highest = currentResponses[n]._index || 0;
       }
       var pages = Math.max(1, Math.ceil(highest / PAGE_SIZE));
       if (!zero && pages > 1) {

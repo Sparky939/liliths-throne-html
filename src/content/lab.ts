@@ -471,7 +471,7 @@
       return xml("ESSENCE_EXTRACTION");
     },
     getResponses: function () {
-      function extract(amount) {
+      function extract(amount: number | "all") {
         return function () {
           var have = (LT.game.player && LT.game.player.essences) || 0;
           var n = amount === "all" ? have : Math.min(amount, have);

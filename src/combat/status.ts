@@ -26,15 +26,15 @@
 
   LT.apPenalty = function (ch) {
     var flash = LT.getStatus(ch, "FLASH");
-    return flash && flash.turns > 0 ? 1 : 0;
+    return flash && flash.turns! > 0 ? 1 : 0;
   };
 
   LT.consumeFlash = function (ch) {
     var flash = LT.getStatus(ch, "FLASH");
     if (!flash) return 0;
-    var penalty = flash.turns > 0 ? 1 : 0;
-    flash.turns -= 1;
-    if (flash.turns <= 0) delete ch.statuses!.FLASH;
+    var penalty = flash.turns! > 0 ? 1 : 0;
+    flash.turns! -= 1;
+    if (flash.turns! <= 0) delete ch.statuses!.FLASH;
     return penalty;
   };
 

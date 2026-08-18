@@ -365,7 +365,7 @@
         return !!(f.hasSlaverLicense || f.slaveryQuest === "SIDE_SLAVER_RECOMMENDATION_OBTAINED" || f.slaveryQuest === "complete");
     };
     LT.isEmptyHouseRoom = function (placeType) {
-        return !!EMPTY_ROOMS[placeType];
+        return !!(placeType && EMPTY_ROOMS[placeType]);
     };
     LT.currentRoomKey = function () {
         var loc = (LT.game.player && LT.game.player.location) || {};
@@ -383,11 +383,14 @@
         var xy = parts[1].split(",");
         return { world: parts[0], x: parseInt(xy[0], 10), y: parseInt(xy[1], 10) };
     };
+    // A room record is either the legacy bare upgrade-id string or the newer
+    // { u: id } wrapper — `rec.u || rec` reads whichever shape is stored.
     LT.roomUpgradeAt = function (key) {
         var rec = LT.houseRooms()[key || LT.currentRoomKey()];
         if (!rec)
             return null;
-        return LT.HOUSE_UPGRADES[rec.u || rec] || null;
+        var upgradeId = typeof rec === "string" ? rec : rec.u;
+        return LT.HOUSE_UPGRADES[upgradeId] || null;
     };
     LT.findUpgradeKey = function (upgradeId) {
         var rooms = LT.houseRooms();
@@ -395,7 +398,8 @@
         var i;
         for (i = 0; i < keys.length; i++) {
             var rec = rooms[keys[i]];
-            if ((rec && rec.u) === upgradeId || rec === upgradeId)
+            var recUpgradeId = typeof rec === "string" ? rec : rec && rec.u;
+            if (recUpgradeId === upgradeId)
                 return keys[i];
         }
         return null;
@@ -405,7 +409,8 @@
         var n = 0;
         Object.keys(rooms).forEach(function (k) {
             var rec = rooms[k];
-            if ((rec && rec.u) === upgradeId || rec === upgradeId)
+            var recUpgradeId = typeof rec === "string" ? rec : rec && rec.u;
+            if (recUpgradeId === upgradeId)
                 n += 1;
         });
         return n;
@@ -479,16 +484,21 @@
         rec.earned = rec.earned || 0;
         rec.collared = rec.collared !== false;
         rec.perms = rec.perms || {};
-        if (rec.perms.beh || rec.perms.sexP != null || rec.perms.house != null) {
-            if (rec.perms.beh)
-                rec.perms["BEHAVIOUR_" + rec.perms.beh] = true;
-            if (rec.perms.sexP !== false)
+        // Legacy save migration: `beh`/`sexP`/`house` are pre-permissions-rework
+        // fields (beh: a behaviour-suffix string, not a boolean) — cast since
+        // they don't fit the modern Record<string, boolean> shape everywhere
+        // else in `perms`.
+        var legacyPerms = rec.perms;
+        if (legacyPerms.beh || legacyPerms.sexP != null || legacyPerms.house != null) {
+            if (legacyPerms.beh)
+                rec.perms["BEHAVIOUR_" + legacyPerms.beh] = true;
+            if (legacyPerms.sexP !== false)
                 rec.perms.SEX_INITIATE_PLAYER = true;
-            if (rec.perms.house)
+            if (legacyPerms.house)
                 rec.perms.GENERAL_HOUSE_FREEDOM = true;
-            delete rec.perms.beh;
-            delete rec.perms.sexP;
-            delete rec.perms.house;
+            delete legacyPerms.beh;
+            delete legacyPerms.sexP;
+            delete legacyPerms.house;
         }
         if (!rec.perms.BEHAVIOUR_SLUTTY && !rec.perms.BEHAVIOUR_SEDUCTIVE && !rec.perms.BEHAVIOUR_STANDARD && !rec.perms.BEHAVIOUR_PROFESSIONAL && !rec.perms.BEHAVIOUR_WHOLESOME) {
             rec.perms.BEHAVIOUR_STANDARD = true;
@@ -637,6 +647,8 @@
         }
         else {
             var check = LT.jobHourAvailable(jobId, rec, hour);
+            // jobHourAvailable always sets reason alongside ok:false; asserted
+            // since JobAvailability.reason is optional only for the ok:true case.
             if (!check.ok)
                 return check.reason;
             rec.hours[hour] = jobId;
@@ -700,6 +712,9 @@
             var next = hour < 24 ? rec.hours[hour] || "IDLE" : null;
             if (next !== cur) {
                 if (cur !== "IDLE") {
+                    // cur is only ever null right after being set from this iteration's
+                    // `next` at the very end of the loop (hour === 24), so there's no
+                    // later iteration where it's read back in as null here.
                     var job = LT.SLAVE_JOBS[cur] || LT.SLAVE_JOBS.IDLE;
                     var name = rec.feminine === false ? job.nameM : job.name;
                     parts.push(name + " " + String(start).padStart(2, "0") + ":00–" + String(hour % 24).padStart(2, "0") + ":00");

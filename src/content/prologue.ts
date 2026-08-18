@@ -42,7 +42,14 @@
     LT.game.npcs.npc = female ? LT.game.npcs.prologuefemale : LT.game.npcs.prologuemale;
   }
 
-  function node(id: any, title: any, seconds: any, getContent: any, responses?: any, continues?: any) {
+  function node(
+    id: string,
+    title: string,
+    seconds: number,
+    getContent: () => string,
+    responses?: () => (LTResponse | null)[],
+    continues?: boolean,
+  ): void {
     LT.defineNode({
       id: id,
       ui: "dialogue",

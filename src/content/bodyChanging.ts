@@ -4,11 +4,11 @@
   var PRESET_KEY = "lt-tf-presets";
   var currentId = "body.core";
 
-  function part(id, name) {
+  function part(id: string, name?: string): PillEntry {
     return { id: id, name: name || String(id).toLowerCase().replace(/_/g, "-") };
   }
 
-  function listOf(obj) {
+  function listOf(obj: any) {
     if (Array.isArray(obj)) return obj;
     var keys = Object.keys(obj || {});
     var out: any[] = [];
@@ -17,49 +17,49 @@
     return out;
   }
 
-  function hexOf(it) {
+  function hexOf(it: PillEntry | null | undefined): string {
     return (it && (it.hex || it.colour)) || "#dddddd";
   }
 
-  function nameOf(it) {
+  function nameOf(it: PillEntry | null | undefined): string {
     if (!it) return "none";
     return it.name || String(it.id || it).toLowerCase().replace(/_/g, "-");
   }
 
-  function idOf(v, fallback) {
+  function idOf(v: string | { id?: string } | null | undefined, fallback?: string): string {
     if (v == null) return fallback || "NONE";
     if (typeof v === "string") return v;
     return v.id || fallback || "NONE";
   }
 
-  function raceId(ch) {
+  function raceId(ch: Character | null | undefined): string {
     if (!ch) return "HUMAN";
-    var b = ch.body || {};
+    var b: any = ch.body || {};
     var raw = b.subspeciesOverride || b.subspecies || ch.fullRace || ch.raceName || "human";
     return String(raw).toUpperCase().replace(/-/g, "_").replace(/_MORPH$/, "_MORPH");
   }
 
-  function isSelfTransformRace(id) {
+  function isSelfTransformRace(id: string): boolean {
     var list = LT.SELF_TRANSFORM_RACES || [];
     var i;
     for (i = 0; i < list.length; i++) if (list[i] === id) return true;
     return false;
   }
 
-  LT.getTrueSubspecies = function (ch) {
+  LT.getTrueSubspecies = function (ch: Character | null | undefined): string {
     return raceId(ch);
   };
 
-  LT.isDemonTFMenu = function (ch) {
+  LT.isDemonTFMenu = function (ch?: Character | null): boolean {
     ch = ch || LT.bodyChangingTarget || (LT.game && LT.game.player);
     if (!ch) return false;
-    var b = ch.body || {};
+    var b: any = ch.body || {};
     if (idOf(b.bodyMaterial, "FLESH") === "SLIME") return false;
     var id = raceId(ch);
     return id === "DEMON" || id === "LILIN" || id === "ELDER_LILIN" || id === "IMP" || id === "ELEMENTAL";
   };
 
-  LT.getUnableToTransformDescription = function (ch) {
+  LT.getUnableToTransformDescription = function (ch?: Character | null): string {
     ch = ch || (LT.game && LT.game.player);
     if (!ch) return "You need a character first.";
     if (ch.body && ch.body.feral) {
@@ -78,11 +78,11 @@
     return "";
   };
 
-  LT.isAbleToSelfTransform = function (ch) {
+  LT.isAbleToSelfTransform = function (ch?: Character | null): boolean {
     return LT.getUnableToTransformDescription(ch) === "";
   };
 
-  LT.hasSpinneret = function (ch) {
+  LT.hasSpinneret = function (ch?: Character | null): boolean {
     ch = ch || LT.bodyChangingTarget || (LT.game && LT.game.player);
     if (!ch || !ch.body) return false;
     var tail = (ch.body.tail && ch.body.tail.type) || "NONE";
@@ -90,30 +90,35 @@
     return tail === "SPINNERET" || cfg === "ARACHNID";
   };
 
-  LT.hasNipples = function (ch) {
+  LT.hasNipples = function (ch?: Character | null): boolean {
     ch = ch || LT.bodyChangingTarget || (LT.game && LT.game.player);
     if (!ch || !ch.body || !ch.body.breast) return true;
     return ch.body.breast.type !== "NONE";
   };
 
-  LT.hasBreastsCrotch = function (ch) {
+  LT.hasBreastsCrotch = function (ch?: Character | null): boolean {
     ch = ch || LT.bodyChangingTarget || (LT.game && LT.game.player);
     if (!ch || !ch.body || !ch.body.breastCrotch) return false;
     return ch.body.breastCrotch.type !== "NONE";
   };
 
-  function target() {
+  function target(): Character | null | undefined {
     return LT.bodyChangingTarget || (LT.game && LT.game.player);
   }
 
-  function bodyOf(ch) {
+  function bodyOf(ch?: Character | null): CharacterBody | null | undefined {
     ch = ch || target();
     if (!ch) return null;
     if (typeof LT.ensureBody === "function") LT.ensureBody(ch);
     return ch.body;
   }
 
-  function ensureExtras(ch, b) {
+  // `b` stays loosely typed here on purpose: this function's whole job is
+  // backfilling a body object that may be missing fields CharacterBody
+  // otherwise declares as always-present (legacy save data, or a body
+  // object built before every default was applied) — every other function
+  // in this file runs after ensureExtras and can trust the full shape.
+  function ensureExtras(ch: Character | null | undefined, b: any) {
     if (!ch || !b) return;
     if (ch.appearedAge == null && typeof ch.getAgeValue === "function") ch.appearedAge = ch.getAgeValue();
     if (ch.appearedAge == null) ch.appearedAge = 18;
@@ -159,18 +164,18 @@
     if (!b.breastCrotch.milkModifiers) b.breastCrotch.milkModifiers = [];
   }
 
-  function coreRaces() {
+  function coreRaces(): EnumEntry[] {
     return [LT.PART_TYPE.HUMAN, LT.PART_TYPE.DEMON];
   }
 
-  function minorRaces(includeNone) {
-    var list: any[] = [];
+  function minorRaces(includeNone?: boolean): EnumEntry[] {
+    var list: EnumEntry[] = [];
     if (includeNone !== false) list.push(LT.PART_TYPE.NONE);
     list.push(LT.PART_TYPE.HUMAN, LT.PART_TYPE.DEMON);
     return list;
   }
 
-  function getAt(root, path) {
+  function getAt(root: any, path: string): any {
     var parts = path.split(".");
     var obj = root;
     var i;
@@ -181,7 +186,7 @@
     return obj;
   }
 
-  function setAt(root, path, value) {
+  function setAt(root: any, path: string, value: any): void {
     var parts = path.split(".");
     var obj = root;
     var i;
@@ -192,7 +197,7 @@
     obj[parts[parts.length - 1]] = value;
   }
 
-  function coveringOf(b: any, key: any, fallbackType?: any, fallbackColour?: any) {
+  function coveringOf(b: CharacterBody, key: string, fallbackType?: string, fallbackColour?: string): BodyCovering {
     if (!b.coverings) b.coverings = {};
     if (!b.coverings[key]) {
       b.coverings[key] = {
@@ -206,7 +211,7 @@
     return b.coverings[key];
   }
 
-  function pill(active, act, label, colour) {
+  function pill(active: boolean, act: string, label: string, colour?: string): string {
     var c = colour || "#dddddd";
     if (active) {
       return '<div class="cosmetics-button active"><span style="color:' + c + ';">' + label + "</span></div>";
@@ -222,7 +227,7 @@
     );
   }
 
-  function box(title, help, inner, half) {
+  function box(title: string, help: string | null | undefined, inner: string, half?: boolean): string {
     return (
       '<div class="' +
       (half ? "cosmetics-inner-container" : "container-full-width") +
@@ -235,7 +240,7 @@
     );
   }
 
-  function pills(title: any, help: any, items: any, current: any, actPrefix: any, half?: any) {
+  function pills(title: string, help: string | null | undefined, items: PillEntry[], current: string | null | undefined, actPrefix: string, half?: boolean): string {
     var html = "";
     var i;
     for (i = 0; i < items.length; i++) {
@@ -245,18 +250,18 @@
     return box(title, help, html, half);
   }
 
-  function toggles(title: any, help: any, items: any, selected: any, actPrefix: any, half?: any) {
+  function toggles(title: string, help: string | null | undefined, items: PillEntry[], selected: string[] | null | undefined, actPrefix: string, half?: boolean): string {
     var html = "";
     var i;
     for (i = 0; i < items.length; i++) {
       var it = items[i];
-      var on = selected && selected.indexOf(it.id) >= 0;
+      var on = !!(selected && selected.indexOf(it.id) >= 0);
       html += pill(on, actPrefix + it.id, nameOf(it), hexOf(it));
     }
     return box(title, help, html, half);
   }
 
-  function yn(title: any, help: any, actOn: any, actOff: any, on: any, onLabel: any, offLabel: any, half?: any) {
+  function yn(title: string, help: string | null | undefined, actOn: string, actOff: string, on: boolean, onLabel?: string, offLabel?: string, half?: boolean): string {
     return box(
       title,
       help,
@@ -266,7 +271,7 @@
     );
   }
 
-  function stepper(title: any, help: any, path: any, value: any, min: any, max: any, unit: any, half?: any) {
+  function stepper(title: string, help: string | null | undefined, path: string, value: number, min: number, max: number, unit?: string, half?: boolean): string {
     var atMin = value <= min;
     var atMax = value >= max;
     var label = value + (unit || "");
@@ -314,15 +319,15 @@
     return box(title, help, inner, half);
   }
 
-  function row(a, b) {
+  function row(a: string, b: string): string {
     return '<div style="clear:left;">' + a + b + "</div>";
   }
 
-  function powers() {
+  function powers(): string {
     return LT.isDemonTFMenu(target()) ? "demonic" : "innate";
   }
 
-  function intro(area) {
+  function intro(area: string): string {
     var ch = target();
     var demon = LT.isDemonTFMenu(ch);
     var line = demon
@@ -331,18 +336,18 @@
     return '<div class="container-full-width" style="text-align:center;"><i>' + line + "</i></div>";
   }
 
-  function partName(id) {
+  function partName(id: string): string {
     var t = LT.PART_TYPE && LT.PART_TYPE[id];
     return t ? t.name : String(id || "none").toLowerCase().replace(/_/g, "-");
   }
 
-  function enumById(list, id) {
+  function enumById(list: PillEntry[], id: string): PillEntry {
     var i;
     for (i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
     return list[0] || { id: id, name: String(id).toLowerCase() };
   }
 
-  function applySet(ch, b, path, value) {
+  function applySet(ch: Character, b: CharacterBody, path: string, value: string): void {
     if (path === "femininity") {
       b.femininity = Math.max(0, Math.min(100, parseInt(value, 10) || 0));
       return;
@@ -374,7 +379,7 @@
       b.hair.length = value;
       var li = typeof LT.hairLengthIndex === "function" ? LT.hairLengthIndex(value) : 0;
       var styles = LT.HAIR_STYLE || [];
-      var style: any = null;
+      var style: HairStyleEntry | null = null;
       var s;
       for (s = 0; s < styles.length; s++) if (styles[s].id === b.hair.style) style = styles[s];
       if (style && style.minLength > li) b.hair.style = li === 0 ? "NONE" : "MESSY";
@@ -438,7 +443,7 @@
     setAt(b, path, value);
   }
 
-  function applyStep(ch, b, path, delta, min, max) {
+  function applyStep(ch: Character, b: CharacterBody, path: string, delta: number, min: number, max: number): void {
     var cur;
     if (path === "femininity") cur = b.femininity;
     else if (path === "appearedAge") cur = ch.appearedAge == null ? 18 : ch.appearedAge;
@@ -455,7 +460,7 @@
     else setAt(b, path, cur);
   }
 
-  function applyToggle(ch, b, path, id) {
+  function applyToggle(ch: Character | null | undefined, b: CharacterBody, path: string, id: string): void {
     if (path === "neckFluff") {
       b.hair.neckFluff = id === "ON";
       return;
@@ -506,7 +511,7 @@
     }
   }
 
-  function applyAct(act) {
+  function applyAct(act: string): boolean {
     var ch = target();
     if (!ch || !act) return false;
     var b = bodyOf(ch);
@@ -527,7 +532,7 @@
 
   LT.applyBodyChangingAct = applyAct;
 
-  function loadPresets() {
+  function loadPresets(): Record<string, any> {
     try {
       return JSON.parse(localStorage.getItem(PRESET_KEY) || "{}") || {};
     } catch (e) {
@@ -535,23 +540,26 @@
     }
   }
 
-  function writePresets(map) {
+  function writePresets(map: Record<string, any>): void {
     try {
       localStorage.setItem(PRESET_KEY, JSON.stringify(map));
     } catch (e) {}
   }
 
-  function savePreset() {
+  function savePreset(): void {
     var input: any = document.getElementById("tf-preset-name");
     var name = input && input.value ? String(input.value).trim() : "";
     if (!name) name = "Preset";
     var ch = target();
     var map = loadPresets();
-    map[name] = typeof LT.serializeBody === "function" ? LT.serializeBody(ch.body) : JSON.parse(JSON.stringify(ch.body));
+    // TODO(ts): target() can return null/undefined here (e.g. no active
+    // character); this dereferences ch.body unguarded, same as the
+    // original JS — pre-existing latent null-deref, not introduced by typing.
+    map[name] = typeof LT.serializeBody === "function" ? LT.serializeBody(ch!.body) : JSON.parse(JSON.stringify(ch!.body));
     writePresets(map);
   }
 
-  function loadPreset(name) {
+  function loadPreset(name: string): void {
     var map = loadPresets();
     var data = map[name];
     var ch = target();
@@ -560,17 +568,17 @@
     if (typeof LT.ensureCharacterSystems === "function") LT.ensureCharacterSystems(ch);
   }
 
-  function deletePreset(name) {
+  function deletePreset(name: string): void {
     var map = loadPresets();
     delete map[name];
     writePresets(map);
   }
 
-  function already(title) {
+  function already(title: string): LTResponse {
     return new LT.Response(title, "You are already in this screen!", null).disable("You are already in this screen!");
   }
 
-  function resp(index, title, tip, id) {
+  function resp(index: number, title: string, tip: string, id: string): LTResponse {
     var r;
     if (currentId === id) r = already(title);
     else r = new LT.Response(title, tip, id);
@@ -578,7 +586,7 @@
     return r;
   }
 
-  function getResponses() {
+  function getResponses(): LTResponse[] {
     var ch = target();
     var spinneret = LT.hasSpinneret(ch);
     var nipples = LT.hasNipples(ch);
@@ -606,7 +614,7 @@
     return list;
   }
 
-  function page(id, title, htmlFn) {
+  function page(id: string, title: string | (() => string), htmlFn: (ch: Character, b: CharacterBody) => string): void {
     LT.defineNode({
       id: id,
       ui: "phone",
@@ -618,7 +626,10 @@
         var b = bodyOf(ch);
         if (!b) return "<p>No body to transform.</p>";
         ensureExtras(ch, b);
-        return htmlFn(ch, b);
+        // bodyOf(ch) only returns a body when its resolved character was
+        // truthy (same target() ch resolves to here), so ch is real
+        // whenever b is — TS can't see that cross-function invariant.
+        return htmlFn(ch!, b);
       },
       getContent: function () {
         return "";
@@ -627,7 +638,7 @@
     });
   }
 
-  function coreHtml(ch, b) {
+  function coreHtml(ch: Character, b: CharacterBody): string {
     var fem = LT.femininityFromValue(b.femininity);
     var shape = LT.bodyShapeOf(
       (LT.BODY_SIZE && LT.BODY_SIZE[b.bodySize]) || ch.bodySize,
@@ -685,7 +696,7 @@
     );
   }
 
-  function eyesHtml(ch, b) {
+  function eyesHtml(ch: Character, b: CharacterBody): string {
     return (
       intro("eyes") +
       row(
@@ -702,9 +713,9 @@
     );
   }
 
-  function hairHtml(ch, b) {
+  function hairHtml(ch: Character, b: CharacterBody): string {
     var lenI = LT.hairLengthIndex(b.hair.length);
-    var styles: any[] = [];
+    var styles: HairStyleEntry[] = [];
     var i;
     for (i = 0; i < LT.HAIR_STYLE.length; i++) {
       if (LT.HAIR_STYLE[i].minLength <= lenI) styles.push(LT.HAIR_STYLE[i]);
@@ -721,7 +732,7 @@
     );
   }
 
-  function headHtml(ch, b) {
+  function headHtml(ch: Character, b: CharacterBody): string {
     var horns = b.horn.type !== "NONE";
     return (
       intro("head and face") +
@@ -769,7 +780,7 @@
     );
   }
 
-  function assHtml(ch, b) {
+  function assHtml(ch: Character, b: CharacterBody): string {
     return (
       intro("ass and hips") +
       pills("Ass type", "Change the type of your ass.", minorRaces(false), b.ass.type, "set:ass.type:") +
@@ -794,7 +805,7 @@
     );
   }
 
-  function breastsHtml(ch, b) {
+  function breastsHtml(ch: Character, b: CharacterBody): string {
     return (
       intro("breasts") +
       pills("Breast type", "Change the type of your breasts.", minorRaces(false), b.breast.type, "set:breast.type:") +
@@ -835,7 +846,7 @@
     );
   }
 
-  function vaginaHtml(ch, b) {
+  function vaginaHtml(ch: Character, b: CharacterBody): string {
     var html = intro("vagina") + pills("Vagina type", "Grow, remove, or change your vagina.", minorRaces(true), b.vagina.type, "set:vagina.type:");
     if (b.vagina.type === "NONE") return html;
     return (
@@ -884,7 +895,7 @@
     );
   }
 
-  function penisHtml(ch, b) {
+  function penisHtml(ch: Character, b: CharacterBody): string {
     var html = intro("penis") + pills("Penis type", "Grow, remove, or change your penis.", minorRaces(true), b.penis.type, "set:penis.type:");
     if (b.penis.type === "NONE") return html;
     return (
@@ -927,7 +938,7 @@
     );
   }
 
-  function crotchHtml(ch, b) {
+  function crotchHtml(ch: Character, b: CharacterBody): string {
     var html = intro("crotch-boobs") + pills("Crotch-boob type", "Grow, remove, or change your crotch-boobs.", minorRaces(true), b.breastCrotch.type, "set:breastCrotch.type:");
     if (b.breastCrotch.type === "NONE") return html;
     return (
@@ -938,7 +949,7 @@
       ) +
       row(
         stepper("Rows", "How many pairs of crotch-boobs you have.", "breastCrotch.rows", b.breastCrotch.rows || 1, 1, 5, "", true),
-        toggles("Nipple modifiers", "Special qualities of your crotch-nipples.", LT.ORIFICE_MODIFIER, b.breastCrotch.orifice.modifiers, "toggle:breastCrotch.orifice.modifiers:", true),
+        toggles("Nipple modifiers", "Special qualities of your crotch-nipples.", LT.ORIFICE_MODIFIER, b.breastCrotch.orifice!.modifiers, "toggle:breastCrotch.orifice.modifiers:", true),
       ) +
       row(
         stepper("Milk storage", "How much milk your crotch-boobs can store.", "breastCrotch.milkStorage", b.breastCrotch.milkStorage || 0, 0, 10000, " ml", true),
@@ -949,27 +960,29 @@
         toggles("Milk modifiers", "Special qualities of this milk.", LT.FLUID_MODIFIER, b.breastCrotch.milkModifiers, "toggle:breastCrotch.milkModifiers:", true),
       ) +
       row(
-        stepper("Nipples per breast", "How many nipples each crotch-boob has.", "breastCrotch.nipple.countPerBreast", b.breastCrotch.nipple.countPerBreast || 1, 1, 4, "", true),
-        pills("Nipple shape", "The shape of your crotch-nipples.", LT.NIPPLE_SHAPE, b.breastCrotch.nipple.shape, "set:breastCrotch.nipple.shape:", true),
+        // ensureExtras() has already backfilled nipple/areolae/orifice by
+        // the time this renders (see CharacterBody's breastCrotch comment).
+        stepper("Nipples per breast", "How many nipples each crotch-boob has.", "breastCrotch.nipple.countPerBreast", b.breastCrotch.nipple!.countPerBreast || 1, 1, 4, "", true),
+        pills("Nipple shape", "The shape of your crotch-nipples.", LT.NIPPLE_SHAPE, b.breastCrotch.nipple!.shape, "set:breastCrotch.nipple.shape:", true),
       ) +
       row(
-        pills("Nipple size", "How large your crotch-nipples are.", LT.SIZE5, b.breastCrotch.nipple.size, "set:breastCrotch.nipple.size:", true),
-        pills("Areolae size", "How large those areolae are.", LT.SIZE5, b.breastCrotch.areolae.size, "set:breastCrotch.areolae.size:", true),
+        pills("Nipple size", "How large your crotch-nipples are.", LT.SIZE5, b.breastCrotch.nipple!.size, "set:breastCrotch.nipple.size:", true),
+        pills("Areolae size", "How large those areolae are.", LT.SIZE5, b.breastCrotch.areolae!.size, "set:breastCrotch.areolae.size:", true),
       ) +
       row(
-        pills("Nipple capacity", "How accommodating your crotch-nipples are.", LT.SIZE5, b.breastCrotch.orifice.capacity, "set:breastCrotch.orifice.capacity:", true),
-        pills("Nipple depth", "How deep your crotch-nipples are.", LT.ORIFICE_DEPTH, b.breastCrotch.orifice.depth, "set:breastCrotch.orifice.depth:", true),
+        pills("Nipple capacity", "How accommodating your crotch-nipples are.", LT.SIZE5, b.breastCrotch.orifice!.capacity, "set:breastCrotch.orifice.capacity:", true),
+        pills("Nipple depth", "How deep your crotch-nipples are.", LT.ORIFICE_DEPTH, b.breastCrotch.orifice!.depth, "set:breastCrotch.orifice.depth:", true),
       ) +
       row(
-        pills("Nipple elasticity", "How quickly they stretch.", LT.ELASTICITY, b.breastCrotch.orifice.elasticity, "set:breastCrotch.orifice.elasticity:", true),
-        pills("Nipple plasticity", "How readily they keep a new size.", LT.PLASTICITY, b.breastCrotch.orifice.plasticity, "set:breastCrotch.orifice.plasticity:", true),
+        pills("Nipple elasticity", "How quickly they stretch.", LT.ELASTICITY, b.breastCrotch.orifice!.elasticity, "set:breastCrotch.orifice.elasticity:", true),
+        pills("Nipple plasticity", "How readily they keep a new size.", LT.PLASTICITY, b.breastCrotch.orifice!.plasticity, "set:breastCrotch.orifice.plasticity:", true),
       ) +
       pills("Nipple colour", "Change the colour of your crotch-nipples.", LT.TF_COLOURS, coveringOf(b, "NIPPLES_CROTCH", "HUMAN", "ROSY").primary, "set:cover.NIPPLES_CROTCH:") +
       pills("Milk colour", "Change the colour of this milk.", LT.TF_COLOURS, coveringOf(b, "MILK", "HUMAN", "WHITE").primary, "set:cover.MILK:")
     );
   }
 
-  function spinneretHtml(ch, b) {
+  function spinneretHtml(ch: Character, b: CharacterBody): string {
     return (
       intro("spinneret") +
       row(
@@ -988,7 +1001,7 @@
     );
   }
 
-  function saveHtml(ch, b) {
+  function saveHtml(ch: Character, b: CharacterBody): string {
     var map = loadPresets();
     var names = Object.keys(map);
     var html =
@@ -1029,14 +1042,14 @@
   page("body.breasts", "Breasts", breastsHtml);
   page("body.vagina", "Vagina", vaginaHtml);
   page("body.penis", "Penis", penisHtml);
-  page("body.crotch", function () {
+  page("body.crotch", function (): string {
     var ch = target();
     return ch && ch.body && ch.body.breastCrotch && ch.body.breastCrotch.shape === "UDDERS" ? "Udders" : "Crotch-boobs";
   }, crotchHtml);
   page("body.spinneret", "Spinneret", spinneretHtml);
   page("body.save", "Save transformation files", saveHtml);
 
-  LT.openBodyChanging = function (ch, returnNode) {
+  LT.openBodyChanging = function (ch?: Character | null, returnNode?: string | null): void {
     LT.bodyChangingTarget = ch || (LT.game && LT.game.player);
     LT.bodyChangingReturn = returnNode || "phone.menu";
     if (LT.game) LT.game.setContent("body.core");

@@ -28,8 +28,8 @@
             var highest = 0;
             var n;
             for (n = 0; n < currentResponses.length; n++) {
-                if (currentResponses[n] && currentResponses[n]._index > highest)
-                    highest = currentResponses[n]._index;
+                if (currentResponses[n] && (currentResponses[n]._index || 0) > highest)
+                    highest = currentResponses[n]._index || 0;
             }
             var pages = Math.max(1, Math.ceil(highest / PAGE_SIZE));
             page = (page + 1) % pages;
@@ -132,8 +132,8 @@
             var zero = lookupResponse(0);
             var highest = 0;
             for (var n = 0; n < currentResponses.length; n++) {
-                if (currentResponses[n] && currentResponses[n]._index > highest)
-                    highest = currentResponses[n]._index;
+                if (currentResponses[n] && (currentResponses[n]._index || 0) > highest)
+                    highest = currentResponses[n]._index || 0;
             }
             var pages = Math.max(1, Math.ceil(highest / PAGE_SIZE));
             if (!zero && pages > 1) {

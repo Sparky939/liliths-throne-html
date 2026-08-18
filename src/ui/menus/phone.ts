@@ -74,7 +74,7 @@
     return LT.game.returnNode || (LT.game.started ? LT.game.currentNode : "boot.menu");
   }
 
-  function openPhoneNode(id) {
+  function openPhoneNode(id: string) {
     if (typeof LT.rememberReturn === "function") LT.rememberReturn();
     LT.game.setContent(id);
   }
@@ -146,7 +146,7 @@
     title: "Planner",
     chrome: { left: true, right: true },
     getContent: function () {
-      function block(q) {
+      function block(q: { line: string; name: string; text: string }) {
         return (
           "<details open><summary class='quest-title' style='color:" +
           LT.Colour.GENERIC_ARCANE +
@@ -183,7 +183,7 @@
     },
   });
 
-  function waitAndReturn(seconds, hour, text) {
+  function waitAndReturn(seconds: number, hour: number | null, text: string) {
     if (hour != null && typeof LT.waitUntilHour === "function") LT.waitUntilHour(hour);
     else LT.game.advanceTime(seconds || 0);
     if (typeof LT.updateHouseNpcLocations === "function") LT.updateHouseNpcLocations();

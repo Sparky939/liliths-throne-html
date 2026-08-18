@@ -26,6 +26,28 @@ have a `src/**/*.ts` counterpart, including the boot loader itself
 (`src/text/kaysTextiles.ts`) but still orphaned; that's a pre-existing
 condition in the original repo, not something this migration changed.
 
+## Reference: the original Java version
+
+This project (both upstream's JS port and this TS fork of it) is a
+work-in-progress reimplementation trying to catch up to the original,
+much more complete Java version: [`Innoxia/liliths-throne-public`](https://github.com/Innoxia/liliths-throne-public)
+(`dev` branch). Code here that looks incomplete or only partially wired up
+is often intentionally catching up to that source, not a bug — see PR #2
+on upstream ("Add regen over time") for the pattern to follow: it cites
+exact Java line numbers (`Game.java:3350-3364`, `GameCharacter.java:20456`)
+as the source of truth for the ported behavior.
+
+A shallow (`--depth 1`) clone is kept locally as a sibling directory —
+`../liliths-throne-public` relative to this repo, i.e.
+`~/projects/personal/liliths-throne-public` — purely for cross-referencing
+when porting a feature or verifying behavior. It is not part of this repo
+(no submodule, nothing committed here) and isn't kept continuously in sync;
+re-clone or `git fetch --depth 1` it if you need current upstream Java.
+Relevant paths: `src/com/lilithsthrone/game/Game.java` (main game loop/tick
+logic), `src/com/lilithsthrone/game/character/GameCharacter.java` (the
+canonical character model this fork's `src/character/character.ts` is
+re-typing a JS/TS port of).
+
 ## Typing philosophy: pragmatic, not exhaustive
 
 `tsconfig.json` uses `strict: true` with `noImplicitAny` and `noImplicitThis`

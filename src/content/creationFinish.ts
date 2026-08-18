@@ -274,8 +274,8 @@
     );
   }
 
-  function clothesSummary(p) {
-    var parts: any[] = [];
+  function clothesSummary(p: Character): string {
+    var parts: string[] = [];
     var slots = Object.keys(p.equipped);
     for (var i = 0; i < slots.length; i++) {
       var it = p.equipped[slots[i]];

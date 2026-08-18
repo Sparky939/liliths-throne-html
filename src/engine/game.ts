@@ -79,6 +79,8 @@
     if (typeof LT.tickWeather === "function") LT.tickWeather(seconds);
     if (typeof LT.tickSlavery === "function") LT.tickSlavery(seconds);
     if (typeof LT.tickWorldStatusEffects === "function" && this.player) LT.tickWorldStatusEffects(this.player, seconds);
+    // Ported from upstream PR #2 (crabtaster): regen over time.
+    if (typeof LT.tickRegeneration === "function" && this.player) LT.tickRegeneration(this.player, seconds);
     document.dispatchEvent(new CustomEvent("lt-time", { detail: { seconds: this.secondsPassed } }));
   };
 

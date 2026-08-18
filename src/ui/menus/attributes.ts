@@ -1,5 +1,5 @@
 (function () {
-  function pct(value, max, fallback) {
+  function pct(value: number | null | undefined, max: number | null | undefined, fallback: number): number {
     if (value == null || !max) return fallback;
     return Math.max(0, Math.min(100, (value / max) * 100));
   }
@@ -11,7 +11,7 @@
       .replace(/>/g, "&gt;");
   }
 
-  function bar(label, percent, colour, icon, current, max) {
+  function bar(label: string, percent: number, colour: string, icon: string, current: number | null | undefined, max: number | null | undefined) {
     var nums = current != null && max != null ? current + " / " + max : Math.round(percent) + "%";
     return (
       '<div class="resource-row" data-tip="' +
@@ -33,12 +33,13 @@
     );
   }
 
-  function statIcon(label, value, colour, icon) {
+  // Ported from upstream PR #3 (ZorroSft): integer attribute panel display.
+  function statIcon(label: string, value: number, colour: string, icon: string) {
     return (
       '<div class="stat-icon" data-tip="' +
       label +
       ": " +
-      value +
+      Number(Math.floor(value)) +
       '"><img src="' +
       icon +
       '" alt="' +
@@ -46,7 +47,7 @@
       '"><span style="color:' +
       colour +
       ';">' +
-      value +
+      Number(Math.floor(value)) +
       "</span></div>"
     );
   }
@@ -63,8 +64,11 @@
     var nameColour =
       femininity < 40 ? Colour.MASCULINE : femininity > 60 ? Colour.FEMININE : Colour.ANDROGYNOUS;
 
-    var hp = pct(player && player.health, player && player.maxHealth, 100);
-    var aura = pct(player && player.mana, player && player.maxMana, 100);
+    // Ported from upstream PR #2 (crabtaster): floor for regen-over-time display.
+    var health = player && player.health != null ? Math.floor(player.health) : null;
+    var mana = player && player.mana != null ? Math.floor(player.mana) : null;
+    var hp = pct(health, player && player.maxHealth, 100);
+    var aura = pct(mana, player && player.maxMana, 100);
     var xp = pct(player && player.experience, player && player.experienceForLevel, 0);
 
     root.innerHTML =
@@ -80,8 +84,8 @@
       " " +
       escapeHtml(race) +
       "</p>" +
-      bar("Health", hp, Colour.ATTRIBUTE_HEALTH, LT.uiIcon("healthIcon.svg"), player && player.health, player && player.maxHealth) +
-      bar("Aura", aura, Colour.ATTRIBUTE_MANA, LT.uiIcon("manaIcon.svg"), player && player.mana, player && player.maxMana) +
+      bar("Health", hp, Colour.ATTRIBUTE_HEALTH, LT.uiIcon("healthIcon.svg"), health, player && player.maxHealth) +
+      bar("Aura", aura, Colour.ATTRIBUTE_MANA, LT.uiIcon("manaIcon.svg"), mana, player && player.maxMana) +
       bar("Experience", xp, Colour.ATTRIBUTE_EXPERIENCE, LT.uiIcon("experienceIcon.svg"), player && player.experience, player && player.experienceForLevel) +
       "</div>" +
       '<div class="attribute-container"><div class="attr-row">' +

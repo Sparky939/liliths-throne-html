@@ -1,28 +1,28 @@
 (function () {
-  var registry: any = {};
-  var activeByTarget = {
+  var registry: Record<string, UISectionEntry> = {};
+  var activeByTarget: Record<string, string | null> = {
     stage: null,
     left: null,
     right: null,
     overlay: null,
   };
 
-  function inferTarget(id) {
+  function inferTarget(id: string): string {
     var el: any = document.querySelector('[data-ui="' + id + '"]');
     return (el && el.getAttribute("data-ui-target")) || "stage";
   }
 
-  function hideSection(id) {
+  function hideSection(id: string) {
     var el: any = document.querySelector('[data-ui="' + id + '"]');
     if (el) el.hidden = true;
   }
 
-  function showSection(id) {
+  function showSection(id: string) {
     var el: any = document.querySelector('[data-ui="' + id + '"]');
     if (el) el.hidden = false;
   }
 
-  LT.registerUI = function (id, hooks) {
+  LT.registerUI = function (id: string, hooks?: UISectionHooks | null) {
     hooks = hooks || {};
     registry[id] = {
       id: id,
@@ -33,13 +33,13 @@
     };
   };
 
-  LT.getActive = function (target) {
+  LT.getActive = function (target?: string | null) {
     return activeByTarget[target || "stage"];
   };
 
-  LT.openUI = function (id, opts) {
+  LT.openUI = function (id: string, opts?: UIOpenOpts | null) {
     opts = opts || {};
-    var entry = registry[id] || { id: id, target: opts.target || inferTarget(id) };
+    var entry: UISectionEntry = registry[id] || { id: id, target: opts.target || inferTarget(id), onOpen: null, onClose: null, render: null };
     var target = opts.target || entry.target || "stage";
     var prevId = activeByTarget[target];
 
@@ -60,7 +60,7 @@
     return id;
   };
 
-  LT.closeUI = function (id) {
+  LT.closeUI = function (id: string) {
     var entry = registry[id];
     var target = (entry && entry.target) || inferTarget(id);
     if (activeByTarget[target] !== id) return;
@@ -69,14 +69,14 @@
     activeByTarget[target] = null;
   };
 
-  LT.setTitle = function (text) {
+  LT.setTitle = function (text?: string | null) {
     var el: any = document.getElementById("content-title");
     if (!el) return;
     el.innerHTML = text || "";
     el.hidden = !text;
   };
 
-  LT.setChrome = function (opts) {
+  LT.setChrome = function (opts?: ChromeOpts | null) {
     opts = opts || {};
     var app: any = document.getElementById("app");
     if (app) {

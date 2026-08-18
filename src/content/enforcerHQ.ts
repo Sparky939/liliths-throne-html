@@ -54,7 +54,12 @@
     },
   });
 
-  function defineHqPlace(id: any, title: any, tag: any, extras?: any) {
+  function defineHqPlace(
+    id: string,
+    title: string,
+    tag: string | null,
+    extras?: { applyPreParsingEffects?: () => void; getContent?: () => string; getResponses?: () => (LTResponse | null)[] },
+  ): void {
     extras = extras || {};
     LT.defineNode({
       id: id,

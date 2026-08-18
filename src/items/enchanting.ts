@@ -212,7 +212,7 @@
       if (!effects) return;
       for (var i = 0; i < effects.length; i++) LT.applyEffectToBonus(bonus, effects[i], 1);
     });
-    function addWeapon(wep?: Item) {
+    function addWeapon(wep?: Item | null) {
       var effects = wep && wep.effects;
       if (!effects) return;
       var i;
@@ -384,7 +384,10 @@
     var found = LT.findCarriedByUid(player, uid);
     if (!found) return false;
     if (found.equipped) {
-      player.equipped![found.slot] = next;
+      // found.equipped guarantees `next` was shape-copied from an
+      // originally-equipped ClothingItem (see craftEnchantedItem's shallow
+      // key copy) — a runtime invariant CarriedThing can't express statically.
+      player.equipped![found.slot] = next as ClothingItem;
       LT.reapplyWornEnchantments(player);
       return true;
     }

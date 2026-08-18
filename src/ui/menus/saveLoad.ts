@@ -1,7 +1,7 @@
 (function () {
   var confirm = { overwrite: "", load: "", delete: "" };
 
-  function fmtTime(iso) {
+  function fmtTime(iso?: string | null) {
     if (!iso) return "-";
     var d = new Date(iso);
     if (isNaN(d.getTime())) return "-";
@@ -19,7 +19,7 @@
     );
   }
 
-  function iconBtn(action: any, name: any, src: any, tip: any, extraClass?: any) {
+  function iconBtn(action: string, name: string, src: string, tip: string, extraClass?: string) {
     return (
       '<button type="button" class="square-button saveIcon' +
       (extraClass ? " " + extraClass : "") +
@@ -37,7 +37,7 @@
     );
   }
 
-  function row(dateHtml, nameHtml, buttons, alt) {
+  function row(dateHtml: string, nameHtml: string, buttons: string, alt: boolean) {
     return (
       '<div class="save-row' +
       (alt ? " alt" : "") +
@@ -102,7 +102,7 @@
     LT.game.setContent("boot.save-load");
   };
 
-  function onAction(action, name) {
+  function onAction(action: string, name: string) {
     if (action === "new") {
       var input: any = document.getElementById("new_save_name");
       var n = (input && input.value) || "New Save";

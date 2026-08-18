@@ -1,5 +1,5 @@
 (function () {
-  var LEFT = [
+  var LEFT: ChromeButtonSpec[] = [
     { id: "menu", icon: "menu.svg", tip: "Main Menu", action: function () {
       if (typeof LT.rememberReturn === "function") LT.rememberReturn();
       LT.game.setContent("boot.menu");
@@ -10,7 +10,7 @@
     { id: "copy", icon: "copy.svg", tip: "Copy dialogue", action: copyDialogue },
   ];
 
-  var RIGHT = [
+  var RIGHT: ChromeButtonSpec[] = [
     { id: "zoom", icon: "zoomOut.svg", tip: "Zoom map", action: function () { if (typeof cycleGridZoom === "function") cycleGridZoom(); } },
     { id: "north", label: "N", tip: "Move north", dir: "N" },
     { id: "west", label: "W", tip: "Move west", dir: "W" },
@@ -25,7 +25,7 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
   }
 
-  function makeBtn(spec) {
+  function makeBtn(spec: ChromeButtonSpec) {
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "chrome-btn";
@@ -36,7 +36,7 @@
       img.alt = spec.tip;
       btn.appendChild(img);
     } else {
-      btn.textContent = spec.label;
+      btn.textContent = spec.label ?? null;
     }
     LT.bindTooltip(btn, spec.tip);
     btn.addEventListener("click", function () {

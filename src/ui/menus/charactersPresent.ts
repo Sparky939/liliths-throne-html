@@ -1,5 +1,5 @@
 (function () {
-  function colour(npc) {
+  function colour(npc: Npc) {
     if (npc.getSpeechColour) return npc.getSpeechColour();
     return npc.feminine || (npc.isFeminine && npc.isFeminine()) ? LT.Colour.FEMININE : LT.Colour.MASCULINE;
   }

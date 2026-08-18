@@ -27,6 +27,7 @@
             navigator.clipboard.writeText(text);
     }
     function makeBtn(spec) {
+        var _a;
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "chrome-btn";
@@ -38,7 +39,7 @@
             btn.appendChild(img);
         }
         else {
-            btn.textContent = spec.label;
+            btn.textContent = (_a = spec.label) !== null && _a !== void 0 ? _a : null;
         }
         LT.bindTooltip(btn, spec.tip);
         btn.addEventListener("click", function () {

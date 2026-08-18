@@ -341,12 +341,12 @@
     IDLE: "You catch [npc.name] idle in [npc.her] room. [npc.She] stands as you enter.",
   };
 
-  function flags() {
+  function flags(): Record<string, any> {
     LT.game.flags = LT.game.flags || {};
     return LT.game.flags;
   }
 
-  function escapeHtml(s) {
+  function escapeHtml(s: string | null | undefined): string {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -380,7 +380,7 @@
   };
 
   LT.isEmptyHouseRoom = function (placeType) {
-    return !!EMPTY_ROOMS[placeType];
+    return !!(placeType && EMPTY_ROOMS[placeType as keyof typeof EMPTY_ROOMS]);
   };
 
   LT.currentRoomKey = function () {
@@ -399,10 +399,13 @@
     return { world: parts[0], x: parseInt(xy[0], 10), y: parseInt(xy[1], 10) };
   };
 
+  // A room record is either the legacy bare upgrade-id string or the newer
+  // { u: id } wrapper — `rec.u || rec` reads whichever shape is stored.
   LT.roomUpgradeAt = function (key) {
     var rec = LT.houseRooms()[key || LT.currentRoomKey()];
     if (!rec) return null;
-    return LT.HOUSE_UPGRADES[rec.u || rec] || null;
+    var upgradeId = typeof rec === "string" ? rec : rec.u;
+    return LT.HOUSE_UPGRADES[upgradeId] || null;
   };
 
   LT.findUpgradeKey = function (upgradeId) {
@@ -411,7 +414,8 @@
     var i;
     for (i = 0; i < keys.length; i++) {
       var rec = rooms[keys[i]];
-      if ((rec && rec.u) === upgradeId || rec === upgradeId) return keys[i];
+      var recUpgradeId = typeof rec === "string" ? rec : rec && rec.u;
+      if (recUpgradeId === upgradeId) return keys[i];
     }
     return null;
   };
@@ -421,7 +425,8 @@
     var n = 0;
     Object.keys(rooms).forEach(function (k) {
       var rec = rooms[k];
-      if ((rec && rec.u) === upgradeId || rec === upgradeId) n += 1;
+      var recUpgradeId = typeof rec === "string" ? rec : rec && rec.u;
+      if (recUpgradeId === upgradeId) n += 1;
     });
     return n;
   };
@@ -462,18 +467,18 @@
     return "<p>Rose has the room converted into a <b>" + up.name + "</b> for " + up.cost + " flames.</p>";
   };
 
-  function nextSlaveId() {
+  function nextSlaveId(): string {
     return "slave_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
   }
 
-  function emptyHours() {
-    var hours: any[] = [];
+  function emptyHours(): string[] {
+    var hours: string[] = [];
     var i;
     for (i = 0; i < 24; i++) hours.push("IDLE");
     return hours;
   }
 
-  function defaultPermFlags() {
+  function defaultPermFlags(): Record<string, boolean> {
     return {
       BEHAVIOUR_STANDARD: true,
       SEX_SAVE_VIRGINITY: true,
@@ -490,13 +495,18 @@
     rec.earned = rec.earned || 0;
     rec.collared = rec.collared !== false;
     rec.perms = rec.perms || {};
-    if (rec.perms.beh || rec.perms.sexP != null || rec.perms.house != null) {
-      if (rec.perms.beh) rec.perms["BEHAVIOUR_" + rec.perms.beh] = true;
-      if (rec.perms.sexP !== false) rec.perms.SEX_INITIATE_PLAYER = true;
-      if (rec.perms.house) rec.perms.GENERAL_HOUSE_FREEDOM = true;
-      delete rec.perms.beh;
-      delete rec.perms.sexP;
-      delete rec.perms.house;
+    // Legacy save migration: `beh`/`sexP`/`house` are pre-permissions-rework
+    // fields (beh: a behaviour-suffix string, not a boolean) — cast since
+    // they don't fit the modern Record<string, boolean> shape everywhere
+    // else in `perms`.
+    var legacyPerms = rec.perms as Record<string, any>;
+    if (legacyPerms.beh || legacyPerms.sexP != null || legacyPerms.house != null) {
+      if (legacyPerms.beh) rec.perms["BEHAVIOUR_" + legacyPerms.beh] = true;
+      if (legacyPerms.sexP !== false) rec.perms.SEX_INITIATE_PLAYER = true;
+      if (legacyPerms.house) rec.perms.GENERAL_HOUSE_FREEDOM = true;
+      delete legacyPerms.beh;
+      delete legacyPerms.sexP;
+      delete legacyPerms.house;
     }
     if (!rec.perms.BEHAVIOUR_SLUTTY && !rec.perms.BEHAVIOUR_SEDUCTIVE && !rec.perms.BEHAVIOUR_STANDARD && !rec.perms.BEHAVIOUR_PROFESSIONAL && !rec.perms.BEHAVIOUR_WHOLESOME) {
       rec.perms.BEHAVIOUR_STANDARD = true;
@@ -512,7 +522,7 @@
   };
 
   LT.snapshotSlave = function (npc) {
-    var rec: any = {
+    var rec: SlaveRecord = {
       id: nextSlaveId(),
       name: (npc && (npc.name || (npc.getName && npc.getName()))) || "Unknown",
       feminine: !!(npc && (npc.feminine || (npc.isFeminine && npc.isFeminine()))),
@@ -557,7 +567,7 @@
     }
     var rec = LT.snapshotSlave(npc);
     rec.src = npc.id;
-    rec.id = npc.id;
+    rec.id = npc.id!;
     rec.waiting = false;
     owned.push(rec);
     LT.syncSlaveNpcs();
@@ -641,7 +651,9 @@
       rec.hours[hour] = "IDLE";
     } else {
       var check = LT.jobHourAvailable(jobId, rec, hour);
-      if (!check.ok) return check.reason;
+      // jobHourAvailable always sets reason alongside ok:false; asserted
+      // since JobAvailability.reason is optional only for the ok:true case.
+      if (!check.ok) return check.reason!;
       rec.hours[hour] = jobId;
     }
     rec.job = LT.primarySlaveJob(rec);
@@ -673,7 +685,7 @@
 
   LT.primarySlaveJob = function (rec) {
     LT.normalizeSlave(rec);
-    var counts: any = {};
+    var counts: Record<string, number> = {};
     var hour;
     for (hour = 0; hour < 24; hour++) {
       var id = rec.hours[hour] || "IDLE";
@@ -693,15 +705,18 @@
 
   LT.slaveHoursSummary = function (rec) {
     LT.normalizeSlave(rec);
-    var parts: any[] = [];
+    var parts: string[] = [];
     var start = 0;
-    var cur = rec.hours[0] || "IDLE";
+    var cur: string | null = rec.hours[0] || "IDLE";
     var hour;
     for (hour = 1; hour <= 24; hour++) {
       var next = hour < 24 ? rec.hours[hour] || "IDLE" : null;
       if (next !== cur) {
         if (cur !== "IDLE") {
-          var job = LT.SLAVE_JOBS[cur] || LT.SLAVE_JOBS.IDLE;
+          // cur is only ever null right after being set from this iteration's
+          // `next` at the very end of the loop (hour === 24), so there's no
+          // later iteration where it's read back in as null here.
+          var job = LT.SLAVE_JOBS[cur!] || LT.SLAVE_JOBS.IDLE;
           var name = rec.feminine === false ? job.nameM : job.name;
           parts.push(name + " " + String(start).padStart(2, "0") + ":00–" + String(hour % 24).padStart(2, "0") + ":00");
         }
@@ -714,7 +729,7 @@
 
   LT.setSlaveJob = function (rec, jobId) {
     var check = LT.jobAvailable(jobId, rec);
-    if (!check.ok) return check.reason;
+    if (!check.ok) return check.reason!;
     rec.job = jobId;
     if (jobId === "IDLE") {
       rec.hours = emptyHours();
@@ -874,8 +889,8 @@
     });
   };
 
-  function hoursCrossed(prevSeconds, nextSeconds) {
-    var hours: any[] = [];
+  function hoursCrossed(prevSeconds: number, nextSeconds: number): number[] {
+    var hours: number[] = [];
     var t = Math.floor(prevSeconds / 3600) + 1;
     var end = Math.floor(nextSeconds / 3600);
     for (; t <= end && hours.length < 48; t++) hours.push(((t % 24) + 24) % 24);
@@ -929,7 +944,7 @@
     var place = loc.place || "";
     var x = loc.x;
     var y = loc.y;
-    var list: any[] = [];
+    var list: SlaveRecord[] = [];
     LT.ownedSlaves().forEach(function (rec) {
       var npc = LT.game.npcs && LT.game.npcs[rec.id];
       if (!npc || !npc.location) return;

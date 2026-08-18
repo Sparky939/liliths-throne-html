@@ -36,7 +36,7 @@
     };
     LT.openUI = function (id, opts) {
         opts = opts || {};
-        var entry = registry[id] || { id: id, target: opts.target || inferTarget(id) };
+        var entry = registry[id] || { id: id, target: opts.target || inferTarget(id), onOpen: null, onClose: null, render: null };
         var target = opts.target || entry.target || "stage";
         var prevId = activeByTarget[target];
         if (prevId && prevId !== id) {

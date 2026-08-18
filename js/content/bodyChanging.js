@@ -113,6 +113,11 @@
             LT.ensureBody(ch);
         return ch.body;
     }
+    // `b` stays loosely typed here on purpose: this function's whole job is
+    // backfilling a body object that may be missing fields CharacterBody
+    // otherwise declares as always-present (legacy save data, or a body
+    // object built before every default was applied) — every other function
+    // in this file runs after ensureExtras and can trust the full shape.
     function ensureExtras(ch, b) {
         if (!ch || !b)
             return;
@@ -276,7 +281,7 @@
         var i;
         for (i = 0; i < items.length; i++) {
             var it = items[i];
-            var on = selected && selected.indexOf(it.id) >= 0;
+            var on = !!(selected && selected.indexOf(it.id) >= 0);
             html += pill(on, actPrefix + it.id, nameOf(it), hexOf(it));
         }
         return box(title, help, html, half);
@@ -593,6 +598,9 @@
             name = "Preset";
         var ch = target();
         var map = loadPresets();
+        // TODO(ts): target() can return null/undefined here (e.g. no active
+        // character); this dereferences ch.body unguarded, same as the
+        // original JS — pre-existing latent null-deref, not introduced by typing.
         map[name] = typeof LT.serializeBody === "function" ? LT.serializeBody(ch.body) : JSON.parse(JSON.stringify(ch.body));
         writePresets(map);
     }
@@ -665,6 +673,9 @@
                 if (!b)
                     return "<p>No body to transform.</p>";
                 ensureExtras(ch, b);
+                // bodyOf(ch) only returns a body when its resolved character was
+                // truthy (same target() ch resolves to here), so ch is real
+                // whenever b is — TS can't see that cross-function invariant.
                 return htmlFn(ch, b);
             },
             getContent: function () {
@@ -811,7 +822,10 @@
             row(stepper("Rows", "How many pairs of crotch-boobs you have.", "breastCrotch.rows", b.breastCrotch.rows || 1, 1, 5, "", true), toggles("Nipple modifiers", "Special qualities of your crotch-nipples.", LT.ORIFICE_MODIFIER, b.breastCrotch.orifice.modifiers, "toggle:breastCrotch.orifice.modifiers:", true)) +
             row(stepper("Milk storage", "How much milk your crotch-boobs can store.", "breastCrotch.milkStorage", b.breastCrotch.milkStorage || 0, 0, 10000, " ml", true), stepper("Milk regeneration", "How quickly that milk replenishes.", "breastCrotch.milkRegen", b.breastCrotch.milkRegen || 0, 0, 10000, "", true)) +
             row(pills("Milk flavour", "The flavour of this milk.", LT.FLUID_FLAVOUR, b.breastCrotch.milkFlavour, "set:breastCrotch.milkFlavour:", true), toggles("Milk modifiers", "Special qualities of this milk.", LT.FLUID_MODIFIER, b.breastCrotch.milkModifiers, "toggle:breastCrotch.milkModifiers:", true)) +
-            row(stepper("Nipples per breast", "How many nipples each crotch-boob has.", "breastCrotch.nipple.countPerBreast", b.breastCrotch.nipple.countPerBreast || 1, 1, 4, "", true), pills("Nipple shape", "The shape of your crotch-nipples.", LT.NIPPLE_SHAPE, b.breastCrotch.nipple.shape, "set:breastCrotch.nipple.shape:", true)) +
+            row(
+            // ensureExtras() has already backfilled nipple/areolae/orifice by
+            // the time this renders (see CharacterBody's breastCrotch comment).
+            stepper("Nipples per breast", "How many nipples each crotch-boob has.", "breastCrotch.nipple.countPerBreast", b.breastCrotch.nipple.countPerBreast || 1, 1, 4, "", true), pills("Nipple shape", "The shape of your crotch-nipples.", LT.NIPPLE_SHAPE, b.breastCrotch.nipple.shape, "set:breastCrotch.nipple.shape:", true)) +
             row(pills("Nipple size", "How large your crotch-nipples are.", LT.SIZE5, b.breastCrotch.nipple.size, "set:breastCrotch.nipple.size:", true), pills("Areolae size", "How large those areolae are.", LT.SIZE5, b.breastCrotch.areolae.size, "set:breastCrotch.areolae.size:", true)) +
             row(pills("Nipple capacity", "How accommodating your crotch-nipples are.", LT.SIZE5, b.breastCrotch.orifice.capacity, "set:breastCrotch.orifice.capacity:", true), pills("Nipple depth", "How deep your crotch-nipples are.", LT.ORIFICE_DEPTH, b.breastCrotch.orifice.depth, "set:breastCrotch.orifice.depth:", true)) +
             row(pills("Nipple elasticity", "How quickly they stretch.", LT.ELASTICITY, b.breastCrotch.orifice.elasticity, "set:breastCrotch.orifice.elasticity:", true), pills("Nipple plasticity", "How readily they keep a new size.", LT.PLASTICITY, b.breastCrotch.orifice.plasticity, "set:breastCrotch.orifice.plasticity:", true)) +

@@ -1,7 +1,63 @@
 (function () {
-  function uid(prefix: string) {
-    return prefix + "_" + Math.random().toString(36).slice(2, 8);
+  // Ported from upstream PR #5 (SupernovaXTS): items migrated to a real class.
+  //
+  // Deviations from upstream's literal implementation (fixing bugs found
+  // during the port, verified by running upstream's actual PR branch):
+  //  - Upstream assigns the class to `LT.Item` but then calls the bare
+  //    `Item` identifier 20 times inside the ITEMS catalog (`new Item({...})`),
+  //    which is never bound as a local name — confirmed by running upstream's
+  //    branch directly: throws `ReferenceError: Item is not defined` and
+  //    crashes the whole boot sequence. Fixed here by keeping catalog entries
+  //    as plain ItemCatalogEntry data (as before) and only constructing real
+  //    `Item` instances in makeItem(), which is also more correct: catalog
+  //    entries and carried instances are genuinely different shapes (no uid
+  //    until minted), matching the existing ItemCatalogEntry/Item split.
+  //  - Upstream's class constructor never assigns `this.value`, so every
+  //    item would price at `NaN` (itemBuyPrice does `t.value * 1.5`). Kept
+  //    here.
+  //  - Upstream's makeItem does `var item = structuredClone(item)`,
+  //    referencing `item` before it's ever assigned (no such parameter
+  //    exists) — `item` is `undefined`, so `item.genUid(...)` throws
+  //    immediately. Also, structuredClone doesn't preserve a class's
+  //    prototype for non-builtin classes, so even fixed to clone the
+  //    catalog entry it would silently degrade the result to a plain object,
+  //    losing genUid()/equip(). Fixed here by constructing a fresh Item
+  //    instance from the catalog entry's fields instead of structuredClone.
+  // Named ItemInstance (not Item) so this class declaration doesn't shadow
+  // the global `Item` interface for the rest of this file/scope.
+  class ItemInstance implements Item {
+    id: string;
+    uid: string;
+    name: string;
+    kind?: string;
+    value: number;
+    description: string;
+    soldBy: string[];
+    race?: string;
+    fem?: string;
+    masc?: string;
+    [key: string]: any;
+
+    constructor(opts: ItemCatalogEntry) {
+      this.id = opts.id;
+      this.uid = "";
+      this.name = opts.name;
+      this.description = (opts as any).description || "";
+      this.kind = opts.kind;
+      this.value = opts.value;
+      this.soldBy = opts.soldBy || [];
+      this.race = opts.race;
+      this.fem = opts.fem;
+      this.masc = opts.masc;
+    }
+    genUid(prefix?: string) {
+      this.uid = (prefix || this.kind || "item") + "_" + Math.random().toString(36).slice(2, 8);
+    }
+    equip() {
+      throw new Error("Not Implemented");
+    }
   }
+  LT.Item = ItemInstance;
 
   var ITEMS = (LT.ITEMS = {
     innoxia_items_essence_arcane: {
@@ -191,16 +247,12 @@
     return t ? Math.round(t.value * 1.5) : 0;
   };
 
-  LT.makeItem = function (id) {
+  LT.makeItem = function (id: string): Item | null {
     var t = ITEMS[id];
     if (!t) return null;
-    return {
-      kind: t.kind,
-      id: t.id,
-      name: t.name,
-      value: t.value,
-      uid: uid(t.kind || "item"),
-    };
+    var item = new ItemInstance(t);
+    item.genUid(t.kind || "item");
+    return item;
   };
 
   LT.shopItemIds = function (seller) {

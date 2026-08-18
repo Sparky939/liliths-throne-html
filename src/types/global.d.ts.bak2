@@ -164,14 +164,7 @@ declare global {
 
   interface NpcGearCarrier {
     id?: string;
-    // Not named `occupation?: string` here on purpose: npcGear.ts's own
-    // usage (`npc.occupation === "prostitute"`) really does treat it as a
-    // plain string id, but Character.occupation is a full `Occupation | null`
-    // record (a genuinely different concept, not just a looser/stricter
-    // version of the same field) — found when Character started extending
-    // this interface. Left to fall through the index signature below rather
-    // than forcing either side to fit the other; `npc.occupation === "..."`
-    // still typechecks fine against `any`.
+    occupation?: string;
     feminine?: boolean;
     isFeminine?: () => boolean;
     equipped?: Record<string, NpcGearItem | undefined>;
@@ -195,7 +188,7 @@ declare global {
   // different mix of fields (level/lootMoney for enemies, playerKnowsName for
   // story NPCs, etc.), so only the fields genuinely shared/read across
   // npcs.ts's own logic are named — the index signature covers the rest.
-  interface Npc extends Combatant, NpcGearCarrier, StatusEffectCarrier, ItemOwner {
+  interface Npc {
     id?: string;
     name?: string;
     surname?: string;
@@ -424,13 +417,8 @@ declare global {
     // enchantmentKnown too, so reapplyWornEnchantments' generic `.effects`
     // read still works.
     equipped?: Record<string, ClothingItem | undefined>;
-    // Character.mainWeapon/offhandWeapon are `Item | null` (never simply
-    // absent — set to null, not left undefined) — found via the inheritance
-    // audit's `skipLibCheck: false` re-run (see the extends clause's
-    // comment on the Character interface itself for why that check is
-    // needed at all here).
-    mainWeapon?: Item | null;
-    offhandWeapon?: Item | null;
+    mainWeapon?: Item;
+    offhandWeapon?: Item;
     enchantBonus?: EnchantBonus;
     wardrobe?: ClothingItem[];
     items?: Item[];
@@ -738,7 +726,9 @@ declare global {
   // === player.ts ===
 
   // Canonical, fully-typed player character shape: what `new LT.GameCharacter(...)`
-  // actually produces.
+  // actually produces. This is the "no canonical Character type exists yet"
+  // gap the Combatant/EnchantCarrier/ItemOwner doc comments elsewhere in this
+  // file point at.
   //
   // NPCs deliberately stay on the looser `Npc` bag (see npcs.ts) rather than
   // extending Character or being unified with it: a repo-wide grep confirms
@@ -753,22 +743,11 @@ declare global {
   // instead of `Character` for that reason — Character's required fields
   // would reject a bare Npc literal that Combatant happily accepts.
   //
-  // Character formally `extends` every "character-shaped" interface in this
-  // file it's compatible with, rather than just structurally happening to
-  // satisfy them (an earlier version of this comment claimed the latter —
-  // it was never actually compiler-checked, since interface-extends
-  // conflicts inside a .d.ts are silently skipped under this project's
-  // `skipLibCheck: true`; verified for real here with a one-off
-  // `tsc --noEmit --skipLibCheck false` re-run, not the normal
-  // `npm run typecheck`). That check found two genuine, pre-existing
-  // mismatches, both fixed in place: EnchantCarrier's mainWeapon/
-  // offhandWeapon were `Item | undefined` (missing `| null`, which
-  // Character's fields actually use), and NpcGearCarrier's `occupation`
-  // turned out to mean something genuinely different from Character's own
-  // (see NpcGearCarrier's comment) — left unnamed there rather than forced
-  // to unify. Anyone adding a new carrier interface or widening one of
-  // these should re-run that full check rather than trusting a plain
-  // `npm run typecheck` pass to catch conflicts introduced here.
+  // Character is written to structurally satisfy every existing loose
+  // "character-shaped" interface (Combatant, ItemOwner, ClothingWearer,
+  // BodyCarrier, EnchantCarrier, NpcGearCarrier, OccupationOwner), so a real
+  // player object can be passed to any function expecting one of those
+  // without a cast.
   interface Character
     extends ItemOwner,
       OccupationOwner,
@@ -776,8 +755,7 @@ declare global {
       BodyCarrier,
       EnchantCarrier,
       NpcGearCarrier,
-      StatusEffectCarrier,
-      Combatant {
+      StatusEffectCarrier {
     id?: string;
     player: boolean;
     names: { masculine: string; androgynous: string; feminine: string };
@@ -994,14 +972,10 @@ declare global {
   // === combat.ts, status.ts, damage.ts ===
 
   // Shared shape for a character actively participating in combat (player or
-  // enemy/NPC). Deliberately stays this loose rather than being replaced by
-  // `Character` everywhere: combat code runs against enemies too, which are
-  // bare Npc/ad-hoc literals that don't satisfy Character's required fields
-  // (see the design-decision comment on Character in the player.ts section).
-  // Character itself formally `extends Combatant` (it's the more specific,
-  // fully-fleshed-out case), so a real player object still flows into any
-  // Combatant-typed function without a cast — this interface just also
-  // accepts the lighter-weight enemy/NPC case Character can't.
+  // enemy). Loosely known on purpose — no canonical Character type exists yet
+  // project-wide (see EnchantCarrier/ItemOwner for the equivalent pattern
+  // elsewhere) — hence the index signature for the many appearance/body/etc.
+  // fields this domain doesn't touch.
   interface Combatant {
     health?: number;
     maxHealth?: number;

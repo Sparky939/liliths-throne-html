@@ -90,7 +90,7 @@
     return (LT.ITEMS && LT.ITEMS[id] && LT.ITEMS[id].name) || id;
   }
 
-  LT.pickWeightedEncounter = function (entries) {
+  LT.pickWeightedEncounter = function (entries: EncounterEntry[]): EncounterEntry | null {
     var total = 0;
     var i;
     for (i = 0; i < entries.length; i++) total += entries[i].weight;
@@ -104,12 +104,12 @@
     return entries[entries.length - 1];
   };
 
-  LT.rollEncounterTable = function (entries, force) {
-    var available: any[] = [];
+  LT.rollEncounterTable = function (entries: EncounterEntry[] | null | undefined, force?: boolean): EncounterResult | null {
+    var available: EncounterEntry[] = [];
     var total = 0;
     var i;
     for (i = 0; i < (entries || []).length; i++) {
-      var e = entries[i];
+      var e = entries![i];
       if (!e || !e.weight || (e.available && !e.available())) continue;
       available.push(e);
       total += e.weight;
@@ -135,7 +135,7 @@
     return null;
   };
 
-  LT.encounterTableIdForPlace = function (placeType) {
+  LT.encounterTableIdForPlace = function (placeType: string | null | undefined): string | null {
     if (!placeType) return null;
     if (STREET_PLACES[placeType]) return "DOMINION_STREET";
     if (placeType === "DOMINION_PARK") return "DOMINION_PARK";
@@ -143,8 +143,8 @@
     return null;
   };
 
-  LT.streetEncounterEntries = function () {
-    var list: any[] = [];
+  LT.streetEncounterEntries = function (): EncounterEntry[] {
+    var list: EncounterEntry[] = [];
     if (LT.isArcaneStorm && LT.isArcaneStorm()) {
       list.push({ id: "DOMINION_STORM_ATTACK", weight: 15, start: startStormAttack });
     }
@@ -154,15 +154,15 @@
     return list;
   };
 
-  LT.parkEncounterEntries = function () {
+  LT.parkEncounterEntries = function (): EncounterEntry[] {
     if (LT.isArcaneStorm && LT.isArcaneStorm()) {
       return [{ id: "DOMINION_STORM_ATTACK", weight: 15, start: startStormAttack }];
     }
     return [];
   };
 
-  LT.harpyWalkwayEntries = function () {
-    var list: any[] = [];
+  LT.harpyWalkwayEntries = function (): EncounterEntry[] {
+    var list: EncounterEntry[] = [];
     if (!harpyPacified() || (LT.isArcaneStorm && LT.isArcaneStorm())) {
       list.push({ id: "HARPY_NEST_ATTACK", weight: 12, start: startHarpyAttack });
     }
@@ -170,14 +170,14 @@
     return list;
   };
 
-  LT.harpyLookForTroubleEntries = function () {
+  LT.harpyLookForTroubleEntries = function (): EncounterEntry[] {
     return [
       { id: "HARPY_NEST_ATTACK", weight: 12, start: startHarpyAttack },
       { id: "HARPY_NEST_FIND_ITEM", weight: 4, start: startHarpyFindItem },
     ];
   };
 
-  function entriesForTable(tableId) {
+  function entriesForTable(tableId: string): EncounterEntry[] {
     if (tableId === "DOMINION_STREET") return LT.streetEncounterEntries();
     if (tableId === "DOMINION_PARK") return LT.parkEncounterEntries();
     if (tableId === "HARPY_NEST_WALKWAYS") return LT.harpyWalkwayEntries();
@@ -215,7 +215,7 @@
     return "enc.happiness";
   }
 
-  LT.generateHarpyAttacker = function (opts) {
+  LT.generateHarpyAttacker = function (opts?: { feminine?: boolean; race?: any; level?: number } | null): Combatant {
     opts = opts || {};
     var npc = LT.generateAlleyMugger({
       storm: false,
@@ -231,7 +231,7 @@
     return npc;
   };
 
-  LT.maybePlaceEncounter = function (opts) {
+  LT.maybePlaceEncounter = function (opts?: { tableId?: string; force?: boolean; noRedirect?: boolean } | null): string | null {
     opts = opts || {};
     var loc = LT.game.player && LT.game.player.location;
     if (!loc) return null;
@@ -246,11 +246,11 @@
     return result.node;
   };
 
-  LT.maybeStormEncounter = function () {
+  LT.maybeStormEncounter = function (): string | null | undefined {
     return LT.maybePlaceEncounter();
   };
 
-  function fightResponse(npc: any, victory: any, defeat: any, tip?: any) {
+  function fightResponse(npc: Combatant, victory: string | null, defeat: string | null, tip?: string): LTResponse {
     return LT.ResponseCombat("Fight", tip || LT.parse("Stand up for yourself and fight [npc.name]!"), {
       enemy: npc,
       escapeChance: 25,

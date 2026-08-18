@@ -77,7 +77,7 @@
   };
 
   LT.isVulnerableToArcaneStorm = function (ch) {
-    return (typeof LT.effectiveArcane === "function" ? LT.effectiveArcane(ch) : (ch && ch.arcane) || 0) < 10;
+    return (typeof LT.effectiveArcane === "function" ? LT.effectiveArcane(ch as Combatant) : (ch && ch.arcane) || 0) < 10;
   };
 
   function weatherIcon(day, night) {
@@ -495,7 +495,11 @@
     },
   });
 
-  function bag(ch) {
+  // Callers only ever invoke this after already checking `ch` is truthy, so
+  // the param is typed non-nullable here — the `!ch` branch below is
+  // unreachable in practice but kept for parity with the original defensive
+  // check rather than removed as a behavior change.
+  function bag(ch: StatusEffectCarrier): Record<string, AppliedStatusEffect | undefined> | null {
     if (!ch) return null;
     if (!ch.statusEffects) ch.statusEffects = {};
     return ch.statusEffects;
@@ -516,25 +520,25 @@
   LT.addStatusEffect = function (ch, id, duration) {
     if (!ch || !LT.STATUS_EFFECTS[id]) return false;
     var def = LT.STATUS_EFFECTS[id];
-    var rec = bag(ch)[id] || { id: id, lastApplied: nowSeconds(), secondsPassed: 0 };
+    var rec: AppliedStatusEffect = bag(ch)![id] || { id: id, lastApplied: nowSeconds(), secondsPassed: 0 };
     if (duration && typeof duration === "object") {
       if (duration.combatTurns != null) rec.combatTurns = duration.combatTurns;
       if (duration.secondsRemaining != null) rec.secondsRemaining = duration.secondsRemaining;
     } else if (def.combat) {
-      rec.combatTurns = duration == null ? 1 : duration;
+      rec.combatTurns = duration == null ? 1 : (duration as number);
     } else {
-      rec.secondsRemaining = duration == null ? -1 : duration;
+      rec.secondsRemaining = duration == null ? -1 : (duration as number);
     }
     rec.lastApplied = nowSeconds();
-    bag(ch)[id] = rec;
-    if (typeof LT.refreshVitals === "function") LT.refreshVitals(ch);
+    bag(ch)![id] = rec;
+    if (typeof LT.refreshVitals === "function") LT.refreshVitals(ch as Combatant);
     return true;
   };
 
   LT.removeStatusEffect = function (ch, id) {
     if (!ch || !ch.statusEffects || !ch.statusEffects[id]) return false;
     delete ch.statusEffects[id];
-    if (typeof LT.refreshVitals === "function") LT.refreshVitals(ch);
+    if (typeof LT.refreshVitals === "function") LT.refreshVitals(ch as Combatant);
     return true;
   };
 
@@ -542,16 +546,16 @@
     if (!ch || !ch.statusEffects) return;
     Object.keys(ch.statusEffects).forEach(function (id) {
       var def = LT.STATUS_EFFECTS[id];
-      if (def && def.combat) delete ch.statusEffects[id];
+      if (def && def.combat) delete ch.statusEffects![id];
     });
   };
 
   LT.listStatusEffects = function (ch) {
     if (!ch || !ch.statusEffects) return [];
-    var list: any[] = [];
+    var list: StatusEffectListEntry[] = [];
     Object.keys(ch.statusEffects).forEach(function (id) {
       var def = LT.STATUS_EFFECTS[id];
-      if (def) list.push({ id: id, def: def, applied: ch.statusEffects[id] });
+      if (def) list.push({ id: id, def: def, applied: ch!.statusEffects![id]! });
     });
     list.sort(function (a, b) {
       return (b.def.priority || 0) - (a.def.priority || 0);
@@ -562,12 +566,14 @@
   LT.statusBonus = function (ch) {
     var bonus = emptyBonus();
     if (!ch) return bonus;
-    LT.listStatusEffects(ch).forEach(function (entry) {
+    var carrier = ch;
+    LT.listStatusEffects(carrier).forEach(function (entry) {
       var attrs = entry.def.attributes;
-      if (typeof attrs === "function") attrs = attrs(ch);
+      if (typeof attrs === "function") attrs = attrs(carrier);
       if (!attrs) return;
-      Object.keys(attrs).forEach(function (key) {
-        bonus[key] = (bonus[key] || 0) + attrs[key];
+      var resolved = attrs;
+      Object.keys(resolved).forEach(function (key) {
+        bonus[key] = (bonus[key] || 0) + (resolved[key] || 0);
       });
     });
     return bonus;
@@ -594,26 +600,31 @@
 
   LT.refreshConditionalStatusEffects = function (ch) {
     if (!ch) return;
+    var carrier = ch;
     Object.keys(LT.STATUS_EFFECTS).forEach(function (id) {
       var def = LT.STATUS_EFFECTS[id];
       if (!def.conditions) return;
-      var ok = !!def.conditions(ch);
-      if (ok && !LT.hasStatusEffect(ch, id)) {
-        LT.addStatusEffect(ch, id, { secondsRemaining: -1 });
+      var ok = !!def.conditions(carrier);
+      if (ok && !LT.hasStatusEffect(carrier, id)) {
+        LT.addStatusEffect(carrier, id, { secondsRemaining: -1 });
         if (id === "WEATHER_STORM_VULNERABLE") {
-          ch.lust = Math.max(ch.lust || 0, LT.getRestingLust(ch));
+          carrier.lust = Math.max(carrier.lust || 0, LT.getRestingLust(carrier));
         }
-      } else if (!ok && LT.hasStatusEffect(ch, id) && (ch.statusEffects[id].secondsRemaining == null || ch.statusEffects[id].secondsRemaining < 0)) {
-        LT.removeStatusEffect(ch, id);
+      } else if (
+        !ok &&
+        LT.hasStatusEffect(carrier, id) &&
+        (carrier.statusEffects![id]!.secondsRemaining == null || carrier.statusEffects![id]!.secondsRemaining! < 0)
+      ) {
+        LT.removeStatusEffect(carrier, id);
       }
     });
   };
 
   LT.tickWorldStatusEffects = function (ch, seconds) {
     if (!ch || !seconds) return;
-    var bagNow = bag(ch);
+    var bagNow = bag(ch)!;
     Object.keys(bagNow).forEach(function (id) {
-      var rec = bagNow[id];
+      var rec = bagNow[id]!;
       var def = LT.STATUS_EFFECTS[id];
       if (!def || def.combat) return;
       rec.secondsPassed = (rec.secondsPassed || 0) + seconds;
@@ -683,8 +694,9 @@
     var attrs = def.attributes;
     if (typeof attrs === "function") attrs = attrs(ch);
     if (attrs) {
-      Object.keys(attrs).forEach(function (key) {
-        var n = attrs[key];
+      var resolvedAttrs = attrs;
+      Object.keys(resolvedAttrs).forEach(function (key) {
+        var n = resolvedAttrs[key];
         if (!n) return;
         lines.push((n > 0 ? "+" : "") + n + " " + key);
       });
@@ -733,9 +745,10 @@
 
   LT.serializeStatusEffects = function (ch) {
     if (!ch || !ch.statusEffects) return {};
-    var out: any = {};
-    Object.keys(ch.statusEffects).forEach(function (id) {
-      var rec = ch.statusEffects[id];
+    var statusEffects = ch.statusEffects;
+    var out: Record<string, { id: string; secondsRemaining?: number; combatTurns?: number; lastApplied: number; secondsPassed?: number }> = {};
+    Object.keys(statusEffects).forEach(function (id) {
+      var rec = statusEffects[id]!;
       out[id] = {
         id: id,
         secondsRemaining: rec.secondsRemaining,
@@ -750,15 +763,17 @@
   LT.applySavedStatusEffects = function (ch, data) {
     if (!ch) return;
     ch.statusEffects = {};
+    var statusEffects = ch.statusEffects;
     if (!data) return;
-    Object.keys(data).forEach(function (id) {
+    var savedData = data;
+    Object.keys(savedData).forEach(function (id) {
       if (!LT.STATUS_EFFECTS[id]) return;
-      ch.statusEffects[id] = {
+      statusEffects[id] = {
         id: id,
-        secondsRemaining: data[id].secondsRemaining,
-        combatTurns: data[id].combatTurns,
-        lastApplied: data[id].lastApplied || 0,
-        secondsPassed: data[id].secondsPassed || 0,
+        secondsRemaining: savedData[id].secondsRemaining,
+        combatTurns: savedData[id].combatTurns,
+        lastApplied: savedData[id].lastApplied || 0,
+        secondsPassed: savedData[id].secondsPassed || 0,
       };
     });
   };
@@ -780,15 +795,23 @@
 
   LT.apPenalty = function (ch) {
     var flash = LT.getAppliedStatus(ch, "FLASH");
-    return flash && flash.combatTurns > 0 ? 1 : 0;
+    return flash && flash.combatTurns! > 0 ? 1 : 0;
   };
 
   LT.consumeFlash = function (ch) {
     var flash = LT.getAppliedStatus(ch, "FLASH");
     if (!flash) return 0;
-    var penalty = flash.combatTurns > 0 ? 1 : 0;
-    flash.combatTurns -= 1;
-    if (flash.combatTurns <= 0) LT.removeStatusEffect(ch, "FLASH");
+    // combatTurns is typed optional (addStatusEffect only sets it when the
+    // duration object explicitly carries a non-null combatTurns), but every
+    // real call path here goes through LT.applyStatus, which always passes
+    // one. Asserted rather than defaulted to preserve the original's exact
+    // (unguarded) arithmetic — see TODO(ts) below.
+    var penalty = flash.combatTurns! > 0 ? 1 : 0;
+    // TODO(ts): pre-existing — if combatTurns were ever genuinely absent
+    // here, this decrements `undefined` and produces NaN, same as the
+    // original untyped JS. Not fixed here since it's a behavior change.
+    flash.combatTurns! -= 1;
+    if (flash.combatTurns! <= 0) LT.removeStatusEffect(ch, "FLASH");
     return penalty;
   };
 

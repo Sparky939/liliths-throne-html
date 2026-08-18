@@ -29,6 +29,41 @@
         { id: "ankle", label: "Ankles" },
         { id: "foot", label: "Feet" },
     ];
+    // Ported from upstream PR #5 (SupernovaXTS): clothing migrated to a real
+    // class extending Item. Two upstream bugs fixed here (both confirmed by
+    // running upstream's actual PR branch, not just reading the diff):
+    //  - Upstream writes `class Clothing extends LT.item` (lowercase) — the
+    //    Item class is exposed as `LT.Item` (capital I), so `LT.item` is
+    //    `undefined` and `extends undefined` throws `TypeError: Class extends
+    //    value undefined is not a constructor or null`, crashing the whole
+    //    boot sequence. Fixed by extending the real LT.Item.
+    //  - Upstream's constructor does `opts = {...}` without ever declaring
+    //    `opts` as a parameter or local — class bodies are always strict mode
+    //    by spec, so this throws `ReferenceError: opts is not defined` on the
+    //    very first `new Clothing(...)` call. Fixed by building opts from the
+    //    real constructor arguments.
+    //
+    // Also skipped entirely (not just bug-fixed): upstream's new `Slot` class
+    // and the LT.slots-based "hide slot from view" feature. `Slot` has a
+    // self-referential `get/set owner()` pair (`get owner() { return
+    // this.owner; }`) that infinitely recurses on any access, it's built from
+    // an `LT.slots` catalog that's never defined anywhere in the PR branch,
+    // and the accompanying inventory.js/creationFinish.js change
+    // (`if (!slot.active) return ""`) is wired to the *existing* LT.SLOTS
+    // catalog instead — which has no `.active` field — so it would blank
+    // every row of the inventory panel and the character-creation equipped
+    // summary. This needs real design (what body slots exist, visibility
+    // rules) that the PR doesn't actually specify, so LT.SLOTS above is left
+    // as the existing plain catalog rather than upstream's new version.
+    class ClothingInstance extends LT.Item {
+        constructor(id, name, slot, colour, colourName, covers) {
+            super({ id: id, name: name, kind: "clothing", value: 0, description: "" });
+            this.slot = slot;
+            this.colour = colour;
+            this.colourName = colourName;
+            this.covers = covers || [slot];
+        }
+    }
     var CAT = (LT.CLOTHING = {});
     function add(item) {
         CAT[item.id] = item;
@@ -100,15 +135,9 @@
     add(C("watch_pink", "women's watch", "wrist", "#f5a8ff", "pink"));
     add(C("watch_black", "women's watch", "wrist", "#222222", "black"));
     function copy(item) {
-        return {
-            id: item.id,
-            name: item.name,
-            slot: item.slot,
-            colour: item.colour,
-            colourName: item.colourName,
-            covers: item.covers.slice(),
-            uid: item.id + "_" + Math.random().toString(36).slice(2, 8),
-        };
+        var c = new ClothingInstance(item.id, item.name, item.slot, item.colour, item.colourName, item.covers.slice());
+        c.genUid(item.id);
+        return c;
     }
     LT.makeClothing = function (id) {
         return copy(CAT[id]);

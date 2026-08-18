@@ -1,280 +1,44 @@
 (function () {
-  function GameCharacter(opts) {
-    opts = opts || {};
-    this.id = opts.id;
-    this.player = !!opts.player;
-    this.names = { masculine: "Unknown", androgynous: "Unknown", feminine: "Unknown" };
-    this.surname = "";
-    this.gender = LT.Gender.FEMALE;
-    this.femininityValue = 70;
-    this.orientation = LT.Orientation.AMBIPHILIC;
-    this.personality = {};
-    this.birthday = new Date(1997, 5, 15);
-    this.level = 1;
-    this.experience = 0;
-    this.experienceForLevel = 10;
-    this.physique = 10;
-    this.arcane = 10;
-    this.maxHealth = LT.maxHealthOf(this);
-    this.health = this.maxHealth;
-    this.maxMana = LT.maxManaOf(this);
-    this.mana = this.maxMana;
-    this.corruption = 0;
-    this.arousal = 0;
-    this.lust = 10;
-    this.essences = 0;
-    this.knownSpells = [];
-    this.items = [];
-    this.money = 0;
-    this.location = null;
-    this.equipped = {};
-    this.wardrobe = [];
-    this.mainWeapon = null;
-    this.offhandWeapon = null;
-    this.weapons = [];
-    this.occupation = null;
-    this.sex = {
-      vaginal: 0,
-      anal: 0,
-      oral: 0,
-      penisVirgin: true,
-      vaginaVirgin: true,
-    };
-    this.applyHumanDefaults();
-  }
-
-  GameCharacter.prototype.isPlayer = function () {
-    return this.player;
-  };
-
-  GameCharacter.prototype.isFeminine = function () {
-    return this.femininityValue >= 50 || this.gender.feminine;
-  };
-
-  GameCharacter.prototype.getFemininity = function () {
-    return LT.femininityFromValue(this.femininityValue);
-  };
-
-  GameCharacter.prototype.getFemininityValue = function () {
-    return this.femininityValue;
-  };
-
-  GameCharacter.prototype.setFemininity = function (entry) {
-    this.femininityValue = typeof entry === "number" ? entry : entry.value;
-  };
-
-  GameCharacter.prototype.getGender = function () {
-    return this.gender;
-  };
-
-  GameCharacter.prototype.setGender = function (gender) {
-    var changed = this.gender !== gender;
-    this.gender = gender;
-    if (gender === LT.Gender.FEMALE && this.femininityValue < 50) this.femininityValue = 70;
-    if (gender === LT.Gender.MALE && this.femininityValue > 50) this.femininityValue = 30;
-    this.penisPresent = !!(gender && gender.hasPenis);
-    this.vaginaPresent = !!(gender && gender.hasVagina);
-    if (changed) this.applyHumanDefaults();
-  };
-
-  GameCharacter.prototype.hasPenis = function () {
-    if (this.body && this.body.penis) return this.body.penis.type !== "NONE";
-    if (this.penisPresent != null) return !!this.penisPresent;
-    return !!(this.gender && this.gender.hasPenis);
-  };
-
-  GameCharacter.prototype.hasVagina = function () {
-    if (this.body && this.body.vagina) return this.body.vagina.type !== "NONE";
-    if (this.vaginaPresent != null) return !!this.vaginaPresent;
-    return !!(this.gender && this.gender.hasVagina);
-  };
-
-  GameCharacter.prototype.hasBreasts = function () {
-    return !!(this.gender && this.gender.hasBreasts) || (this.breastSize && this.breastSize.id !== "FLAT");
-  };
-
-  GameCharacter.prototype.applyHumanDefaults = function () {
-    var f = this.isFeminine();
-    this.heightCm = f ? 168 : 178;
-    this.skin = LT.findById(LT.SKIN, "LIGHT");
-    this.bodySize = LT.BODY_SIZE.TWO_AVERAGE;
-    this.muscle = f ? LT.MUSCLE.ONE_LIGHTLY : LT.MUSCLE.TWO_TONED;
-    this.lipSize = f ? LT.LIP.TWO_FULL : LT.LIP.ONE_AVERAGE;
-    this.lipsPuffy = false;
-    this.eye = LT.findById(LT.EYE, "BROWN");
-    this.hairLength = f ? LT.HAIR_LENGTH.FOUR_LONG : LT.HAIR_LENGTH.TWO_SHORT;
-    this.hairStyle = f ? LT.findById(LT.HAIR_STYLE, "WAVY") : LT.findById(LT.HAIR_STYLE, "MESSY");
-    this.hair = LT.findById(LT.HAIR_COLOUR, "BROWN");
-    this.breastSize = f ? LT.CUP.C : LT.CUP.FLAT;
-    this.breastShape = LT.findById(LT.BREAST_SHAPE, "ROUND");
-    this.nippleSize = LT.SIZE5[f ? 2 : 1];
-    this.areolaeSize = LT.SIZE5[f ? 2 : 1];
-    this.nipplesPuffy = false;
-    this.assSize = LT.SIZE5[f ? 3 : 2];
-    this.hipSize = LT.SIZE5[f ? 3 : 2];
-    this.anusBleached = false;
-    this.penisLength = 15;
-    this.testicleSize = LT.SIZE5[2];
-    this.vaginaCapacity = LT.SIZE5[2];
-    this.labiaSize = LT.SIZE5[2];
-    this.clitorisSize = LT.SIZE5[0];
-    if (typeof LT.createBody === "function") {
-      this.body = LT.createBody({
-        feminine: f,
-        hasPenis: this.penisPresent != null ? !!this.penisPresent : !!(this.gender && this.gender.hasPenis),
-        hasVagina: this.vaginaPresent != null ? !!this.vaginaPresent : !!(this.gender && this.gender.hasVagina),
-        hasBreasts: !!(this.gender && this.gender.hasBreasts) || f,
-        height: this.heightCm,
-        femininity: this.femininityValue,
-        bodySize: this.bodySize,
-        muscle: this.muscle,
-        skin: this.skin,
-        lipSize: this.lipSize,
-        lipsPuffy: this.lipsPuffy,
-        eye: this.eye,
-        hairLength: this.hairLength,
-        hairStyle: this.hairStyle,
-        hair: this.hair,
-        breastSize: this.breastSize,
-        breastShape: this.breastShape,
-        nippleSize: this.nippleSize,
-        areolaeSize: this.areolaeSize,
-        nipplesPuffy: this.nipplesPuffy,
-        assSize: this.assSize,
-        hipSize: this.hipSize,
-        anusBleached: this.anusBleached,
-        penisLength: this.penisLength,
-        testicleSize: this.testicleSize,
-        vaginaCapacity: this.vaginaCapacity && this.vaginaCapacity.id,
-        labiaSize: this.labiaSize,
-        clitorisSize: this.clitorisSize,
-        race: "HUMAN",
-      });
-    }
-    if (typeof LT.ensureCharacterSystems === "function") LT.ensureCharacterSystems(this);
-  };
-
-  GameCharacter.prototype.getBodyShape = function () {
-    return LT.bodyShapeOf(this.bodySize, this.muscle);
-  };
-
-  GameCharacter.prototype.describeBody = function () {
-    return LT.describeBody(this);
-  };
-
-  GameCharacter.prototype.getName = function () {
-    if (this.femininityValue < 40) return this.names.masculine;
-    if (this.femininityValue > 60) return this.names.feminine;
-    return this.names.androgynous;
-  };
-
-  GameCharacter.prototype.setName = function (masculine, androgynous, feminine) {
-    this.names = {
-      masculine: masculine,
-      androgynous: androgynous || masculine,
-      feminine: feminine || masculine,
-    };
-  };
-
-  GameCharacter.prototype.getRaceName = function () {
-    var raw = this.fullRace || this.raceName || "human";
-    return raw.charAt(0).toUpperCase() + raw.slice(1);
-  };
-
-  GameCharacter.prototype.getAgeValue = function (now) {
-    now = now || (typeof LT.gameNow === "function" ? LT.gameNow() : new Date(2019, 9, 1));
-    var age = now.getFullYear() - this.birthday.getFullYear();
-    var md = now.getMonth() * 32 + now.getDate();
-    var bd = this.birthday.getMonth() * 32 + this.birthday.getDate();
-    if (md < bd) age -= 1;
-    return age;
-  };
-
-  GameCharacter.prototype.setAge = function (age, now) {
-    now = now || (typeof LT.gameNow === "function" ? LT.gameNow() : new Date(2019, 9, 1));
-    var clamped = Math.max(18, Math.min(50, age));
-    var month = this.birthday.getMonth();
-    var date = this.birthday.getDate();
-    var year = now.getFullYear() - clamped;
-    var md = now.getMonth() * 32 + now.getDate();
-    var bd = month * 32 + date;
-    if (md < bd) year -= 1;
-    this.birthday = new Date(year, month, date);
-  };
-
-  GameCharacter.prototype.hasPersonalityTrait = function (id) {
-    return !!this.personality[id];
-  };
-
-  GameCharacter.prototype.togglePersonality = function (id) {
-    var trait: any = null;
-    for (var i = 0; i < LT.PERSONALITY.length; i++) {
-      if (LT.PERSONALITY[i].id === id) {
-        trait = LT.PERSONALITY[i];
-        break;
-      }
-    }
-    if (!trait) return;
-    if (this.personality[id]) {
-      delete this.personality[id];
-      return;
-    }
-    var exclusive = trait.exclusive || [];
-    for (var j = 0; j < exclusive.length; j++) delete this.personality[exclusive[j]];
-    this.personality[id] = true;
-  };
-
-  GameCharacter.prototype.she = function () {
-    return this.isFeminine() ? "she" : "he";
-  };
-
-  GameCharacter.prototype.her = function () {
-    return this.isFeminine() ? "her" : "his";
-  };
-
-  GameCharacter.prototype.getGenderColour = function () {
-    return this.gender.colour || LT.Colour.ANDROGYNOUS;
-  };
-
-  LT.GameCharacter = GameCharacter;
-
-  function statusPart(ch, key) {
+  // GameCharacter itself now lives in character.ts (ported from upstream PR
+  // #5 as a real class) — this file keeps only the free-standing LT.*
+  // helpers that operate on a character rather than being part of it.
+  function statusPart(ch: Combatant, key: string): number {
     if (typeof LT.statusBonus !== "function") return 0;
     return (LT.statusBonus(ch)[key] || 0);
   }
 
-  LT.maxHealthOf = function (ch) {
+  LT.maxHealthOf = function (ch: Combatant) {
     var bonus = ((ch.enchantBonus && ch.enchantBonus.health) || 0) + statusPart(ch, "health");
     return 10 + 5 * (ch.level || 1) + 2 * LT.effectivePhysique(ch) + bonus;
   };
 
-  LT.maxManaOf = function (ch) {
+  LT.maxManaOf = function (ch: Combatant) {
     var bonus = ((ch.enchantBonus && ch.enchantBonus.mana) || 0) + statusPart(ch, "mana");
     return 5 + 2 * (ch.level || 1) + 5 * LT.effectiveArcane(ch) + bonus;
   };
 
-  LT.effectivePhysique = function (ch) {
+  LT.effectivePhysique = function (ch: Combatant) {
     return (ch.physique != null ? ch.physique : 10) + ((ch.enchantBonus && ch.enchantBonus.physique) || 0);
   };
 
-  LT.effectiveArcane = function (ch) {
+  LT.effectiveArcane = function (ch: Combatant) {
     return (ch.arcane != null ? ch.arcane : 10) + ((ch.enchantBonus && ch.enchantBonus.arcane) || 0);
   };
 
-  LT.effectiveCorruption = function (ch) {
+  LT.effectiveCorruption = function (ch: Combatant) {
     return (ch.corruption || 0) + ((ch.enchantBonus && ch.enchantBonus.corruption) || 0);
   };
 
-  LT.experienceNeeded = function (level) {
+  LT.experienceNeeded = function (level: number) {
     return (level || 1) * 10;
   };
 
-  LT.unarmedDamage = function (ch) {
+  LT.unarmedDamage = function (ch: Combatant | null | undefined) {
     var bonus = (ch && ch.enchantBonus && ch.enchantBonus.damageUnarmed) || 0;
-    return Math.max(1, 2 + Math.floor(LT.effectivePhysique(ch) / 5) + bonus);
+    return Math.max(1, 2 + Math.floor(LT.effectivePhysique(ch as Combatant) / 5) + bonus);
   };
 
-  LT.refreshVitals = function (ch, fill) {
+  LT.refreshVitals = function <T extends Combatant | null | undefined>(ch: T, fill?: boolean): T {
     if (!ch) return ch;
     var prevMax = ch.maxHealth || 0;
     ch.maxHealth = LT.maxHealthOf(ch);
@@ -288,8 +52,20 @@
     return ch;
   };
 
-  LT.incrementExperience = function (amount) {
-    var p = LT.game && LT.game.player;
+  // Ported from upstream PR #2 (crabtaster): regen over time.
+  LT.REGENERATION_RATE = 0.1;
+
+  LT.tickRegeneration = function (ch: Character | null | undefined, seconds: number) {
+    if (!ch || !(seconds > 0)) return;
+    if (LT.combat && LT.combat.active) return;
+    if (LT.sex && LT.sex.active) return;
+    var amount = (seconds / 60) * LT.REGENERATION_RATE;
+    if (ch.health < ch.maxHealth) ch.health = Math.min(ch.maxHealth, ch.health + amount);
+    if (ch.mana < ch.maxMana) ch.mana = Math.min(ch.maxMana, ch.mana + amount);
+  };
+
+  LT.incrementExperience = function (amount: number) {
+    var p: Character | null | undefined = LT.game && LT.game.player;
     if (!p || !amount) return "";
     if ((p.level || 1) >= 50) {
       p.experience = 0;
@@ -318,7 +94,7 @@
   };
 
   LT.createNewPlayer = function () {
-    var p = new GameCharacter({ id: "player", player: true });
+    var p: Character = new LT.GameCharacter({ id: "player", player: true });
     p.setGender(LT.Gender.FEMALE);
     p.setFemininity(LT.Femininity.FEMININE);
     p.orientation = LT.Orientation.AMBIPHILIC;
@@ -329,7 +105,7 @@
     return p;
   };
 
-  LT.describeBody = function (p) {
+  LT.describeBody = function (p: Character | null | undefined) {
     if (!p) return "";
     var fem = p.getFemininity();
     var shape = p.getBodyShape();
@@ -361,7 +137,7 @@
           " " +
           p.breastSize.name +
           " breasts.";
-    var genitals;
+    var genitals: string;
     if (p.hasPenis() && p.hasVagina()) {
       genitals =
         she.charAt(0).toUpperCase() +
@@ -441,8 +217,8 @@
         "</b>.</p>";
     }
     if (p.body) {
-      var extras: any[] = [];
-      function partLabel(id) {
+      var extras: string[] = [];
+      function partLabel(id: string) {
         var t = LT.PART_TYPE && LT.PART_TYPE[id];
         return t ? t.name : String(id || "").toLowerCase().replace(/_/g, "-");
       }
@@ -455,10 +231,10 @@
         html += "<p>Racial features: " + extras.join(", ") + ".</p>";
       }
     }
-    var worn: any[] = [];
+    var worn: string[] = [];
     if (p.makeup) {
       Object.keys(p.makeup).forEach(function (key) {
-        var rec = p.makeup[key];
+        var rec = p.makeup![key];
         if (rec && rec.colour && rec.colour !== "NONE") {
           var slot = LT.findById(LT.MAKEUP_SLOTS, key);
           worn.push((slot ? slot.name.toLowerCase() : key.toLowerCase()) + " (" + rec.colour.toLowerCase().replace(/_/g, " ") + ")");
@@ -466,17 +242,17 @@
       });
     }
     if (worn.length) html += "<p>Makeup: " + worn.join(", ") + ".</p>";
-    var pierced: any[] = [];
+    var pierced: string[] = [];
     if (p.piercings) {
       Object.keys(p.piercings).forEach(function (key) {
-        if (p.piercings[key]) pierced.push(key);
+        if (p.piercings![key]) pierced.push(key);
       });
     }
     if (pierced.length) html += "<p>Piercings: " + pierced.join(", ") + ".</p>";
     if (p.tattoos) {
-      var tats: any[] = [];
+      var tats: string[] = [];
       Object.keys(p.tattoos).forEach(function (key) {
-        var t = p.tattoos[key];
+        var t = p.tattoos![key];
         if (t) tats.push((t.name || t.type || "tattoo") + " on the " + key.toLowerCase().replace(/_/g, " "));
       });
       if (tats.length) html += "<p>Tattoos: " + tats.join("; ") + ".</p>";
