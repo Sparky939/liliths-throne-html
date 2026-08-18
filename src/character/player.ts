@@ -245,20 +245,20 @@
 
   LT.maxHealthOf = function (ch) {
     var bonus = ((ch.enchantBonus && ch.enchantBonus.health) || 0) + statusPart(ch, "health");
-    return 10 + 5 * (ch.level || 1) + 2 * (LT.effectivePhysique(ch) || 10) + bonus;
+    return 10 + 5 * (ch.level || 1) + 2 * LT.effectivePhysique(ch) + bonus;
   };
 
   LT.maxManaOf = function (ch) {
     var bonus = ((ch.enchantBonus && ch.enchantBonus.mana) || 0) + statusPart(ch, "mana");
-    return 5 + 2 * (ch.level || 1) + 5 * (LT.effectiveArcane(ch) || 10) + bonus;
+    return 5 + 2 * (ch.level || 1) + 5 * LT.effectiveArcane(ch) + bonus;
   };
 
   LT.effectivePhysique = function (ch) {
-    return (ch.physique || 10) + ((ch.enchantBonus && ch.enchantBonus.physique) || 0);
+    return (ch.physique != null ? ch.physique : 10) + ((ch.enchantBonus && ch.enchantBonus.physique) || 0);
   };
 
   LT.effectiveArcane = function (ch) {
-    return (ch.arcane || 10) + ((ch.enchantBonus && ch.enchantBonus.arcane) || 0);
+    return (ch.arcane != null ? ch.arcane : 10) + ((ch.enchantBonus && ch.enchantBonus.arcane) || 0);
   };
 
   LT.effectiveCorruption = function (ch) {
@@ -271,7 +271,7 @@
 
   LT.unarmedDamage = function (ch) {
     var bonus = (ch && ch.enchantBonus && ch.enchantBonus.damageUnarmed) || 0;
-    return Math.max(1, 2 + Math.floor((LT.effectivePhysique(ch) || 10) / 5) + bonus);
+    return Math.max(1, 2 + Math.floor(LT.effectivePhysique(ch) / 5) + bonus);
   };
 
   LT.refreshVitals = function (ch, fill) {

@@ -12,6 +12,7 @@ desktop.ini
 *.swp
 .vscode/
 .idea/
+.claude/
 
 # Local play data — never commit saves
 *.ltjson

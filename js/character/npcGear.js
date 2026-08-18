@@ -230,7 +230,8 @@
         while (npc.items.length) {
             var item = npc.items.shift();
             givePlayerItem(item);
-            taken.push(item);
+            if (item)
+                taken.push(item);
         }
         return taken;
     };
@@ -243,10 +244,11 @@
         item = LT.takeNpcWeapon(npc, "offhand");
         if (item)
             taken.push(item);
-        while (npc.weapons && npc.weapons.length) {
+        while (npc && npc.weapons && npc.weapons.length) {
             item = npc.weapons.shift();
             givePlayerWeapon(item);
-            taken.push(item);
+            if (item)
+                taken.push(item);
         }
         return taken;
     };

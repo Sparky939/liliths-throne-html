@@ -1,17 +1,17 @@
 (function () {
-  function idOf(v, fallback) {
+  function idOf(v: string | { id?: string } | null | undefined, fallback?: string): string {
     if (v == null) return fallback || "NONE";
     if (typeof v === "string") return v;
     return v.id || fallback || "NONE";
   }
 
-  function enumAt(list, index) {
+  function enumAt<T>(list: T[] | null | undefined, index: number): T | null {
     if (!list || !list.length) return null;
     var i = Math.max(0, Math.min(list.length - 1, index));
     return list[i];
   }
 
-  function orifice(opts) {
+  function orifice(opts?: { wetness?: any; capacity?: any; depth?: any; elasticity?: any; plasticity?: any; modifiers?: string[]; stuffed?: boolean; virgin?: boolean }): Orifice {
     opts = opts || {};
     return {
       wetness: idOf(opts.wetness, "TWO_MOIST"),
@@ -25,7 +25,7 @@
     };
   }
 
-  function covering(type?: any, primary?: any, pattern?: any, modifier?: any) {
+  function covering(type?: string, primary?: string, pattern?: string, modifier?: string): BodyCovering {
     return {
       type: type || "HUMAN",
       primary: primary || "LIGHT",
@@ -44,7 +44,7 @@
     var hasVagina = opts.hasVagina != null ? !!opts.hasVagina : !!fem;
     var hasBreasts = opts.hasBreasts != null ? !!opts.hasBreasts : !!fem;
     var race = opts.race || "HUMAN";
-    var part = function (type) {
+    var part = function (type?: string) {
       return type || (race === "HUMAN" ? "HUMAN" : race);
     };
 
@@ -155,7 +155,7 @@
       spinneret: orifice({ virgin: true }),
       penis: {
         type: hasPenis ? part(opts.penisType) : "NONE",
-        length: hasPenis ? opts.penisLength != null ? opts.penisLength : 15 : 0,
+        length: hasPenis ? (opts.penisLength != null ? opts.penisLength : 15) : 0,
         girth: idOf(opts.penisGirth, "THREE_AVERAGE"),
         pierced: !!opts.piercedPenis,
         virgin: opts.penisVirgin !== false,
@@ -207,6 +207,9 @@
     ch.nippleSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.breast.nipple.size)) || ch.nippleSize;
     ch.areolaeSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.breast.areolae.size)) || ch.areolaeSize;
     ch.nipplesPuffy = b.breast.nipple.puffy;
+    // CharacterBody data can grant this trait but never revoke it — some NPCs (e.g. Lilaya,
+    // Amber) have it set directly on the character outside of body data entirely.
+    ch.fuckableNipples = !!ch.fuckableNipples || !!b.breast.nipple.fuckable;
     ch.assSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.ass.size)) || ch.assSize;
     ch.hipSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.ass.hipSize)) || ch.hipSize;
     ch.anusBleached = b.ass.bleached;
@@ -286,13 +289,13 @@
     if (!ch.scars) ch.scars = {};
     if (!ch.piercings) {
       ch.piercings = {};
-      (LT.PIERCING_SLOTS || []).forEach(function (slot) {
+      (LT.PIERCING_SLOTS || []).forEach(function (slot: string) {
         ch.piercings[slot] = false;
       });
     }
     if (!ch.makeup) {
       ch.makeup = {};
-      (LT.MAKEUP_SLOTS || []).forEach(function (slot) {
+      (LT.MAKEUP_SLOTS || []).forEach(function (slot: HelpEntry) {
         ch.makeup[slot.id] = { colour: "NONE", modifier: "MAKEUP" };
       });
     }

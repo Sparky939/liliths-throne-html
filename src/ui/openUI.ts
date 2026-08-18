@@ -79,10 +79,12 @@
   LT.setChrome = function (opts) {
     opts = opts || {};
     var app: any = document.getElementById("app");
-    if (opts.left === false) app.classList.add("chrome-left-hidden");
-    if (opts.left === true) app.classList.remove("chrome-left-hidden");
-    if (opts.right === false) app.classList.add("chrome-right-hidden");
-    if (opts.right === true) app.classList.remove("chrome-right-hidden");
+    if (app) {
+      if (opts.left === false) app.classList.add("chrome-left-hidden");
+      if (opts.left === true) app.classList.remove("chrome-left-hidden");
+      if (opts.right === false) app.classList.add("chrome-right-hidden");
+      if (opts.right === true) app.classList.remove("chrome-right-hidden");
+    }
     if (opts.title !== undefined) LT.setTitle(opts.title);
   };
 

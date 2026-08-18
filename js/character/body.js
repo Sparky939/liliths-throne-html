@@ -153,7 +153,7 @@
             spinneret: orifice({ virgin: true }),
             penis: {
                 type: hasPenis ? part(opts.penisType) : "NONE",
-                length: hasPenis ? opts.penisLength != null ? opts.penisLength : 15 : 0,
+                length: hasPenis ? (opts.penisLength != null ? opts.penisLength : 15) : 0,
                 girth: idOf(opts.penisGirth, "THREE_AVERAGE"),
                 pierced: !!opts.piercedPenis,
                 virgin: opts.penisVirgin !== false,
@@ -205,6 +205,9 @@
         ch.nippleSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.breast.nipple.size)) || ch.nippleSize;
         ch.areolaeSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.breast.areolae.size)) || ch.areolaeSize;
         ch.nipplesPuffy = b.breast.nipple.puffy;
+        // CharacterBody data can grant this trait but never revoke it — some NPCs (e.g. Lilaya,
+        // Amber) have it set directly on the character outside of body data entirely.
+        ch.fuckableNipples = !!ch.fuckableNipples || !!b.breast.nipple.fuckable;
         ch.assSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.ass.size)) || ch.assSize;
         ch.hipSize = (LT.SIZE5 && LT.findById(LT.SIZE5, b.ass.hipSize)) || ch.hipSize;
         ch.anusBleached = b.ass.bleached;

@@ -92,7 +92,7 @@
       );
     },
     getResponses: function () {
-      var list = [null];
+      var list: (LTResponse | null)[] = [null];
       if (LT.game.started && LT.game.player) {
         list.push(
           new LT.Response("Resume", "Return to the game.", LT.game.returnNode || "place.generic", function () {

@@ -2005,6 +2005,8 @@
         if ((src.arousal || 0) >= LT.MAX_AROUSAL)
             return LT.SEX_ACTIONS.orgasm;
         if (this.ongoing) {
+            if (this.ongoing.id === "kiss")
+                return LT.SEX_ACTIONS.kiss;
             if (this.ongoing.giver === src && LT.SEX_ACTIONS[this.ongoing.id])
                 return LT.SEX_ACTIONS[this.ongoing.id];
             if (this.ongoing.receiver === src && LT.SEX_ACTIONS[this.ongoing.id + "_receive"])
@@ -2014,8 +2016,6 @@
                     return LT.SEX_ACTIONS.grope_breasts;
                 return LT.SEX_ACTIONS.do_nothing;
             }
-            if (this.ongoing.id === "kiss")
-                return LT.SEX_ACTIONS.kiss;
         }
         var starts = [
             "penis_vagina_start",

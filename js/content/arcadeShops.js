@@ -32,7 +32,12 @@
                         LT.game.player.wardrobe = LT.game.player.wardrobe || [];
                         LT.game.player.wardrobe.push(made);
                         LT.game.textEnd = LT.incrementMoney(-price);
-                        LT.game.textStart = "<p>You buy the " + item.name + " for " + price + " flames and tuck it into your bag.</p>";
+                        LT.game.textStart =
+                            "<p>You buy the " +
+                                item.name +
+                                " for " +
+                                price +
+                                " flames and tuck it into your bag.</p>";
                     }));
                 }
             })(ids[i]);
@@ -117,7 +122,8 @@
             }
             else if (f.nyanQuest === "RELATIONSHIP_NYAN_1_STOCK_ISSUES") {
                 list.push(new LT.Response("Offer help", "Tell Nyan that you'll help her with her supplier problem.", "nyan.help", function () {
-                    LT.game.flags.nyanQuest = "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP";
+                    LT.game.flags.nyanQuest =
+                        "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP";
                     LT.game.flags.nyanAffection = 10;
                 }));
             }
@@ -208,7 +214,9 @@
             return nyanXml("NYAN_HIDING_END_GIRLFRIEND");
         },
         getResponses: function () {
-            return [new LT.Response("Continue", "Return to the shop floor.", "nyan.shop")];
+            return [
+                new LT.Response("Continue", "Return to the shop floor.", "nyan.shop"),
+            ];
         },
     });
     LT.defineNode({
@@ -222,7 +230,9 @@
             return nyanXml("NYAN_HIDING_END_DECLINE");
         },
         getResponses: function () {
-            return [new LT.Response("Continue", "Return to the shop floor.", "nyan.shop")];
+            return [
+                new LT.Response("Continue", "Return to the shop floor.", "nyan.shop"),
+            ];
         },
     });
     LT.defineNode({
@@ -237,7 +247,13 @@
         },
         getResponses: function () {
             var list = [new LT.Response("Back", "Return to Nyan.", "nyan.shop")];
-            var ids = ["plunge_bra", "lacy_panties", "skater_dress", "heart_necklace", "thong"];
+            var ids = [
+                "plunge_bra",
+                "lacy_panties",
+                "skater_dress",
+                "heart_necklace",
+                "thong",
+            ];
             var i;
             for (i = 0; i < ids.length; i++) {
                 (function (id) {
@@ -251,17 +267,24 @@
                     }
                     else {
                         list.push(new LT.Response(title, "Buy an enchanted " + item.name + ".", "nyan.enchanted", function () {
-                            var made = LT.makeClothing(id);
-                            made.enchanted = true;
-                            made.enchantmentKnown = true;
-                            made.effects = [
-                                LT.itemEffect("CLOTHING", "CLOTHING_MAJOR_ATTRIBUTE", "STRENGTH", "MINOR_BOOST", 0),
-                            ];
-                            made.name = "enchanted " + made.name;
+                            var made = {
+                                ...LT.makeClothing(id),
+                                enchanted: true,
+                                enchantmentKnown: true,
+                                effects: [
+                                    LT.itemEffect("CLOTHING", "CLOTHING_MAJOR_ATTRIBUTE", "STRENGTH", "MINOR_BOOST", 0),
+                                ],
+                                name: "enchanted " + item.name,
+                            };
                             LT.game.player.wardrobe = LT.game.player.wardrobe || [];
                             LT.game.player.wardrobe.push(made);
                             LT.game.textEnd = LT.incrementMoney(-price);
-                            LT.game.textStart = "<p>You buy the enchanted " + item.name + " for " + price + " flames.</p>";
+                            LT.game.textStart =
+                                "<p>You buy the " +
+                                    made.name +
+                                    " for " +
+                                    price +
+                                    " flames.</p>";
                         }));
                     }
                 })(ids[i]);
@@ -338,7 +361,9 @@
     });
     function kateResponses() {
         var cost = LT.KATE_COSMETICS_COST;
-        var list = [new LT.Response("Leave", "Leave the salon.", "place.SHOPPING_ARCADE_KATES_SHOP")];
+        var list = [
+            new LT.Response("Leave", "Leave the salon.", "place.SHOPPING_ARCADE_KATES_SHOP"),
+        ];
         function service(title, tip, node, apply) {
             if (LT.getMoney() < cost) {
                 list.push(new LT.Response(title + " (" + cost + ")", "You cannot afford that.", null).disable("Kate charges " + cost + " flames."));
@@ -379,7 +404,9 @@
                 LT.ensureKate();
         },
         getContent: function () {
-            return kateXml(LT.game.flags && LT.game.flags.kateIntroduced ? "SHOP_BEAUTY_SALON_MAIN" : "SHOP_BEAUTY_SALON_ENTER");
+            return kateXml(LT.game.flags && LT.game.flags.kateIntroduced
+                ? "SHOP_BEAUTY_SALON_MAIN"
+                : "SHOP_BEAUTY_SALON_ENTER");
         },
         getResponses: function () {
             LT.game.flags.kateIntroduced = true;
@@ -458,11 +485,15 @@
                 LT.ensureAshley();
         },
         getContent: function () {
-            return ashleyXml(LT.game.flags && LT.game.flags.ashleyIntroduced ? "ENTRY_REPEAT" : "ENTRY");
+            return ashleyXml(LT.game.flags && LT.game.flags.ashleyIntroduced
+                ? "ENTRY_REPEAT"
+                : "ENTRY");
         },
         getResponses: function () {
             LT.game.flags.ashleyIntroduced = true;
-            var list = [new LT.Response("Leave", "Leave Dream Lover.", "place.SHOPPING_ARCADE_ASHLEYS_SHOP")];
+            var list = [
+                new LT.Response("Leave", "Leave Dream Lover.", "place.SHOPPING_ARCADE_ASHLEYS_SHOP"),
+            ];
             list.push(new LT.Response("Explore shelves", "Have a look at what's on the shelves.", "ashley.shelves"));
             if (typeof LT.itemShopResponses === "function") {
                 var extras = LT.itemShopResponses("ashley", "ashley.shop");
@@ -483,16 +514,23 @@
                 LT.maybePlaceEncounter();
         },
         getContent: function () {
-            var info = (typeof getCurrentTile === "function" && getCurrentTile() && getCurrentTile().location) || {};
+            var info = (typeof getCurrentTile === "function" &&
+                getCurrentTile() &&
+                getCurrentTile().location) ||
+                {};
             var html = "<p>" + (info.description || "The warehouse district.") + "</p>";
-            if (LT.game.flags && LT.game.flags.nyanQuest === "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP") {
+            if (LT.game.flags &&
+                LT.game.flags.nyanQuest ===
+                    "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP") {
                 html += LT.parseFromXML("places/dominion/warehouseDistrict/kaysTextiles", "WAREHOUSE_DISTRICT_KAYS_TEXTILES");
             }
             return html;
         },
         getResponses: function () {
             var list = LT.travelResponses ? LT.travelResponses() : [null];
-            if (LT.game.flags && LT.game.flags.nyanQuest === "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP") {
+            if (LT.game.flags &&
+                LT.game.flags.nyanQuest ===
+                    "RELATIONSHIP_NYAN_2_STOCK_ISSUES_AGREED_TO_HELP") {
                 list.push(new LT.Response("Kay's Textiles", "Find the warehouse Nyan told you about.", "kay.entry"));
             }
             return list;
@@ -526,37 +564,39 @@
             return LT.parseFromXML("places/dominion/warehouseDistrict/kaysTextiles", "DOBERMANNS");
         },
         getResponses: function () {
+            LT.game.npcs = LT.game.npcs || {};
+            var thug = LT.game.npcs.wolfgang;
+            if (!thug) {
+                thug = {
+                    id: "wolfgang",
+                    name: "Wolfgang",
+                    feminine: false,
+                    gender: LT.Gender.MALE,
+                    level: 8,
+                    physique: 24,
+                    speechColour: LT.Colour.MASCULINE,
+                    getName: function () {
+                        return "Wolfgang";
+                    },
+                    getFullName: function () {
+                        return "Wolfgang";
+                    },
+                    isFeminine: function () {
+                        return false;
+                    },
+                    getSpeechColour: function () {
+                        return this.speechColour;
+                    },
+                };
+                if (typeof LT.refreshVitals === "function")
+                    LT.refreshVitals(thug, true);
+                LT.game.npcs.wolfgang = thug;
+            }
             return [
-                new LT.Response("Fight", "Fight Wolfgang and Karl.", null, function () {
-                    if (typeof LT.ResponseCombat === "function") {
-                        var thug = {
-                            id: "wolfgang",
-                            name: "Wolfgang",
-                            feminine: false,
-                            gender: LT.Gender.MALE,
-                            level: 8,
-                            physique: 24,
-                            speechColour: LT.Colour.MASCULINE,
-                            getName: function () { return "Wolfgang"; },
-                            getFullName: function () { return "Wolfgang"; },
-                            isFeminine: function () { return false; },
-                            getSpeechColour: function () { return this.speechColour; },
-                        };
-                        if (typeof LT.refreshVitals === "function")
-                            LT.refreshVitals(thug, true);
-                        LT.game.npcs = LT.game.npcs || {};
-                        LT.game.npcs.wolfgang = thug;
-                        var fight = LT.ResponseCombat("Fight", "Fight the bounty hunters.", {
-                            enemy: thug,
-                            victoryNode: "kay.victory",
-                            defeatNode: "place.DOMINION_WAREHOUSES",
-                        });
-                        fight.effects();
-                    }
-                    else {
-                        LT.game.flags.nyanQuest = "RELATIONSHIP_NYAN_4_STOCK_ISSUES_SUPPLIERS_BEATEN";
-                        LT.game.setContent("kay.victory");
-                    }
+                LT.ResponseCombat("Fight", "Fight the bounty hunters.", {
+                    enemy: thug,
+                    victoryNode: "kay.victory",
+                    defeatNode: "place.DOMINION_WAREHOUSES",
                 }),
             ];
         },
@@ -569,11 +609,14 @@
         travelDisabled: true,
         chrome: { left: true, right: true },
         getContent: function () {
-            LT.game.flags.nyanQuest = "RELATIONSHIP_NYAN_4_STOCK_ISSUES_SUPPLIERS_BEATEN";
+            LT.game.flags.nyanQuest =
+                "RELATIONSHIP_NYAN_4_STOCK_ISSUES_SUPPLIERS_BEATEN";
             return LT.parseFromXML("places/dominion/warehouseDistrict/kaysTextiles", "DOBERMANNS_COMBAT_PLAYER_VICTORY");
         },
         getResponses: function () {
-            return [new LT.Response("Leave", "Return to the warehouse district. You should report back to Nyan.", "place.DOMINION_WAREHOUSES")];
+            return [
+                new LT.Response("Leave", "Return to the warehouse district. You should report back to Nyan.", "place.DOMINION_WAREHOUSES"),
+            ];
         },
     });
     LT.defineNode({

@@ -3,7 +3,7 @@
      This file stays in the load list so older boot caches keep a valid path. */
   if (typeof LT.applyStatus === "function") return;
 
-  function nameOf(ch) {
+  function nameOf(ch?: Combatant | null) {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
@@ -34,12 +34,12 @@
     if (!flash) return 0;
     var penalty = flash.turns > 0 ? 1 : 0;
     flash.turns -= 1;
-    if (flash.turns <= 0) delete ch.statuses.FLASH;
+    if (flash.turns <= 0) delete ch.statuses!.FLASH;
     return penalty;
   };
 
   LT.tickStatuses = function (ch) {
-    var lines: any[] = [];
+    var lines: string[] = [];
     if (!ch || !ch.statuses) return lines;
     var poison = ch.statuses.POISON_VAPOURS;
     if (poison && poison.turns > 0) {

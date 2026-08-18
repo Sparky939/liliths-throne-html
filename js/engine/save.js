@@ -193,6 +193,7 @@
             return Array.isArray(list) ? list : [];
         }
         catch (e) {
+            console.error("Save index is corrupted; treating it as empty", e);
             return [];
         }
     }
@@ -256,6 +257,7 @@
             return raw ? JSON.parse(raw) : null;
         }
         catch (e) {
+            console.error("Save '" + name + "' is corrupted and could not be read", e);
             return null;
         }
     };
@@ -394,7 +396,9 @@
         try {
             LT.saveGame("AutoSave");
         }
-        catch (e) { }
+        catch (e) {
+            console.error("Autosave failed", e);
+        }
     };
 })();
 //# sourceMappingURL=save.js.map

@@ -1,5 +1,5 @@
 (function () {
-  function hour() {
+  function hour(): number {
     var s = ((LT.game.secondsPassed % 86400) + 86400) % 86400;
     return Math.floor(s / 3600);
   }
@@ -16,8 +16,8 @@
 
   LT.hourOfDay = hour;
 
-  function applyHouseNpc(existing, opts) {
-    var n = existing || {};
+  function applyHouseNpc(existing: Npc | null | undefined, opts: HouseNpcOpts): Npc {
+    var n: Npc = existing || {};
     n.id = n.id || opts.id;
     n.name = n.name || opts.name;
     n.feminine = true;
@@ -134,7 +134,7 @@
       };
       LT.game.npcs.scarlett = n;
     }
-    var s = LT.game.npcs.scarlett;
+    var s: Npc = LT.game.npcs.scarlett;
     if (LT.game.flags && LT.game.flags.keptScarlett) {
       s.location = { world: "SLAVER_ALLEY", place: "SLAVER_ALLEY_SLAVERY_ADMINISTRATION" };
     } else if (LT.game.flags && LT.game.flags.freedScarlett) {
@@ -174,7 +174,7 @@
         location: null,
       });
     }
-    var c = LT.game.npcs.candi;
+    var c: Npc = LT.game.npcs.candi;
     if (LT.isOfficeHours && LT.isOfficeHours()) {
       c.location = { world: "ENFORCER_HQ", place: "ENFORCER_HQ_RECEPTION_DESK" };
     } else {
@@ -275,8 +275,8 @@
     return LT.game.npcs.amber;
   };
 
-  function simpleNpc(id, name, feminine, extras) {
-    var n = {
+  function simpleNpc(id: string, name: string, feminine: boolean, extras?: Record<string, any>): Npc {
+    var n: Npc = {
       id: id,
       name: name,
       feminine: feminine,
@@ -460,7 +460,7 @@
       };
       if (typeof LT.refreshVitals === "function") LT.refreshVitals(LT.game.npcs.brax, true);
     }
-    var n = LT.game.npcs.brax;
+    var n: Npc = LT.game.npcs.brax;
     if (!n.level) n.level = 10;
     if (!n.physique) n.physique = 15;
     if (n.arcane == null) n.arcane = 10;
@@ -510,7 +510,7 @@
         },
       };
     }
-    var n = LT.game.npcs.vicky;
+    var n: Npc = LT.game.npcs.vicky;
     if (typeof LT.isOfficeHours === "function" && LT.isOfficeHours()) {
       n.location = { world: "SHOPPING_ARCADE", place: "SHOPPING_ARCADE_VICKYS_SHOP" };
     } else {
@@ -529,7 +529,7 @@
       var tile = getCurrentTile();
       place = (tile && tile.location && tile.location.placeType) || "";
     }
-    var list: any[] = [];
+    var list: Npc[] = [];
     var npcs = LT.game.npcs || {};
     var x = loc && loc.x;
     var y = loc && loc.y;

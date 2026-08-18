@@ -1,5 +1,5 @@
 (function () {
-  function uid(prefix) {
+  function uid(prefix: string) {
     return prefix + "_" + Math.random().toString(36).slice(2, 8);
   }
 
@@ -204,7 +204,7 @@
   };
 
   LT.shopItemIds = function (seller) {
-    var ids: any[] = [];
+    var ids: string[] = [];
     var id;
     for (id in ITEMS) {
       if (!Object.prototype.hasOwnProperty.call(ITEMS, id)) continue;
@@ -217,7 +217,7 @@
     if (!player) return null;
     player.items = player.items || [];
     var n = count || 1;
-    var last: any = null;
+    var last: Item | null = null;
     var i;
     for (i = 0; i < n; i++) {
       last = LT.makeItem(id);
@@ -275,7 +275,7 @@
       "<p>You drink the " +
       type.name +
       ". A rush of arcane energy runs through you, and your body settles into that of " +
-      (player.fullRace.indexOf("a") === 0 || player.fullRace.indexOf("e") === 0 || player.fullRace.indexOf("i") === 0 || player.fullRace.indexOf("o") === 0 || player.fullRace.indexOf("u") === 0 ? "an " : "a ") +
+      (player.fullRace!.indexOf("a") === 0 || player.fullRace!.indexOf("e") === 0 || player.fullRace!.indexOf("i") === 0 || player.fullRace!.indexOf("o") === 0 || player.fullRace!.indexOf("u") === 0 ? "an " : "a ") +
       player.fullRace +
       ".</p>"
     );

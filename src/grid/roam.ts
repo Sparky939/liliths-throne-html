@@ -1,12 +1,12 @@
 (function () {
-  var DIRS = {
+  var DIRS: Record<string, { dx: number; dy: number }> = {
     N: { dx: 0, dy: -1 },
     S: { dx: 0, dy: 1 },
     W: { dx: -1, dy: 0 },
     E: { dx: 1, dy: 0 },
   };
 
-  function roaming() {
+  function roaming(): boolean {
     if (!window.grid || !grid.gridData || !LT.game || !LT.game.renderMap) return false;
     if (LT.game.currentNode && LT.game.currentNode.travelDisabled) return false;
     if (LT.combat && LT.combat.active) return false;
@@ -14,19 +14,19 @@
     return true;
   }
 
-  function currentPlaceType() {
+  function currentPlaceType(): string {
     var tile = typeof getCurrentTile === "function" ? getCurrentTile() : null;
     return (tile && tile.location && tile.location.placeType) || "";
   }
 
-  function passageFor(tile) {
+  function passageFor(tile: GridTile | null | undefined): string {
     if (!tile || !tile.location) return "place.generic";
     var id = tile.location.passage || ("place." + (tile.location.placeType || ""));
     if (LT.hasNode(id)) return id;
     return "place.generic";
   }
 
-  function syncPlayerLocation() {
+  function syncPlayerLocation(): void {
     if (!LT.game || !LT.game.player || !window.grid) return;
     var tile = getCurrentTile();
     LT.game.player.location = {
@@ -41,7 +41,7 @@
     if (typeof LT.refreshConditionalStatusEffects === "function") LT.refreshConditionalStatusEffects(LT.game.player);
   }
 
-  function showPlace() {
+  function showPlace(): void {
     if (!LT.game) return;
     var tile = getCurrentTile();
     var id = passageFor(tile);
@@ -77,7 +77,7 @@
     if (typeof LT.syncQuestWorld === "function") LT.syncQuestWorld();
     LT.game.renderAttributes = true;
     LT.game.renderMap = true;
-    var tile = coords && coords.x != null ? coords : null;
+    var tile: any = coords && coords.x != null ? coords : null;
     if (!tile && placeType) tile = LT.findPlaceTile(gridName, placeType);
     loadGrid(gridName, tile || {});
     LT.openUI("map", { target: "left-map" });
@@ -109,7 +109,7 @@
     return true;
   };
 
-  function onMove() {
+  function onMove(): void {
     if (!LT.game) return;
     syncPlayerLocation();
     var dest = passageFor(typeof getCurrentTile === "function" ? getCurrentTile() : null);
@@ -142,7 +142,7 @@
   document.addEventListener("keydown", function (e: any) {
     if (!roaming()) return;
     if (e.target.matches("input, textarea")) return;
-    var map = { arrowup: "N", arrowdown: "S", arrowleft: "W", arrowright: "E" };
+    var map: Record<string, string> = { arrowup: "N", arrowdown: "S", arrowleft: "W", arrowright: "E" };
     var dir = map[e.key.toLowerCase()];
     if (!dir) return;
     e.preventDefault();

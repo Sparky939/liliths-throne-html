@@ -47,7 +47,7 @@
   };
 
   LT.travelResponses = function () {
-    var list = [null];
+    var list: (LTResponse | null)[] = [null];
     var t = tile();
     var placeType = t && t.location && t.location.placeType;
     if (isDominionExit(placeType)) {

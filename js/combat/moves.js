@@ -88,11 +88,10 @@
                 var wep = weaponOf(src, "main");
                 return wep && LT.weaponAttackName ? LT.weaponAttackName(wep) : "Strike";
             },
-            canUse: function (src) {
-                return typeof LT.canAffordWeapon !== "function" || LT.canAffordWeapon(src, "main");
-            },
-            cannotUseReason: function () {
-                return "You don't have enough arcane essences to use your weapon!";
+            canUse: function () {
+                // Insufficient essence doesn't block Strike: applyStrike() already falls back to
+                // fighting unarmed when the weapon's arcane cost can't be paid.
+                return true;
             },
             tooltip: function (src, tgt) {
                 return strikeTooltip(src, tgt, "main", "Strike");
@@ -109,14 +108,12 @@
             name: "Offhand",
             ap: 1,
             canUse: function (src) {
-                if (!weaponOf(src, "offhand"))
-                    return false;
-                return typeof LT.canAffordWeapon !== "function" || LT.canAffordWeapon(src, "offhand");
+                // Insufficient essence doesn't block Offhand: applyStrike() already falls back to
+                // an unarmed offhand strike when the weapon's arcane cost can't be paid.
+                return !!weaponOf(src, "offhand");
             },
-            cannotUseReason: function (src) {
-                if (!weaponOf(src, "offhand"))
-                    return "You have no offhand weapon equipped.";
-                return "You don't have enough arcane essences to use your weapon!";
+            cannotUseReason: function () {
+                return "You have no offhand weapon equipped.";
             },
             titleOf: function (src) {
                 var wep = weaponOf(src, "offhand");

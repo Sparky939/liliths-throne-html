@@ -115,7 +115,7 @@
 
   defineHqPlace("place.ENFORCER_HQ_GUARDED_DOOR", "Guarded door", "GUARDED_DOOR", {
     getResponses: function () {
-      var list = [null];
+      var list: (LTResponse | null)[] = [null];
       if (!hasPass()) {
         list.push(
           new LT.Response("Step back", "You don't really see much option other than to do as the Enforcer says.", null, function () {

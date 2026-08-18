@@ -1,7 +1,14 @@
 "use strict";
 (function () {
     function C(id, name, slot, colour, colourName, covers) {
-        return { id: id, name: name, slot: slot, colour: colour, colourName: colourName, covers: covers || [slot] };
+        return {
+            id: id,
+            name: name,
+            slot: slot,
+            colour: colour,
+            colourName: colourName,
+            covers: covers || [slot],
+        };
     }
     LT.SLOTS = [
         { id: "head", label: "Head" },
@@ -37,12 +44,31 @@
     add(C("crop_bra", "croptop bra", "chest", "#ffffff", "white"));
     add(C("lacy_bra", "lacy plunge bra", "chest", "#c0392b", "red"));
     add(C("fullcup_bra", "fullcup bra", "chest", "#222222", "black"));
-    add(C("shirt_long", "long-sleeved shirt", "torso", "#ffffff", "white", ["torso", "chest"]));
-    add(C("shirt_short", "short-sleeved shirt", "torso", "#ffffff", "white", ["torso", "chest"]));
-    add(C("tshirt", "t-shirt", "torso", "#6f9be3", "light blue", ["torso", "chest"]));
+    add(C("shirt_long", "long-sleeved shirt", "torso", "#ffffff", "white", [
+        "torso",
+        "chest",
+    ]));
+    add(C("shirt_short", "short-sleeved shirt", "torso", "#ffffff", "white", [
+        "torso",
+        "chest",
+    ]));
+    add(C("tshirt", "t-shirt", "torso", "#6f9be3", "light blue", [
+        "torso",
+        "chest",
+    ]));
     add(C("blouse", "blouse", "torso", "#6f9be3", "light blue", ["torso", "chest"]));
-    add(C("skater_dress", "skater dress", "torso", "#222222", "black", ["torso", "chest", "groin", "leg"]));
-    add(C("slip_dress", "slip dress", "torso", "#7b2d3b", "burgundy", ["torso", "chest", "groin", "leg"]));
+    add(C("skater_dress", "skater dress", "torso", "#222222", "black", [
+        "torso",
+        "chest",
+        "groin",
+        "leg",
+    ]));
+    add(C("slip_dress", "slip dress", "torso", "#7b2d3b", "burgundy", [
+        "torso",
+        "chest",
+        "groin",
+        "leg",
+    ]));
     add(C("suit_jacket", "suit jacket", "torsoOver", "#222222", "black"));
     add(C("hoodie", "hoodie", "torsoOver", "#222222", "black"));
     add(C("jumper", "ribbed jumper", "torsoOver", "#777777", "grey"));
@@ -102,7 +128,8 @@
     LT.creationClothedEnough = function (player) {
         var feet = !!player.equipped.foot;
         var groin = LT.coversArea(player, "groin");
-        var chest = LT.coversArea(player, "chest") || (player.breastSize && player.breastSize.id === "FLAT");
+        var chest = LT.coversArea(player, "chest") ||
+            (player.breastSize && player.breastSize.id === "FLAT");
         return feet && groin && chest;
     };
     LT.dressPlayer = function (player) {
@@ -112,24 +139,123 @@
         var wear = [];
         var pile = [];
         if (fem === "MASCULINE_STRONG") {
-            wear = ["briefs", "shirt_long", "tie", "suit_jacket", "trousers", "socks", "smart_shoes", "ring_gold", "watch_gold"];
-            pile = ["boxers", "shirt_short", "tshirt", "jeans", "cargo", "hoodie", "jumper", "skaters", "trainers", "scarf"];
+            wear = [
+                "briefs",
+                "shirt_long",
+                "tie",
+                "suit_jacket",
+                "trousers",
+                "socks",
+                "smart_shoes",
+                "ring_gold",
+                "watch_gold",
+            ];
+            pile = [
+                "boxers",
+                "shirt_short",
+                "tshirt",
+                "jeans",
+                "cargo",
+                "hoodie",
+                "jumper",
+                "skaters",
+                "trainers",
+                "scarf",
+            ];
         }
         else if (fem === "MASCULINE") {
-            wear = ["boxers", "shirt_short", "trousers", "socks", "smart_shoes", "ring_silver", "watch_silver"];
-            pile = ["briefs", "shirt_long", "tshirt", "jeans", "cargo", "hoodie", "jumper", "skaters", "trainers", "tie", "suit_jacket"];
+            wear = [
+                "boxers",
+                "shirt_short",
+                "trousers",
+                "socks",
+                "smart_shoes",
+                "ring_silver",
+                "watch_silver",
+            ];
+            pile = [
+                "briefs",
+                "shirt_long",
+                "tshirt",
+                "jeans",
+                "cargo",
+                "hoodie",
+                "jumper",
+                "skaters",
+                "trainers",
+                "tie",
+                "suit_jacket",
+            ];
         }
         else if (fem === "ANDROGYNOUS") {
-            wear = ["panties", "crop_bra", "shirt_short", "jeans", "socks_white", "skaters"];
-            pile = ["boxers", "briefs", "thong", "trousers", "skirt", "yoga", "heels", "hoodie", "tshirt", "blouse"];
+            wear = [
+                "panties",
+                "crop_bra",
+                "shirt_short",
+                "jeans",
+                "socks_white",
+                "skaters",
+            ];
+            pile = [
+                "boxers",
+                "briefs",
+                "thong",
+                "trousers",
+                "skirt",
+                "yoga",
+                "heels",
+                "hoodie",
+                "tshirt",
+                "blouse",
+            ];
         }
         else if (fem === "FEMININE_STRONG") {
-            wear = ["thong", "plunge_bra_black", "slip_dress", "pantyhose", "stilettos", "watch_black", "ring_gold", "heart_necklace_gold"];
-            pile = ["panties", "lacy_panties", "lacy_bra", "fullcup_bra", "skater_dress", "heels", "kneehigh", "cardigan", "winter_coat"];
+            wear = [
+                "thong",
+                "plunge_bra_black",
+                "slip_dress",
+                "pantyhose",
+                "stilettos",
+                "watch_black",
+                "ring_gold",
+                "heart_necklace_gold",
+            ];
+            pile = [
+                "panties",
+                "lacy_panties",
+                "lacy_bra",
+                "fullcup_bra",
+                "skater_dress",
+                "heels",
+                "kneehigh",
+                "cardigan",
+                "winter_coat",
+            ];
         }
         else {
-            wear = ["panties", "plunge_bra", "skater_dress", "trainer_socks", "heels", "watch_pink", "ring_silver", "heart_necklace"];
-            pile = ["thong", "lacy_panties", "lacy_bra", "fullcup_bra", "slip_dress", "blouse", "skirt", "yoga", "cardigan", "winter_coat", "kneehigh"];
+            wear = [
+                "panties",
+                "plunge_bra",
+                "skater_dress",
+                "trainer_socks",
+                "heels",
+                "watch_pink",
+                "ring_silver",
+                "heart_necklace",
+            ];
+            pile = [
+                "thong",
+                "lacy_panties",
+                "lacy_bra",
+                "fullcup_bra",
+                "slip_dress",
+                "blouse",
+                "skirt",
+                "yoga",
+                "cardigan",
+                "winter_coat",
+                "kneehigh",
+            ];
         }
         for (var i = 0; i < wear.length; i++) {
             var w = LT.makeClothing(wear[i]);
@@ -142,7 +268,12 @@
         var item = player.equipped[slot];
         if (!item)
             return false;
-        if (typeof LT.itemIsSealed === "function" && LT.itemIsSealed(item)) {
+        // Casts: ClothingItem doesn't carry Item's `value`/`effects` fields (clothing.ts
+        // never constructs an enchanted instance itself), but a real equipped item can be
+        // one at runtime once enchanting.ts has touched it — these enchant-domain helpers
+        // only look at fields both shapes share (uid/effects), so the cast is safe here.
+        if (typeof LT.itemIsSealed === "function" &&
+            LT.itemIsSealed(item)) {
             var cost = LT.sealBreakCost(item);
             if ((player.essences || 0) < cost) {
                 if (LT.game) {
@@ -159,7 +290,13 @@
                 LT.incrementEssenceCount(-cost, false);
             if (LT.game) {
                 LT.game.textStart =
-                    "<p>You spend " + cost + " arcane essence" + (cost === 1 ? "" : "s") + " and break the seal on the " + item.name + ".</p>";
+                    "<p>You spend " +
+                        cost +
+                        " arcane essence" +
+                        (cost === 1 ? "" : "s") +
+                        " and break the seal on the " +
+                        item.name +
+                        ".</p>";
             }
         }
         delete player.equipped[slot];
@@ -196,9 +333,57 @@
         return Math.round(LT.clothingValue(itemOrId) * 1.5);
     };
     LT.nyanStock = function (group) {
-        var female = ["panties", "thong", "lacy_panties", "plunge_bra", "plunge_bra_black", "crop_bra", "lacy_bra", "fullcup_bra", "blouse", "skater_dress", "slip_dress", "skirt", "yoga", "heels", "stilettos", "watch_pink", "watch_black", "heart_necklace", "heart_necklace_gold"];
-        var male = ["briefs", "boxers", "shirt_long", "shirt_short", "trousers", "jeans", "cargo", "smart_shoes", "tie", "watch_gold", "watch_silver"];
-        var unisex = ["tshirt", "hoodie", "jumper", "cardigan", "winter_coat", "socks", "socks_white", "trainer_socks", "pantyhose", "kneehigh", "skaters", "trainers", "scarf", "ring_gold", "ring_silver"];
+        var female = [
+            "panties",
+            "thong",
+            "lacy_panties",
+            "plunge_bra",
+            "plunge_bra_black",
+            "crop_bra",
+            "lacy_bra",
+            "fullcup_bra",
+            "blouse",
+            "skater_dress",
+            "slip_dress",
+            "skirt",
+            "yoga",
+            "heels",
+            "stilettos",
+            "watch_pink",
+            "watch_black",
+            "heart_necklace",
+            "heart_necklace_gold",
+        ];
+        var male = [
+            "briefs",
+            "boxers",
+            "shirt_long",
+            "shirt_short",
+            "trousers",
+            "jeans",
+            "cargo",
+            "smart_shoes",
+            "tie",
+            "watch_gold",
+            "watch_silver",
+        ];
+        var unisex = [
+            "tshirt",
+            "hoodie",
+            "jumper",
+            "cardigan",
+            "winter_coat",
+            "socks",
+            "socks_white",
+            "trainer_socks",
+            "pantyhose",
+            "kneehigh",
+            "skaters",
+            "trainers",
+            "scarf",
+            "ring_gold",
+            "ring_silver",
+        ];
         if (group === "female")
             return female;
         if (group === "male")

@@ -60,11 +60,7 @@
         if (!ch || amount <= 0)
             return amount;
         type = type || "PHYSICAL";
-        var left = amount;
-        if (type !== "HEALTH" && type !== "LUST")
-            left = absorb(ch, "HEALTH", left);
-        left = absorb(ch, type, left);
-        return left;
+        return absorb(ch, type, amount);
     };
     LT.applyTypedDamage = function (target, amount, type) {
         if (!target || amount <= 0)

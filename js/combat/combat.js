@@ -20,6 +20,9 @@
         ch.remainingAP = Math.max(0, ch.maxAP - penalty);
         ch.selectedMoves = [];
     }
+    // Built up incrementally below (methods are assigned as separate statements,
+    // not part of this literal) — cast declares the intent once the module has
+    // finished loading, same pattern as items/enchanting.ts's `mod()` helper.
     LT.combat = {
         active: false,
         turn: 0,
@@ -119,7 +122,7 @@
         }
         if (type === "TEASE") {
             var w = 0.8 * mult + 0.2 * rnd() - 0.2 * already;
-            if ((tgt && tgt.lust) >= 75)
+            if ((tgt.lust || 0) >= 75)
                 w += 0.2;
             if (src && src.attractedToPlayer === false)
                 w *= 0.5;

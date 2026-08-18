@@ -10,12 +10,12 @@
     };
     var RARITY_COST = { COMMON: 1, UNCOMMON: 2, RARE: 4, EPIC: 8, LEGENDARY: 12 };
     function mod(id, name, rarity, extra) {
-        extra = extra || {};
-        extra.id = id;
-        extra.name = name;
-        extra.rarity = rarity;
-        extra.value = RARITY_COST[rarity] || 1;
-        return extra;
+        var e = extra || {};
+        e.id = id;
+        e.name = name;
+        e.rarity = rarity;
+        e.value = RARITY_COST[rarity] || 1;
+        return e;
     }
     LT.TF_MODIFIER = {
         NONE: mod("NONE", "Empty", "COMMON"),
@@ -204,6 +204,7 @@
         if (!ch)
             return;
         LT.clearEnchantBonus(ch);
+        var bonus = ch.enchantBonus;
         var equipped = ch.equipped || {};
         Object.keys(equipped).forEach(function (slot) {
             var item = equipped[slot];
@@ -211,7 +212,7 @@
             if (!effects)
                 return;
             for (var i = 0; i < effects.length; i++)
-                LT.applyEffectToBonus(ch.enchantBonus, effects[i], 1);
+                LT.applyEffectToBonus(bonus, effects[i], 1);
         });
         function addWeapon(wep) {
             var effects = wep && wep.effects;
@@ -219,7 +220,7 @@
                 return;
             var i;
             for (i = 0; i < effects.length; i++)
-                LT.applyEffectToBonus(ch.enchantBonus, effects[i], 1);
+                LT.applyEffectToBonus(bonus, effects[i], 1);
         }
         addWeapon(ch.mainWeapon);
         if (typeof LT.getOffhandWeapon === "function")
@@ -370,18 +371,19 @@
     };
     LT.findCarriedByUid = function (player, uid) {
         var lists = [player.wardrobe || [], player.items || [], player.weapons || []];
-        var i, j, list;
-        for (i = 0; i < lists.length; i++) {
-            list = lists[i];
-            for (j = 0; j < list.length; j++)
-                if (list[j] && list[j].uid === uid)
-                    return { list: list, index: j, item: list[j] };
+        for (var i = 0; i < lists.length; i++) {
+            var list = lists[i];
+            for (var j = 0; j < list.length; j++) {
+                var candidate = list[j];
+                if (candidate && candidate.uid === uid)
+                    return { list: list, index: j, item: candidate };
+            }
         }
         var equipped = player.equipped || {};
-        var slot;
-        for (slot in equipped) {
-            if (equipped[slot] && equipped[slot].uid === uid)
-                return { equipped: true, slot: slot, item: equipped[slot] };
+        for (var slot in equipped) {
+            var eq = equipped[slot];
+            if (eq && eq.uid === uid)
+                return { equipped: true, slot: slot, item: eq };
         }
         return null;
     };

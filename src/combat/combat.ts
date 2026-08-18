@@ -1,23 +1,27 @@
+
 (function () {
-  function nameOf(ch) {
+  function nameOf(ch?: Combatant | null) {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function defeated(ch) {
+  function defeated(ch?: Combatant | null) {
     if (!ch) return true;
     if ((ch.health || 0) <= 0) return true;
     return (ch.lust || 0) >= (LT.MAX_LUST || 100);
   }
 
-  function resetAp(ch) {
+  function resetAp(ch: Combatant) {
     ch.maxAP = ch.maxAP || 3;
     var penalty = typeof LT.consumeFlash === "function" ? LT.consumeFlash(ch) : 0;
     ch.remainingAP = Math.max(0, ch.maxAP - penalty);
     ch.selectedMoves = [];
   }
 
+  // Built up incrementally below (methods are assigned as separate statements,
+  // not part of this literal) — cast declares the intent once the module has
+  // finished loading, same pattern as items/enchanting.ts's `mod()` helper.
   LT.combat = {
     active: false,
     turn: 0,
@@ -32,7 +36,7 @@
     lastResolution: "",
     onVictory: null,
     onDefeat: null,
-  };
+  } as CombatState;
 
   LT.combat.start = function (opts) {
     opts = opts || {};
@@ -111,7 +115,7 @@
     }
     if (type === "TEASE") {
       var w = 0.8 * mult + 0.2 * rnd() - 0.2 * already;
-      if ((tgt && tgt.lust) >= 75) w += 0.2;
+      if ((tgt.lust || 0) >= 75) w += 0.2;
       if (src && src.attractedToPlayer === false) w *= 0.5;
       return w;
     }
@@ -148,7 +152,7 @@
   LT.combat.pickEnemyMove = function (src, tgt, used, rnd) {
     used = used || {};
     var types = ["ATTACK", "DEFEND", "TEASE", "SPELL"];
-    var best: any = null;
+    var best: string | null = null;
     var bestW = -999;
     for (var i = 0; i < types.length; i++) {
       var w = this.typeWeight(types[i], src, tgt, queuedOfType(src, types[i]), rnd);
@@ -177,7 +181,7 @@
     resetAp(this.enemy);
     var src = this.enemy;
     var tgt = this.player;
-    var used: any = {};
+    var used: Record<string, boolean> = {};
     src.selectedMoves = [];
     while ((src.remainingAP || 0) >= 1) {
       var pick = this.pickEnemyMove(src, tgt, used);
@@ -223,7 +227,7 @@
   };
 
   LT.combat.predictions = function (ch) {
-    var list: any[] = [];
+    var list: string[] = [];
     var moves = (ch && ch.selectedMoves) || [];
     for (var i = 0; i < moves.length; i++) {
       var move = LT.MOVES[moves[i].id];
@@ -238,7 +242,7 @@
     this.enemy.blocking = false;
     this.player.resisting = false;
     this.enemy.resisting = false;
-    var lines: any[] = [];
+    var lines: string[] = [];
     this.resolveCharacter(this.player, lines);
     if (!defeated(this.enemy) && !this.escaped) this.resolveCharacter(this.enemy, lines);
     if (!this.escaped && typeof LT.tickStatuses === "function") {
@@ -317,7 +321,7 @@
     if (typeof LT.recoverThrownAfterCombat === "function") LT.recoverThrownAfterCombat();
     if (result === "escaped" && this.onEscape) this.onEscape();
     if (extra) LT.game.textEnd = extra;
-    var dest: any = null;
+    var dest: string | null = null;
     if (result === "victory") dest = this.victoryNode;
     else if (result === "defeat") dest = this.defeatNode || this.returnNode;
     else if (result === "escaped") dest = this.returnNode || this.defeatNode;

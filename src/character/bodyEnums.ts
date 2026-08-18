@@ -1,9 +1,9 @@
 (function () {
-  function list(...items: any[]) {
+  function list<T>(...items: T[]): T[] {
     return items;
   }
 
-  function item(id: any, name: any, colour?: any) {
+  function item(id: string, name: string, colour?: string): BodyEnumEntry {
     return { id: id, name: name, colour: colour || "#dddddd" };
   }
 
@@ -138,8 +138,8 @@
   };
 
   LT.bodyShapeOf = function (size, muscle) {
-    var si = LT.BODY_SIZE_LIST.indexOf(size);
-    var mi = LT.MUSCLE_LIST.indexOf(muscle);
+    var si = LT.BODY_SIZE_LIST.indexOf(size as BodyEnumEntry);
+    var mi = LT.MUSCLE_LIST.indexOf(muscle as BodyEnumEntry);
     if (si < 0) si = 2;
     if (mi < 0) mi = 2;
     if (mi >= 3 && si <= 1) return { name: "athletic", colour: "#57be7e" };
@@ -156,7 +156,7 @@
     return arr[0];
   };
 
-  function e(id, name) {
+  function e(id: string, name: string): EnumEntry {
     return { id: id, name: name };
   }
 

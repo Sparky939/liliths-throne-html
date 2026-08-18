@@ -454,7 +454,10 @@
     getContent: function () {
       var s = selectedSlave();
       if (!s) return "<p>That slave is no longer registered to you.</p>";
-      if (!LT.game.flags.slaveryJobSelected) LT.game.flags.slaveryJobSelected = s.job && s.job !== "IDLE" ? s.job : "CLEANING";
+      if (LT.game.flags.slaveryJobSelectedFor !== s.id) {
+        LT.game.flags.slaveryJobSelected = s.job && s.job !== "IDLE" ? s.job : "CLEANING";
+        LT.game.flags.slaveryJobSelectedFor = s.id;
+      }
       var selected = selectedJobId();
       var selJob = LT.SLAVE_JOBS[selected] || LT.SLAVE_JOBS.IDLE;
       var stam = LT.dailySlaveStamina(s);

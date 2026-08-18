@@ -188,7 +188,7 @@
                 remove.disable("There are no effects to remove.");
             var craft = new LT.Response("Craft", "Bind these effects into the item.", null, function () {
                 var result = LT.craftEnchantedItem(item, s.effects);
-                if (result.error) {
+                if (result.error !== undefined) {
                     LT.game.textStart = "<p>" + result.error + "</p>";
                     LT.game.setContent("enchant.main");
                     return;

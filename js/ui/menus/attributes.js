@@ -77,8 +77,8 @@
                 bar("Experience", xp, Colour.ATTRIBUTE_EXPERIENCE, LT.uiIcon("experienceIcon.svg"), player && player.experience, player && player.experienceForLevel) +
                 "</div>" +
                 '<div class="attribute-container"><div class="attr-row">' +
-                statIcon("Physique", (player && (typeof LT.effectivePhysique === "function" ? LT.effectivePhysique(player) : player.physique)) || 10, Colour.ATTRIBUTE_PHYSIQUE, LT.uiIcon("strengthIcon.svg")) +
-                statIcon("Arcane", (player && (typeof LT.effectiveArcane === "function" ? LT.effectiveArcane(player) : player.arcane)) || 10, Colour.ATTRIBUTE_ARCANE, LT.uiIcon("intelligenceIcon.svg")) +
+                statIcon("Physique", player ? (typeof LT.effectivePhysique === "function" ? LT.effectivePhysique(player) : (player.physique != null ? player.physique : 10)) : 10, Colour.ATTRIBUTE_PHYSIQUE, LT.uiIcon("strengthIcon.svg")) +
+                statIcon("Arcane", player ? (typeof LT.effectiveArcane === "function" ? LT.effectiveArcane(player) : (player.arcane != null ? player.arcane : 10)) : 10, Colour.ATTRIBUTE_ARCANE, LT.uiIcon("intelligenceIcon.svg")) +
                 statIcon("Corruption", (player && (typeof LT.effectiveCorruption === "function" ? LT.effectiveCorruption(player) : player.corruption)) || 0, Colour.ATTRIBUTE_CORRUPTION, LT.uiIcon("corruptionIcon.svg")) +
                 '</div><div class="attr-row">' +
                 statIcon("Arousal", (player && player.arousal) || 0, Colour.ATTRIBUTE_AROUSAL, LT.uiIcon("arousalIcon.svg")) +

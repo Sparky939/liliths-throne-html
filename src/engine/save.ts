@@ -180,6 +180,7 @@
       var list = raw ? JSON.parse(raw) : [];
       return Array.isArray(list) ? list : [];
     } catch (e) {
+      console.error("Save index is corrupted; treating it as empty", e);
       return [];
     }
   }
@@ -245,6 +246,7 @@
       var raw = localStorage.getItem(PREFIX + name);
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
+      console.error("Save '" + name + "' is corrupted and could not be read", e);
       return null;
     }
   };
@@ -370,6 +372,8 @@
     if (LT._loading || !LT.game || !LT.game.started) return;
     try {
       LT.saveGame("AutoSave");
-    } catch (e) {}
+    } catch (e) {
+      console.error("Autosave failed", e);
+    }
   };
 })();

@@ -1,18 +1,18 @@
 (function () {
-  function pick(list) {
+  function pick<T>(list: T[]): T {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function chance(p) {
+  function chance(p: number) {
     return Math.random() < p;
   }
 
-  function feminine(npc) {
+  function feminine(npc: NpcGearCarrier | null | undefined) {
     if (npc && npc.isFeminine) return npc.isFeminine();
     return !!(npc && npc.feminine);
   }
 
-  function wear(npc, id) {
+  function wear(npc: NpcGearCarrier, id: string | null | undefined) {
     if (!id || typeof LT.makeClothing !== "function") return null;
     var item = LT.makeClothing(id);
     if (!item) return null;
@@ -114,21 +114,21 @@
     return npc;
   };
 
-  function givePlayerClothing(item) {
+  function givePlayerClothing(item: NpcGearItem | null | undefined) {
     var p = LT.game && LT.game.player;
     if (!p || !item) return;
     p.wardrobe = p.wardrobe || [];
     p.wardrobe.push(item);
   }
 
-  function givePlayerItem(item) {
+  function givePlayerItem(item: NpcGearItem | null | undefined) {
     var p = LT.game && LT.game.player;
     if (!p || !item) return;
     p.items = p.items || [];
     p.items.push(item);
   }
 
-  function givePlayerWeapon(item) {
+  function givePlayerWeapon(item: NpcGearItem | null | undefined) {
     var p = LT.game && LT.game.player;
     if (!p || !item) return;
     p.weapons = p.weapons || [];
@@ -136,10 +136,10 @@
   }
 
   LT.npcEquippedList = function (npc) {
-    var list: any[] = [];
+    var list: { slot: string; item: NpcGearItem }[] = [];
     if (!npc || !npc.equipped) return list;
     Object.keys(npc.equipped).forEach(function (slot) {
-      if (npc.equipped[slot]) list.push({ slot: slot, item: npc.equipped[slot] });
+      if (npc.equipped![slot]) list.push({ slot: slot, item: npc.equipped![slot]! });
     });
     return list;
   };
@@ -155,7 +155,7 @@
 
   LT.takeNpcClothing = function (npc, slot) {
     if (!npc || !npc.equipped || !npc.equipped[slot]) return null;
-    var item = npc.equipped[slot];
+    var item = npc.equipped[slot]!;
     delete npc.equipped[slot];
     givePlayerClothing(item);
     return item;
@@ -176,7 +176,7 @@
 
   LT.takeNpcWeapon = function (npc, which) {
     if (!npc) return null;
-    var item: any = null;
+    var item: NpcGearItem | null = null;
     if (which === "main" && npc.mainWeapon) {
       item = npc.mainWeapon;
       npc.mainWeapon = null;
@@ -197,7 +197,7 @@
   };
 
   LT.stripNpc = function (npc) {
-    var taken: any[] = [];
+    var taken: NpcGearItem[] = [];
     LT.npcEquippedList(npc).forEach(function (entry) {
       var item = LT.takeNpcClothing(npc, entry.slot);
       if (item) taken.push(item);
@@ -206,27 +206,27 @@
   };
 
   LT.takeAllNpcItems = function (npc) {
-    var taken: any[] = [];
+    var taken: NpcGearItem[] = [];
     if (!npc || !npc.items) return taken;
     while (npc.items.length) {
       var item = npc.items.shift();
       givePlayerItem(item);
-      taken.push(item);
+      if (item) taken.push(item);
     }
     return taken;
   };
 
   LT.takeAllNpcWeapons = function (npc) {
-    var taken: any[] = [];
+    var taken: NpcGearItem[] = [];
     var item;
     item = LT.takeNpcWeapon(npc, "main");
     if (item) taken.push(item);
     item = LT.takeNpcWeapon(npc, "offhand");
     if (item) taken.push(item);
-    while (npc.weapons && npc.weapons.length) {
+    while (npc && npc.weapons && npc.weapons.length) {
       item = npc.weapons.shift();
       givePlayerWeapon(item);
-      taken.push(item);
+      if (item) taken.push(item);
     }
     return taken;
   };

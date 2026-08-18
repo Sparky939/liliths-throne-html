@@ -8,15 +8,15 @@
     MAJOR_BOOST: { id: "MAJOR_BOOST", name: "Major Boost", value: 8, clothingBonus: 3, colour: "#6fd4e3", negative: false },
   };
 
-  var RARITY_COST = { COMMON: 1, UNCOMMON: 2, RARE: 4, EPIC: 8, LEGENDARY: 12 };
+  var RARITY_COST: Record<Rarity, number> = { COMMON: 1, UNCOMMON: 2, RARE: 4, EPIC: 8, LEGENDARY: 12 };
 
-  function mod(id: any, name: any, rarity: any, extra?: any) {
-    extra = extra || {};
-    extra.id = id;
-    extra.name = name;
-    extra.rarity = rarity;
-    extra.value = RARITY_COST[rarity] || 1;
-    return extra;
+  function mod(id: string, name: string, rarity: Rarity, extra?: Partial<TfModifier>): TfModifier {
+    var e = extra || {};
+    e.id = id;
+    e.name = name;
+    e.rarity = rarity;
+    e.value = RARITY_COST[rarity] || 1;
+    return e as TfModifier;
   }
 
   LT.TF_MODIFIER = {
@@ -204,18 +204,19 @@
   LT.reapplyWornEnchantments = function (ch) {
     if (!ch) return;
     LT.clearEnchantBonus(ch);
+    var bonus = ch.enchantBonus!;
     var equipped = ch.equipped || {};
     Object.keys(equipped).forEach(function (slot) {
       var item = equipped[slot];
       var effects = item && item.effects;
       if (!effects) return;
-      for (var i = 0; i < effects.length; i++) LT.applyEffectToBonus(ch.enchantBonus, effects[i], 1);
+      for (var i = 0; i < effects.length; i++) LT.applyEffectToBonus(bonus, effects[i], 1);
     });
-    function addWeapon(wep) {
+    function addWeapon(wep?: Item) {
       var effects = wep && wep.effects;
       if (!effects) return;
       var i;
-      for (i = 0; i < effects.length; i++) LT.applyEffectToBonus(ch.enchantBonus, effects[i], 1);
+      for (i = 0; i < effects.length; i++) LT.applyEffectToBonus(bonus, effects[i], 1);
     }
     addWeapon(ch.mainWeapon);
     if (typeof LT.getOffhandWeapon === "function") addWeapon(LT.getOffhandWeapon(ch));
@@ -349,7 +350,7 @@
     var p = LT.game.player;
     if ((p.essences || 0) < cost) return { error: "You need " + cost + " arcane essences." };
     p.essences -= cost;
-    var crafted: any = {};
+    var crafted = {} as Item;
     Object.keys(ingredient).forEach(function (k) {
       crafted[k] = ingredient[k];
     });
@@ -364,15 +365,17 @@
 
   LT.findCarriedByUid = function (player, uid) {
     var lists = [player.wardrobe || [], player.items || [], player.weapons || []];
-    var i, j, list;
-    for (i = 0; i < lists.length; i++) {
-      list = lists[i];
-      for (j = 0; j < list.length; j++) if (list[j] && list[j].uid === uid) return { list: list, index: j, item: list[j] };
+    for (var i = 0; i < lists.length; i++) {
+      var list = lists[i];
+      for (var j = 0; j < list.length; j++) {
+        var candidate = list[j];
+        if (candidate && candidate.uid === uid) return { list: list, index: j, item: candidate };
+      }
     }
     var equipped = player.equipped || {};
-    var slot;
-    for (slot in equipped) {
-      if (equipped[slot] && equipped[slot].uid === uid) return { equipped: true, slot: slot, item: equipped[slot] };
+    for (var slot in equipped) {
+      var eq = equipped[slot];
+      if (eq && eq.uid === uid) return { equipped: true as const, slot: slot, item: eq };
     }
     return null;
   };
@@ -381,7 +384,7 @@
     var found = LT.findCarriedByUid(player, uid);
     if (!found) return false;
     if (found.equipped) {
-      player.equipped[found.slot] = next;
+      player.equipped![found.slot] = next;
       LT.reapplyWornEnchantments(player);
       return true;
     }

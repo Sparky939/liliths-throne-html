@@ -4,6 +4,7 @@
    Flexibility: getMaxifiedGrid / loadGrid / renderGrid / movePlayer use each
    grid's own width and height (from LT_GRID_META or inferred tile bounds).
    grid.gridSize stays as max(width, height) for existing square-grid code. */
+
 (function () {
   var print: any = (window.print && (window.print as any).log) ? window.print : {
     log: function () {},
@@ -12,7 +13,7 @@
   };
   window.print = print;
 
-  var grid = window.grid = window.grid || {};
+  var grid: GridState = window.grid = window.grid || {};
   grid.gridSize = grid.gridSize || 25;
   grid.gridWidth = grid.gridWidth || grid.gridSize;
   grid.gridHeight = grid.gridHeight || grid.gridSize;
@@ -67,29 +68,29 @@
   }
   window.declareGridVariables = declareGridVariables;
 
-  function hideGrid(setState) {
+  function hideGrid(setState?: boolean) {
     if (setState !== false) grid.hidden = true;
     var section: any = document.querySelector('[data-ui="map"]');
     if (section && grid.hidden) section.hidden = true;
   }
   window.hideGrid = hideGrid;
 
-  function unhideGrid(setState) {
+  function unhideGrid(setState?: boolean) {
     if (setState !== false) grid.hidden = false;
     var section: any = document.querySelector('[data-ui="map"]');
     if (section && !grid.hidden) section.hidden = false;
   }
   window.unhideGrid = unhideGrid;
 
-  function showGrid(setState) {
+  function showGrid(setState?: boolean) {
     unhideGrid(setState);
   }
   window.showGrid = showGrid;
 
-  function createEmptyGrid(size) {
+  function createEmptyGrid(size?: number): GridTile[][] {
     size = size || grid.gridSize || 25;
     var gridData = Array.from({ length: size }, function (_, row) {
-      return Array.from({ length: size }, function (_, col) {
+      return Array.from({ length: size as number }, function (_, col): GridTile {
         return {
           x: col,
           y: row,
@@ -103,11 +104,11 @@
   }
   window.createEmptyGrid = createEmptyGrid;
 
-  function createClusteredGrid(size, locations) {
+  function createClusteredGrid(size: number, locations?: GridLocation[]): GridTile[][] {
     locations = locations || grid.locations || [];
     var gridData = Array.from({ length: size }, function (_, row) {
-      return Array.from({ length: size }, function (_, col) {
-        var location = locations.length ? locations[(Math.floor(row / 4) + Math.floor(col / 6)) % locations.length] : null;
+      return Array.from({ length: size }, function (_, col): GridTile {
+        var location = locations!.length ? locations![(Math.floor(row / 4) + Math.floor(col / 6)) % locations!.length] : null;
         return { x: col, y: row, isNavigable: Math.random() > 0.2, location: location };
       });
     });
@@ -115,7 +116,7 @@
   }
   window.createClusteredGrid = createClusteredGrid;
 
-  function findFirstNavigableTile(inputGrid?: any) {
+  function findFirstNavigableTile(inputGrid?: GridTile[][] | null): GridTile | null {
     var data = inputGrid || grid.gridData;
     if (!data) return null;
     for (var row = 0; row < data.length; row++) {
@@ -128,7 +129,7 @@
   }
   window.findFirstNavigableTile = findFirstNavigableTile;
 
-  function findTile(gridData, x, y) {
+  function findTile(gridData: GridTile[][] | null | undefined, x: number, y: number): GridTile | null {
     if (!gridData) return null;
     if (gridData[y] && gridData[y][x] && typeof gridData[y][x].x === "number") return gridData[y][x];
     for (var row = 0; row < gridData.length; row++) {
@@ -142,7 +143,7 @@
   }
   window.findTile = findTile;
 
-  function findTileMinified(gridData, x, y) {
+  function findTileMinified(gridData: GridTile[] | null | undefined, x: number, y: number): GridTile | null {
     if (!gridData) return null;
     for (var i = 0; i < gridData.length; i++) {
       var tile = gridData[i];
@@ -152,14 +153,14 @@
   }
   window.findTileMinified = findTileMinified;
 
-  function getMinifiedGrid(gridData) {
-    var minimized: any[] = [];
+  function getMinifiedGrid(gridData: GridTile[][] | null | undefined): GridTile[] {
+    var minimized: GridTile[] = [];
     if (!gridData) return minimized;
     for (var row = 0; row < gridData.length; row++) {
       for (var col = 0; col < gridData[row].length; col++) {
         var tile = gridData[row][col];
         if (!tile || !tile.isNavigable) continue;
-        var minTile: any = { x: tile.x, y: tile.y, location: tile.location || null };
+        var minTile: GridTile = { x: tile.x, y: tile.y, location: tile.location || null, isNavigable: true };
         if (tile.isStartingPoint === true) minTile.isStartingPoint = true;
         if (tile.travelConfig != null) minTile.travelConfig = tile.travelConfig;
         minimized.push(minTile);
@@ -169,7 +170,7 @@
   }
   window.getMinifiedGrid = getMinifiedGrid;
 
-  function isAlreadyMaxified(minimizedGrid) {
+  function isAlreadyMaxified(minimizedGrid: any): boolean {
     return !!(
       minimizedGrid &&
       minimizedGrid.length &&
@@ -181,27 +182,28 @@
     );
   }
 
-  function getMaxifiedGrid(minimizedGrid, gridSize, gridHeight) {
-    if (isAlreadyMaxified(minimizedGrid)) return minimizedGrid;
+  function getMaxifiedGrid(minimizedGrid: GridTile[] | GridTile[][] | null | undefined, gridSize?: number, gridHeight?: number): GridTile[][] {
+    if (isAlreadyMaxified(minimizedGrid)) return minimizedGrid as GridTile[][];
     var width = typeof gridSize === "number" ? gridSize : 25;
     var height = typeof gridHeight === "number" ? gridHeight : width;
-    if (Array.isArray(minimizedGrid)) {
-      for (var i = 0; i < minimizedGrid.length; i++) {
-        var t = minimizedGrid[i];
+    var flat = minimizedGrid as GridTile[] | null | undefined;
+    if (Array.isArray(flat)) {
+      for (var i = 0; i < flat.length; i++) {
+        var t = flat[i];
         if (!t) continue;
         if (typeof t.x === "number" && t.x + 1 > width) width = t.x + 1;
         if (typeof t.y === "number" && t.y + 1 > height) height = t.y + 1;
       }
     }
-    var lookup: any = {};
-    if (Array.isArray(minimizedGrid)) {
-      for (var n = 0; n < minimizedGrid.length; n++) {
-        var nav = minimizedGrid[n];
+    var lookup: Record<string, GridTile> = {};
+    if (Array.isArray(flat)) {
+      for (var n = 0; n < flat.length; n++) {
+        var nav = flat[n];
         if (nav && typeof nav.x === "number") lookup[nav.x + "," + nav.y] = nav;
       }
     }
     return Array.from({ length: height }, function (_, y) {
-      return Array.from({ length: width }, function (_, x) {
+      return Array.from({ length: width }, function (_, x): GridTile {
         var navTile = lookup[x + "," + y];
         if (navTile) {
           return {
@@ -219,14 +221,14 @@
   }
   window.getMaxifiedGrid = getMaxifiedGrid;
 
-  function getCurrentTile() {
+  function getCurrentTile(): GridTile | null {
     if (!grid.gridData || !grid.playerPosition) return null;
     var row = grid.gridData[grid.playerPosition.y];
     return row ? row[grid.playerPosition.x] : null;
   }
   window.getCurrentTile = getCurrentTile;
 
-  function getLocation(name, locations) {
+  function getLocation(name: string | null | undefined, locations?: GridLocation[]): GridLocation | null {
     if (!name) return null;
     locations = locations || grid.locations || [];
     for (var i = 0; i < locations.length; i++) {
@@ -242,9 +244,9 @@
   window.getLocation = getLocation;
   window.getLocationByName = getLocation;
 
-  function collectLocationsFromGrid(fullGrid) {
-    var seen: any = {};
-    var list: any[] = [];
+  function collectLocationsFromGrid(fullGrid: GridTile[][] | null | undefined): GridLocation[] {
+    var seen: Record<string, boolean> = {};
+    var list: GridLocation[] = [];
     if (!fullGrid) return list;
     for (var y = 0; y < fullGrid.length; y++) {
       for (var x = 0; x < fullGrid[y].length; x++) {
@@ -257,8 +259,8 @@
     return list;
   }
 
-  function renderGrid() {
-    var gridContainer = window.gridContainer || document.getElementById("grid");
+  function renderGrid(): void {
+    var gridContainer: any = window.gridContainer || document.getElementById("grid");
     window.gridContainer = gridContainer;
     if (!grid.gridData || !grid.gridName) {
       hideGrid(false);
@@ -338,9 +340,9 @@
   }
   window.renderGrid = renderGrid;
 
-  function updateInfo() {
+  function updateInfo(): void {
     var tile = getCurrentTile();
-    var box = window.gridInfoBox || document.getElementById("grid-info");
+    var box: any = window.gridInfoBox || document.getElementById("grid-info");
     window.gridInfoBox = box;
     if (!box) return;
     if (!tile) {
@@ -357,7 +359,7 @@
   }
   window.updateInfo = updateInfo;
 
-  function applyCurrentTileState() {
+  function applyCurrentTileState(): void {
     grid.currentTile = getCurrentTile();
     grid.currentLocation = (grid.currentTile && grid.currentTile.location && grid.currentTile.location.name) || "";
     grid.currentLocationType = (grid.currentTile && grid.currentTile.location && grid.currentTile.location.type) || "";
@@ -368,7 +370,7 @@
     }
   }
 
-  function movePlayer(dx: any, dy: any, moveMode?: any) {
+  function movePlayer(dx: number, dy: number, moveMode?: string): void {
     moveMode = moveMode || "Default";
     var cooldown = 100;
     if (!(movePlayer as any).lastMove) (movePlayer as any).lastMove = 0;
@@ -407,8 +409,6 @@
     } else if (moveMode === "Teleport") {
       newX = dx;
       newY = dy;
-      runTravelHandler();
-      return;
     } else {
       return;
     }
@@ -419,20 +419,25 @@
       newX < width &&
       newY < height &&
       (function () {
-        var dest = grid.gridData[newY] && grid.gridData[newY][newX];
+        var dest = grid.gridData![newY] && grid.gridData![newY][newX];
         if (dest && typeof LT.canEnterTile === "function" && !LT.canEnterTile(dest)) return false;
         return true;
       })() &&
-      grid.gridData[newY] &&
-      grid.gridData[newY][newX] &&
-      grid.gridData[newY][newX].isNavigable
+      grid.gridData![newY] &&
+      grid.gridData![newY][newX] &&
+      grid.gridData![newY][newX].isNavigable
     ) {
       runTravelHandler();
     }
   }
   window.movePlayer = movePlayer;
 
-  function loadGrid(newGrid, tile) {
+  // newGrid/tile are reassigned across incompatible shapes (a grid name string
+  // that gets resolved to grid data, a coord-only stub that gets resolved to a
+  // full GridTile) — kept loosely typed rather than fought through a union;
+  // every function this delegates to (getMaxifiedGrid, findFirstNavigableTile,
+  // collectLocationsFromGrid) is fully typed.
+  function loadGrid(newGrid: any, tile?: any): void {
     tile = tile || {};
     var newGridName;
     if (typeof newGrid === "string") {
@@ -461,7 +466,7 @@
     grid.gridSize = Math.max(grid.gridWidth, grid.gridHeight);
     grid.playerPosition = { x: tilePosition.x, y: tilePosition.y };
     grid.locations = collectLocationsFromGrid(newGrid);
-    window.selectedTile = grid.gridData[tilePosition.y] && grid.gridData[tilePosition.y][tilePosition.x];
+    window.selectedTile = grid.gridData![tilePosition.y] && grid.gridData![tilePosition.y][tilePosition.x];
     applyCurrentTileState();
     renderGrid();
     updateInfo();
@@ -469,11 +474,11 @@
   }
   window.loadGrid = loadGrid;
 
-  function generateGrid(mode) {
+  function generateGrid(mode?: string): void {
     mode = mode || "Normal";
     var size = grid.gridSize || 25;
     if (typeof window.generateDungeon === "function" && grid.gridStyle && grid.gridStyle !== "empty") {
-      var newGrid: any[] = [];
+      var newGrid: number[][] = [];
       for (var y = 0; y < size; y++) {
         newGrid[y] = [];
         for (var x = 0; x < size; x++) newGrid[y][x] = 0;
@@ -517,14 +522,14 @@
   }
   window.generateGrid = generateGrid;
 
-  function travelLocked() {
+  function travelLocked(): boolean {
     if (window.LT && LT.game && LT.game.currentNode && LT.game.currentNode.travelDisabled) return true;
     if (window.LT && LT.combat && LT.combat.active) return true;
     if (window.LT && LT.sex && LT.sex.active) return true;
     return false;
   }
 
-  function selectTile(row, col) {
+  function selectTile(row: number, col: number): void {
     if (travelLocked()) return;
     if (!grid.gridData || !grid.gridData[row] || !grid.gridData[row][col]) return;
     var tile = grid.gridData[row][col];
@@ -545,7 +550,7 @@
   }
   window.selectTile = selectTile;
 
-  function cycleGridZoom() {
+  function cycleGridZoom(): void {
     var steps = [3, 5, 7, 9];
     var i = steps.indexOf(grid.zoomLevel);
     grid.zoomLevel = steps[(i + 1) % steps.length];
@@ -553,10 +558,10 @@
   }
   window.cycleGridZoom = cycleGridZoom;
 
-  function goToTileLocation(locationName) {
+  function goToTileLocation(locationName: string): boolean {
     var currentGrid = window.allGrids[grid.gridName];
     if (!currentGrid) return false;
-    var matches: any[] = [];
+    var matches: GridTile[] = [];
     if (Array.isArray(currentGrid) && currentGrid.length && currentGrid[0] && typeof currentGrid[0].x === "number") {
       for (var i = 0; i < currentGrid.length; i++) {
         if (currentGrid[i].location && currentGrid[i].location.name === locationName) matches.push(currentGrid[i]);

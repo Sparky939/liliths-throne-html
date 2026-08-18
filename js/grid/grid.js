@@ -163,7 +163,7 @@
                 var tile = gridData[row][col];
                 if (!tile || !tile.isNavigable)
                     continue;
-                var minTile = { x: tile.x, y: tile.y, location: tile.location || null };
+                var minTile = { x: tile.x, y: tile.y, location: tile.location || null, isNavigable: true };
                 if (tile.isStartingPoint === true)
                     minTile.isStartingPoint = true;
                 if (tile.travelConfig != null)
@@ -188,9 +188,10 @@
             return minimizedGrid;
         var width = typeof gridSize === "number" ? gridSize : 25;
         var height = typeof gridHeight === "number" ? gridHeight : width;
-        if (Array.isArray(minimizedGrid)) {
-            for (var i = 0; i < minimizedGrid.length; i++) {
-                var t = minimizedGrid[i];
+        var flat = minimizedGrid;
+        if (Array.isArray(flat)) {
+            for (var i = 0; i < flat.length; i++) {
+                var t = flat[i];
                 if (!t)
                     continue;
                 if (typeof t.x === "number" && t.x + 1 > width)
@@ -200,9 +201,9 @@
             }
         }
         var lookup = {};
-        if (Array.isArray(minimizedGrid)) {
-            for (var n = 0; n < minimizedGrid.length; n++) {
-                var nav = minimizedGrid[n];
+        if (Array.isArray(flat)) {
+            for (var n = 0; n < flat.length; n++) {
+                var nav = flat[n];
                 if (nav && typeof nav.x === "number")
                     lookup[nav.x + "," + nav.y] = nav;
             }
@@ -423,8 +424,6 @@
         else if (moveMode === "Teleport") {
             newX = dx;
             newY = dy;
-            runTravelHandler();
-            return;
         }
         else {
             return;
@@ -446,6 +445,11 @@
         }
     }
     window.movePlayer = movePlayer;
+    // newGrid/tile are reassigned across incompatible shapes (a grid name string
+    // that gets resolved to grid data, a coord-only stub that gets resolved to a
+    // full GridTile) — kept loosely typed rather than fought through a union;
+    // every function this delegates to (getMaxifiedGrid, findFirstNavigableTile,
+    // collectLocationsFromGrid) is fully typed.
     function loadGrid(newGrid, tile) {
         tile = tile || {};
         var newGridName;

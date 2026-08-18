@@ -408,7 +408,7 @@
     },
     getContent: function () {
       var n = mugger();
-      if (n && LT.combat && LT.combat.lastResult === "victory") return stormXml("AFTER_SEX_VICTORY");
+      if (n && LT.combat && LT.combat.finished === "victory") return stormXml("AFTER_SEX_VICTORY");
       return stormXml("AFTER_SEX_DEFEAT");
     },
     getResponses: function () {
@@ -551,7 +551,7 @@
     },
     getContent: function () {
       var n = mugger();
-      if (n && LT.combat && LT.combat.lastResult === "victory") return harpyXml("AFTER_SEX_VICTORY");
+      if (n && LT.combat && LT.combat.finished === "victory") return harpyXml("AFTER_SEX_VICTORY");
       return harpyXml("AFTER_SEX_DEFEAT");
     },
     getResponses: function () {

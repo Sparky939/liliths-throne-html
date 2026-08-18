@@ -66,7 +66,7 @@
           ),
         ];
       }
-      if (!c.active) return [null];
+      if (!c.active || !c.player || !c.enemy) return [null];
       var end = new LT.Response(
         "End Turn",
         c.remainingAp() <= 0 ? "Ends your current turn." : "Ends your current turn. You still have unspent AP!",

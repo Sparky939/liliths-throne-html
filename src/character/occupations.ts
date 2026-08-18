@@ -1,5 +1,5 @@
 (function () {
-  function job(id: any, name: any, description: any, speech: any, feminineOnly?: any, masculineOnly?: any) {
+  function job(id: string, name: string, description: string, speech: string, feminineOnly?: boolean, masculineOnly?: boolean): Occupation {
     return {
       id: id,
       name: name,
@@ -28,7 +28,7 @@
   ];
 
   LT.availableOccupations = function (player) {
-    var out: any[] = [];
+    var out: Occupation[] = [];
     var fem = player.isFeminine();
     for (var i = 0; i < LT.OCCUPATIONS.length; i++) {
       var o = LT.OCCUPATIONS[i];
