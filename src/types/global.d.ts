@@ -399,7 +399,13 @@ declare global {
     limit: number;
   }
 
-  interface EnchantBonus {
+  // Shared base for "a bag of attribute bonuses" — EnchantBonus (worn-item
+  // enchantments) and StatusEffectBonus (statusEffects.ts, further below)
+  // are two independently-typed instances of the same concept, verified
+  // field-for-field against their actual construction sites
+  // (LT.emptyEnchantBonus, statusEffects.ts's emptyBonus()) rather than just
+  // matched by eye.
+  interface AttributeBonus {
     physique: number;
     arcane: number;
     health: number;
@@ -408,22 +414,25 @@ declare global {
     fertility: number;
     virility: number;
     damageUnarmed: number;
-    damageMelee: number;
-    damageRanged: number;
     damagePhysical: number;
     damageLust: number;
-    damageFire: number;
-    damageIce: number;
-    damagePoison: number;
-    damageSpells: number;
     resistPhysical: number;
     resistLust: number;
     resistFire: number;
     resistIce: number;
-    resistPoison: number;
     spellCost: number;
+    [key: string]: number;
+  }
+
+  interface EnchantBonus extends AttributeBonus {
+    damageMelee: number;
+    damageRanged: number;
+    damageFire: number;
+    damageIce: number;
+    damagePoison: number;
+    damageSpells: number;
+    resistPoison: number;
     criticalDamage: number;
-    [attr: string]: number;
   }
 
   interface EnchantCarrier {
@@ -498,47 +507,53 @@ declare global {
     isFeminine: () => boolean;
   }
 
-  // === bodyEnums.ts ===
-
-  interface BodyEnumEntry {
+  // === Named entry hierarchy ===
+  // Every static catalog entry across bodyEnums.ts/enums.ts/
+  // content/bodyChanging.ts's PillEntry shares at least {id, name}, and most
+  // also carry a display colour — previously each redeclared both fields
+  // independently rather than sharing a base (the same documented-not-
+  // enforced pattern later fixed for Character; PillEntry's own comment
+  // already claimed the others "structurally satisfy" it). ClothingSlot
+  // (clothing.ts section, {id, label}) deliberately does NOT join this
+  // family — it uses `label`, not `name`, a genuinely different field, not
+  // just a naming accident.
+  interface NamedEntry {
     id: string;
     name: string;
+  }
+
+  interface ColouredEntry extends NamedEntry {
     colour: string;
   }
 
-  interface EnumEntry {
-    id: string;
-    name: string;
-  }
+  // === bodyEnums.ts ===
 
-  interface SwatchEntry {
-    id: string;
-    name: string;
+  interface BodyEnumEntry extends ColouredEntry {}
+
+  interface EnumEntry extends NamedEntry {}
+
+  // Uses `hex`, not `colour` — genuinely different field, not folded into
+  // ColouredEntry (see PillEntry further below, which is the one place both
+  // conventions meet).
+  interface SwatchEntry extends NamedEntry {
     hex: string;
   }
 
-  interface HairStyleEntry {
-    id: string;
-    name: string;
+  interface HairStyleEntry extends NamedEntry {
     minLength: number;
   }
 
-  interface HelpEntry {
-    id: string;
-    name: string;
+  interface HelpEntry extends NamedEntry {
     help: string;
   }
 
-  interface PiercingType {
-    id: string;
-    name: string;
-    help: string;
+  // Shares {id, name, help} with HelpEntry exactly, plus its own optional
+  // `needs` — a genuine subtype, not just a coincidental lookalike.
+  interface PiercingType extends HelpEntry {
     needs?: string;
   }
 
-  interface TattooSlot {
-    id: string;
-    name: string;
+  interface TattooSlot extends NamedEntry {
     needs?: string;
   }
 
@@ -714,33 +729,20 @@ declare global {
   // LT.Gender/LT.Orientation/LT.Femininity/LT.PERSONALITY entries rather than
   // falling through LTNamespace's index signature to `any`.
 
-  interface FemininityEntry {
-    id: string;
-    name: string;
+  interface FemininityEntry extends ColouredEntry {
     value: number;
-    colour: string;
   }
 
-  interface GenderEntry {
-    id: string;
-    name: string;
+  interface GenderEntry extends ColouredEntry {
     hasPenis: boolean;
     hasVagina: boolean;
     hasBreasts: boolean;
     feminine: boolean;
-    colour: string;
   }
 
-  interface OrientationEntry {
-    id: string;
-    name: string;
-    colour: string;
-  }
+  interface OrientationEntry extends ColouredEntry {}
 
-  interface PersonalityTrait {
-    id: string;
-    name: string;
-    colour: string;
+  interface PersonalityTrait extends ColouredEntry {
     exclusive: string[];
   }
 
@@ -934,25 +936,11 @@ declare global {
     combatTurns?: number;
   }
 
-  interface StatusEffectBonus {
-    physique: number;
-    arcane: number;
-    health: number;
-    mana: number;
-    corruption: number;
-    fertility: number;
-    virility: number;
-    damageUnarmed: number;
-    damagePhysical: number;
-    damageLust: number;
-    resistPhysical: number;
-    resistLust: number;
-    resistFire: number;
-    resistIce: number;
-    spellCost: number;
+  // See AttributeBonus (enchanting.ts section) for the shared base and why
+  // this and EnchantBonus are split from it instead of being one type.
+  interface StatusEffectBonus extends AttributeBonus {
     restingLust: number;
     actionPoints: number;
-    [key: string]: number;
   }
 
   // Loosely-known character-or-combatant shape: statusEffects.ts runs across
@@ -1180,14 +1168,15 @@ declare global {
 
   // === content/bodyChanging.ts ===
   // Shared shape for anything the pills()/toggles() UI helpers render as a
-  // selectable option — every enum-entry-like array in the codebase
-  // (BodyEnumEntry, EnumEntry, SwatchEntry, HairStyleEntry) structurally
-  // satisfies this, since they all carry at least `id` and usually `name`,
-  // with `colour`/`hex` covering the two different ways entries record a
-  // display colour (hexOf() checks both).
-  interface PillEntry {
-    id: string;
-    name: string;
+  // selectable option. Formally extends NamedEntry (see "Named entry
+  // hierarchy" above) rather than just structurally happening to match it —
+  // every enum-entry-like array in the codebase (BodyEnumEntry, EnumEntry,
+  // SwatchEntry, HairStyleEntry, and the rest of that family) is now a real
+  // subtype of NamedEntry, so all of them are assignable here without a
+  // cast. `colour`/`hex` stay optional here (unlike ColouredEntry, where
+  // colour is required) since this type has to accept both conventions —
+  // hexOf() checks both.
+  interface PillEntry extends NamedEntry {
     colour?: string;
     hex?: string;
   }
