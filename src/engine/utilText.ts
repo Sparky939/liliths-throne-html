@@ -1,8 +1,54 @@
-(function () {
-  var unseen: any = {};
-  var special: any[] = [];
+// Loosely-known shape for whatever targetOf() resolves a template-tag prefix
+// (pc/npc/npc2/a name like "lilaya") to: the real player/NPC Character, an
+// Npc-catalog entry, or the hardcoded "npcfemale" stub literal below — all
+// three are used interchangeably here, hence every field is optional.
+interface ParseTarget {
+  feminine?: boolean;
+  isFeminine?: () => boolean;
+  name?: string;
+  getName?: () => string;
+  getFullName?: () => string;
+  surname?: string;
+  relationToPlayer?: string;
+  fullRace?: string;
+  raceName?: string;
+  getRaceName?: () => string;
+  getSpeechColour?: () => string;
+  breastSize?: { id?: string };
+  heightValue?: string;
+  eyeColour?: string;
+  cupSize?: string;
+  penisSize?: string;
+  hasPenis?: () => boolean;
+  hasVagina?: () => boolean;
+  hasPersonalityTrait?: (id: string) => boolean;
+  isPlayer?: () => boolean;
+  player?: boolean;
+  attractedToPlayer?: boolean;
+  encounteredBefore?: boolean;
+  orgasmedThisSex?: number;
+  location?: { place?: string } | null;
+}
 
-  var parseTargets: any = null;
+interface ConditionalBranch {
+  cond: string;
+  body: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- declaration-merges onto the ambient LTNamespace from global.d.ts, not referenced by name here
+interface LTNamespace {
+  utilUnseen: Record<string, boolean>;
+  withParseTargets(map: Record<string, ParseTarget | null | undefined> | null | undefined, fn: () => string): string;
+  addSpecialParse(value: string, reset?: boolean): void;
+  parseFromXML(path: string, tag: string): string;
+  parse(input: string | null | undefined): string;
+}
+
+(function () {
+  var unseen: Record<string, boolean> = {};
+  var special: string[] = [];
+
+  var parseTargets: Record<string, ParseTarget | null | undefined> | null = null;
 
   LT.utilUnseen = unseen;
 
@@ -56,7 +102,7 @@
     });
     text = text.replace(/\[style\.random\(([\s\S]*?)\)\]/g, function (_, inner) {
       var parts = String(inner).split("|");
-      var clean: any[] = [];
+      var clean: string[] = [];
       var p;
       for (p = 0; p < parts.length; p++) {
         var bit = parts[p].trim();
@@ -71,8 +117,8 @@
     return text;
   };
 
-  function wrapStyle(kind, inner) {
-    var map = {
+  function wrapStyle(kind: string, inner: string): string {
+    var map: Record<string, { color?: string; bold?: boolean; italic?: boolean; speech?: boolean }> = {
       boldExcellent: { color: LT.Colour.GENERIC_EXCELLENT, bold: true },
       colourGood: { color: LT.Colour.GENERIC_GOOD },
       colorGood: { color: LT.Colour.GENERIC_GOOD },
@@ -100,7 +146,7 @@
     return '<span style="' + style + '">' + inner + "</span>";
   }
 
-  function applyConditionals(text) {
+  function applyConditionals(text: string): string {
     var guard = 0;
     while (guard++ < 40) {
       var start = lastIndexOfIf(text);
@@ -112,7 +158,7 @@
     return text;
   }
 
-  function lastIndexOfIf(text) {
+  function lastIndexOfIf(text: string): number {
     var best = -1;
     var i = 0;
     while (i < text.length) {
@@ -133,7 +179,7 @@
     return best;
   }
 
-  function parseIfHeader(text, start, keyword) {
+  function parseIfHeader(text: string, start: number, keyword: string): { cond: string; bodyStart: number } | null {
     var head = start + keyword.length;
     if (text.charAt(head) === "(") {
       var depth = 0;
@@ -153,10 +199,10 @@
     return { cond: text.slice(head, thenAt).trim(), bodyStart: thenAt + 5 };
   }
 
-  function evalConditionalBlock(text, start) {
+  function evalConditionalBlock(text: string, start: number): { keep: string; end: number } | null {
     var header = parseIfHeader(text, start, "#IF");
     if (!header) return null;
-    var branches: any[] = [];
+    var branches: ConditionalBranch[] = [];
     var depth = 0;
     var i = header.bodyStart;
     var branchStart = header.bodyStart;
@@ -212,7 +258,7 @@
     return null;
   }
 
-  function findTop(text, from, token, stop) {
+  function findTop(text: string, from: number, token: string, stop: string): number {
     var i = from;
     var depth = 0;
     while (i < text.length) {
@@ -239,12 +285,12 @@
     return -1;
   }
 
-  function npcAtLab() {
+  function npcAtLab(): boolean {
     var n = targetOf("lilaya");
     return !!(n && n.location && n.location.place === "LILAYA_HOME_LAB");
   }
 
-  function hasFlag(id) {
+  function hasFlag(id: string): boolean {
     id = String(id || "").replace(/^FLAG_/, "");
     if (!LT.game.flags) return false;
     if (id === "accessToEnforcerHQ") return !!LT.game.flags.accessToEnforcerHQ;
@@ -252,12 +298,12 @@
     return !!LT.game.flags[id];
   }
 
-  function evalCondition(expr) {
+  function evalCondition(expr: string): boolean {
     var e = expr.replace(/\s+/g, "");
     try {
-      e = e.replace(/pc\.isFeminine\(\)/g, bool(targetOf("pc") && targetOf("pc").isFeminine()));
-      e = e.replace(/pc\.hasPenis\(\)/g, bool(targetOf("pc") && targetOf("pc").hasPenis && targetOf("pc").hasPenis()));
-      e = e.replace(/pc\.hasVagina\(\)/g, bool(targetOf("pc") && targetOf("pc").hasVagina && targetOf("pc").hasVagina()));
+      e = e.replace(/pc\.isFeminine\(\)/g, bool(targetOf("pc") && targetOf("pc")!.isFeminine!()));
+      e = e.replace(/pc\.hasPenis\(\)/g, bool(targetOf("pc") && targetOf("pc")!.hasPenis && targetOf("pc")!.hasPenis!()));
+      e = e.replace(/pc\.hasVagina\(\)/g, bool(targetOf("pc") && targetOf("pc")!.hasVagina && targetOf("pc")!.hasVagina!()));
       e = e.replace(/pc\.isPenisBulgeVisible\(\)/g, bool(isBulgeVisible(targetOf("pc"))));
       e = e.replace(/pc\.isTesticleBulgeVisible\(\)/g, bool(isBulgeVisible(targetOf("pc"))));
       e = e.replace(/pc\.isTaur\(\)/g, "false");
@@ -268,7 +314,7 @@
       e = e.replace(/pc\.hasCompanions\(\)/g, "false");
       e = e.replace(/pc\.isPartyAbleToFly\(\)/g, "false");
       e = e.replace(/pc\.hasFetish\([^)]+\)/g, "false");
-      e = e.replace(/pc\.isShy\(\)/g, bool(targetOf("pc") && targetOf("pc").hasPersonalityTrait && targetOf("pc").hasPersonalityTrait("SHY")));
+      e = e.replace(/pc\.isShy\(\)/g, bool(targetOf("pc") && targetOf("pc")!.hasPersonalityTrait && targetOf("pc")!.hasPersonalityTrait!("SHY")));
       e = e.replace(/pc\.isVisiblyPregnant\(\)/g, bool(typeof LT.isVisiblyPregnant === "function" && LT.isVisiblyPregnant(targetOf("pc"))));
       e = e.replace(/game\.getPlayer\(\)\.isVisiblyPregnant\(\)/g, bool(typeof LT.isVisiblyPregnant === "function" && LT.isVisiblyPregnant(LT.game.player)));
       e = e.replace(/game\.getDialogueFlags\(\)\.hasFlag\((?:FLAG_)?([A-Za-z0-9_]+)\)/g, function (_, id) {
@@ -281,7 +327,7 @@
       e = e.replace(/game\.isDayTime\(\)/g, bool(LT.isDayTime ? LT.isDayTime() : LT.isWorkTime && LT.isWorkTime()));
       e = e.replace(/game\.isExtendedWorkTime\(\)/g, bool(LT.isWorkTime && LT.isWorkTime()));
       e = e.replace(/pc\.getAttributeValue\(ATTRIBUTE_MAJOR_PHYSIQUE\)>=(\d+)/g, function (_, n) {
-        return bool((LT.game.player && (LT.game.player.physique || 0)) >= Number(n));
+        return bool(((LT.game.player && LT.game.player.physique) || 0) >= Number(n));
       });
       e = e.replace(/flags\.getSavedLong\('([^']+)'\)(>=|==)(\d+)/g, function (_, id, op, n) {
         var key = id === "amber_door_knock_repeat_count" ? "amberDoorKnockRepeatCount" : id;
@@ -299,18 +345,18 @@
       e = e.replace(/pc\.isQuestCompleted\([^)]+\)/g, "false");
       e = e.replace(/pc\.isHasSlaverLicense\(\)/g, bool(!!(LT.game.flags && LT.game.flags.hasSlaverLicense)));
       e = e.replace(/game\.getNonCompanionCharactersPresent\(\)\.isEmpty\(\)/g, bool(!(typeof LT.alleyMuggerPresent === "function" && LT.alleyMuggerPresent())));
-      e = e.replace(/npc\.isAttractedTo\(pc\)/g, bool(targetOf("npc") && targetOf("npc").attractedToPlayer));
+      e = e.replace(/npc\.isAttractedTo\(pc\)/g, bool(targetOf("npc") && targetOf("npc")!.attractedToPlayer));
       e = e.replace(/npc\.isFeral\(\)/g, "false");
-      e = e.replace(/npc\.isFeminine\(\)/g, bool(targetOf("npc") && targetOf("npc").isFeminine && targetOf("npc").isFeminine()));
-      e = e.replace(/npc\.isFeminine\(\)/g, bool(targetOf("npc") && targetOf("npc").isFeminine && targetOf("npc").isFeminine()));
+      e = e.replace(/npc\.isFeminine\(\)/g, bool(targetOf("npc") && targetOf("npc")!.isFeminine && targetOf("npc")!.isFeminine!()));
+      e = e.replace(/npc\.isFeminine\(\)/g, bool(targetOf("npc") && targetOf("npc")!.isFeminine && targetOf("npc")!.isFeminine!()));
       e = e.replace(/npc\.isRelatedTo\(pc\)/g, "false");
       e = e.replace(/npc\.getHistory\(\)==OCCUPATION_[A-Z0-9_]+/g, "false");
       e = e.replace(/npc\.getAffectionLevel\(pc\)\.isLessThan\([^)]+\)/g, "true");
-      e = e.replace(/npc\.hasEncounteredBefore\(\)/g, bool(targetOf("npc") && targetOf("npc").encounteredBefore));
+      e = e.replace(/npc\.hasEncounteredBefore\(\)/g, bool(targetOf("npc") && targetOf("npc")!.encounteredBefore));
       e = e.replace(/npc\.isVisiblyPregnant\(\)/g, "false");
-      e = e.replace(/npc\.isSatisfiedFromLastSex\(\)/g, bool(targetOf("npc") && (targetOf("npc").orgasmedThisSex || 0) >= 1));
+      e = e.replace(/npc\.isSatisfiedFromLastSex\(\)/g, bool(targetOf("npc") && (targetOf("npc")!.orgasmedThisSex || 0) >= 1));
       e = e.replace(/sex\.getNumberOfOrgasms\(npc\)>(\d+)/g, function (_, n) {
-        return bool(targetOf("npc") && (targetOf("npc").orgasmedThisSex || 0) > Number(n));
+        return bool(targetOf("npc") && (targetOf("npc")!.orgasmedThisSex || 0) > Number(n));
       });
       e = e.replace(/npc\.isMute\(\)/g, "false");
       e = e.replace(/npc\.isPostCombatRapePlay\(\)/g, "false");
@@ -320,7 +366,7 @@
       e = e.replace(/npc\.isCharacterReactedToPregnancy\([^)]*\)/g, "false");
       e = e.replace(/npc\.getPregnantLitter\(\)[^=]*=[^=]*\([^)]*\)/g, "false");
       e = e.replace(/brax\.getFoughtPlayerCount\(\)>(\d+)/g, function (_, n) {
-        return bool((LT.game.flags && LT.game.flags.braxFoughtCount || 0) > Number(n));
+        return bool(((LT.game.flags && LT.game.flags.braxFoughtCount) || 0) > Number(n));
       });
       e = e.replace(/pc\.getTailType\(\)\.getRace\(\)==RACE_[A-Z0-9_]+/g, "false");
       e = e.replace(/game\.isNonConEnabled\(\)/g, "false");
@@ -355,16 +401,16 @@
     }
   }
 
-  function bool(v) {
+  function bool(v: unknown): string {
     return v ? "true" : "false";
   }
 
-  function isBulgeVisible(ch) {
+  function isBulgeVisible(ch: ParseTarget | null): boolean {
     if (!ch || !ch.hasPenis || !ch.hasPenis()) return false;
-    return !ch.isFeminine();
+    return !ch.isFeminine!();
   }
 
-  function replaceCommands(text) {
+  function replaceCommands(text: string): string {
     var out = "";
     var i = 0;
     while (i < text.length) {
@@ -385,12 +431,12 @@
     return out;
   }
 
-  function parseCommandAt(text, start) {
+  function parseCommandAt(text: string, start: number): { out: string; end: number } | null {
     var rest = text.slice(start);
     var m = /^\[([A-Za-z0-9]+)\.([A-Za-z0-9_+]+)/.exec(rest);
     if (!m) return null;
     var i = start + m[0].length;
-    var args: any = null;
+    var args: string | null = null;
     if (text.charAt(i) === "(") {
       var depth = 1;
       var j = i + 1;
@@ -410,11 +456,11 @@
     return { out: runCommand(m[1], m[2], args), end: i + 1 };
   }
 
-  function conjugateVerb(base) {
+  function conjugateVerb(base: string): string {
     var word = String(base || "");
     if (!word) return word;
     var lower = word.toLowerCase();
-    var irregular = { have: "has", be: "is", do: "does", go: "goes", ready: "readies" };
+    var irregular: Record<string, string> = { have: "has", be: "is", do: "does", go: "goes", ready: "readies" };
     if (irregular[lower]) {
       if (word.charAt(0) === word.charAt(0).toUpperCase()) {
         return irregular[lower].charAt(0).toUpperCase() + irregular[lower].slice(1);
@@ -426,9 +472,9 @@
     return word + "s";
   }
 
-  function targetOf(name) {
+  function targetOf(name: string): ParseTarget | null {
     var key = name.toLowerCase();
-    if (parseTargets && parseTargets[key]) return parseTargets[key];
+    if (parseTargets && parseTargets[key]) return parseTargets[key]!;
     if (key === "pc") return LT.game.player;
     if (LT.game.npcs && LT.game.npcs[key]) return LT.game.npcs[key];
     if (key === "npc") return LT.game.npcs && (LT.game.npcs.npc || LT.game.npcs.prologuefemale || LT.game.npcs.prologuemale);
@@ -450,7 +496,7 @@
     return null;
   }
 
-  function runCommand(targetName, command, args) {
+  function runCommand(targetName: string, command: string, args: string | null): string {
     var ch = targetOf(targetName);
     if (!ch) {
       note(targetName + "." + command);
@@ -470,15 +516,15 @@
     return out;
   }
 
-  function isPlayerChar(ch) {
+  function isPlayerChar(ch: ParseTarget | null | undefined): boolean {
     return !!(ch && ((ch.isPlayer && ch.isPlayer()) || ch.player));
   }
 
-  function sexPlayerToken(targetName, ch) {
+  function sexPlayerToken(targetName: string, ch: ParseTarget | null | undefined): boolean {
     return !!(LT._parseSexNames && isPlayerChar(ch) && String(targetName || "").toLowerCase() !== "pc");
   }
 
-  function resolve(ch, cmd, args, plus, targetName) {
+  function resolve(ch: ParseTarget, cmd: string, args: string | null, plus: boolean, targetName: string): string | null {
     var fem = ch.isFeminine ? ch.isFeminine() : !!ch.feminine;
     var name = ch.getName ? ch.getName() : ch.name || "someone";
     var asYou = sexPlayerToken(targetName, ch);
@@ -589,12 +635,12 @@
     return null;
   }
 
-  function possessive(name) {
+  function possessive(name: string): string {
     if (/s$/i.test(name)) return name + "'";
     return name + "'s";
   }
 
-  function note(token) {
+  function note(token: string): void {
     if (!unseen[token]) {
       unseen[token] = true;
       console.warn("UtilText unseen:", token);

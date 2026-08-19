@@ -10,11 +10,12 @@
     function listOf(obj) {
         if (Array.isArray(obj))
             return obj;
-        var keys = Object.keys(obj || {});
+        var rec = obj || {};
+        var keys = Object.keys(rec);
         var out = [];
         var i;
         for (i = 0; i < keys.length; i++)
-            out.push(obj[keys[i]]);
+            out.push(rec[keys[i]]);
         return out;
     }
     function hexOf(it) {
@@ -113,11 +114,11 @@
             LT.ensureBody(ch);
         return ch.body;
     }
-    // `b` stays loosely typed here on purpose: this function's whole job is
-    // backfilling a body object that may be missing fields CharacterBody
-    // otherwise declares as always-present (legacy save data, or a body
-    // object built before every default was applied) — every other function
-    // in this file runs after ensureExtras and can trust the full shape.
+    // `b` is typed as the full CharacterBody even though this function's whole
+    // job is backfilling fields CharacterBody declares as always-present but
+    // that may genuinely be missing (legacy save data, or a body object built
+    // before every default was applied) — every other function in this file
+    // runs after ensureExtras and can trust the full shape.
     function ensureExtras(ch, b) {
         if (!ch || !b)
             return;
@@ -208,6 +209,10 @@
         list.push(LT.PART_TYPE.HUMAN, LT.PART_TYPE.DEMON);
         return list;
     }
+    // root/return type genuinely can't be narrower than `any`: this walks an
+    // arbitrary dot-separated path (e.g. "penis.testicle.count") into
+    // CharacterBody, and every intermediate value along that walk is a
+    // different, unrelated shape depending on which path string was passed in.
     function getAt(root, path) {
         var parts = path.split(".");
         var obj = root;
@@ -892,9 +897,10 @@
     };
     document.addEventListener("click", function (e) {
         var stage = document.getElementById("ui-stage");
-        if (!stage || !stage.contains(e.target))
+        var evtTarget = e.target;
+        if (!stage || !evtTarget || !stage.contains(evtTarget))
             return;
-        var btn = e.target.closest("[data-act]");
+        var btn = evtTarget.closest("[data-act]");
         if (!btn || btn.classList.contains("disabled"))
             return;
         var node = LT.game && LT.game.currentNode;

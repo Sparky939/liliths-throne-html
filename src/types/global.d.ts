@@ -44,8 +44,20 @@ declare global {
     effects?: EnchantEffect[];
     enchanted?: boolean;
     enchantmentKnown?: boolean;
+    // Ported from upstream PR #5's later commits for shape parity — none of
+    // these three are read or written anywhere in this codebase yet (nor in
+    // upstream's own branch, by its own admission: "tags and flags are
+    // optional and not currently used").
+    tags?: Record<string, boolean>;
+    flags?: Record<string, boolean>;
+    dirty?: boolean;
     genUid?(prefix?: string): void;
     equip?(): void;
+    // Same upstream commit, same "not called anywhere yet" status as
+    // tags/flags/dirty above.
+    onEquip?(): void;
+    pickup?(): void;
+    onPickup?(): void;
     [key: string]: any;
   }
 
@@ -189,6 +201,56 @@ declare global {
     outfit?: string;
   }
 
+  // === items/weapons.ts (catalog shape only — weapons.ts itself, the
+  // ~2600-line data file this describes, isn't typed yet; weaponRuntime.ts
+  // needs the shape to type its own reads) ===
+  interface WeaponType {
+    id: string;
+    name: string;
+    damage: number;
+    damageTypes: string[];
+    twoHanded?: boolean;
+    variance?: string;
+    tags?: string[];
+    attackDescriptor?: string;
+    attackTooltip?: string;
+    hitTexts?: string[];
+    missTexts?: string[];
+    value?: number;
+    arcaneCost?: number;
+    oneShot?: boolean;
+    rarity?: string;
+    [key: string]: any;
+  }
+
+  // === weaponRuntime.ts ===
+  interface WeaponItem extends CarriedItemBase {
+    kind: "weapon";
+    damageType: string;
+    // Same structural-parity reasoning as ClothingItem's — a weapon can be
+    // enchanted at runtime even though makeWeapon() never sets these itself.
+    effects?: EnchantEffect[];
+    enchanted?: boolean;
+    enchantmentKnown?: boolean;
+  }
+
+  interface OneShotRecoverChance {
+    turn: number;
+    combat: number;
+  }
+
+  interface ArmMuggerOptions {
+    dark?: boolean;
+    hasWeapon?: boolean | null;
+    dagger?: boolean;
+    dual?: boolean;
+    knuckles?: boolean;
+    offhand?: boolean;
+    meleeId?: string;
+    damageType?: string;
+    random?: () => number;
+  }
+
   // === npcs.ts ===
 
   // Generic NPC bag: each named NPC is its own ad-hoc literal with a
@@ -220,7 +282,7 @@ declare global {
     arcane?: number;
     essences?: number;
     knownSpells?: string[];
-    mainWeapon?: Item | null;
+    mainWeapon?: WeaponItem | null;
     playerKnowsName?: boolean;
     gender?: { hasPenis?: boolean; hasVagina?: boolean; hasBreasts?: boolean };
     sex?: { vaginaVirgin?: boolean; penisVirgin?: boolean };
@@ -344,7 +406,6 @@ declare global {
     // Last hour a workplace-sex event was already offered for this slave —
     // prevents re-triggering within the same hour.
     _sexHour?: number;
-    [key: string]: any;
   }
 
   // === response.ts ===
@@ -353,7 +414,11 @@ declare global {
     title: string;
     tooltipText: string;
     nextDialogue: string | null;
-    effects: (() => void) | null;
+    // Called by Game.choose() as `response.effects(this)` — the game
+    // instance is passed but no current callback in the codebase declares a
+    // parameter to receive it (confirmed by grep across every response
+    // constructor), hence optional.
+    effects: ((game?: GameState) => void) | null;
     disabled: boolean;
     colour: string | null;
     secondsPassed: number | null;
@@ -447,12 +512,12 @@ declare global {
     // audit's `skipLibCheck: false` re-run (see the extends clause's
     // comment on the Character interface itself for why that check is
     // needed at all here).
-    mainWeapon?: Item | null;
-    offhandWeapon?: Item | null;
+    mainWeapon?: WeaponItem | null;
+    offhandWeapon?: WeaponItem | null;
     enchantBonus?: EnchantBonus;
     wardrobe?: ClothingItem[];
     items?: Item[];
-    weapons?: Item[];
+    weapons?: WeaponItem[];
     essences?: number;
     [key: string]: any;
   }
@@ -465,18 +530,19 @@ declare global {
 
   // Anything enchantCost/isWeaponIngredient/itemIsSealed/sealBreakCost/
   // craftEnchantedItem can be handed as an "ingredient": findCarriedByUid
-  // searches wardrobe/equipped (ClothingItem) alongside items/weapons (Item)
-  // in one pass, and content/enchantNodes.ts's enchanting UI genuinely picks
-  // its ingredient from that same search — so these functions need to
-  // accept either kind, not just Item.
-  type CarriedThing = Item | ClothingItem;
+  // searches wardrobe/equipped (ClothingItem) alongside items/weapons
+  // (Item/WeaponItem) in one pass, and content/enchantNodes.ts's enchanting
+  // UI genuinely picks its ingredient from that same search — so these
+  // functions need to accept any of the three kinds, not just Item.
+  type CarriedThing = Item | ClothingItem | WeaponItem;
 
-  // findCarriedByUid searches wardrobe (ClothingItem[]) alongside items/
-  // weapons (Item[]) in one pass, and equipped (also ClothingItem) — so the
-  // found item/list is honestly a union of both kinds, not just Item.
+  // findCarriedByUid searches wardrobe (ClothingItem[]) alongside items
+  // (Item[]) and weapons (WeaponItem[]) in one pass, and equipped (also
+  // ClothingItem) — so the found item/list is honestly a union of all three
+  // kinds, not just Item.
   type CarriedRef =
     | {
-        list: Item[] | ClothingItem[];
+        list: Item[] | ClothingItem[] | WeaponItem[];
         index: number;
         item: CarriedThing;
         equipped?: undefined;
@@ -568,6 +634,22 @@ declare global {
     modifiers: string[];
     stuffed: boolean;
     virgin: boolean;
+  }
+
+  // Every Orifice size/enum field on the options bag below accepts either a
+  // bare enum id string or the enum's own {id} entry object — idOf() (in
+  // body.ts) unwraps whichever was passed.
+  type OrificeIdField = string | { id?: string } | null;
+
+  interface OrificeOpts {
+    wetness?: OrificeIdField;
+    capacity?: OrificeIdField;
+    depth?: OrificeIdField;
+    elasticity?: OrificeIdField;
+    plasticity?: OrificeIdField;
+    modifiers?: string[];
+    stuffed?: boolean;
+    virgin?: boolean;
   }
 
   interface BodyCovering {
@@ -823,9 +905,9 @@ declare global {
     // mismatch.
     equipped: Record<string, ClothingItem | undefined>;
     wardrobe: ClothingItem[];
-    mainWeapon: Item | null;
-    offhandWeapon: Item | null;
-    weapons: Item[];
+    mainWeapon: WeaponItem | null;
+    offhandWeapon: WeaponItem | null;
+    weapons: WeaponItem[];
     occupation: Occupation | null;
     sex: { vaginal: number; anal: number; oral: number; penisVirgin: boolean; vaginaVirgin: boolean };
 
@@ -869,10 +951,13 @@ declare global {
     fullRace?: string;
     raceName?: string;
 
-    // Read by describeBody() but written by advancedAppearance.ts — shapes
-    // now verified field-for-field against that file's actual writers
-    // (content/advancedAppearance.ts typing pass).
-    makeup?: Record<string, { colour?: string; modifier?: string } | undefined>;
+    // Read by describeBody() and written by advancedAppearance.ts as
+    // Record<string, {colour, modifier}> — but see ItemOwner.makeup's comment
+    // above: items.ts and arcadeShops.ts both also write this field as a bare
+    // `true`, a genuine pre-existing collision. Keeping the same honest union
+    // here (rather than re-narrowing it back to just the Record shape) so the
+    // bug stays visible instead of being hidden by this redeclaration.
+    makeup?: boolean | Record<string, { colour?: string; modifier?: string } | undefined>;
     piercings?: Record<string, boolean | undefined>;
     tattoos?: Record<string, { name?: string; type?: string; colour?: string; writing?: string } | undefined>;
 
@@ -913,6 +998,14 @@ declare global {
   interface GameCharacterOpts {
     id?: string;
     player?: boolean;
+    // Ported from upstream PR #5's later commits: lets a constructed
+    // character start as a race other than human. Uppercase to match this
+    // codebase's race-id convention (bodyChanging.ts's raceId() etc.) rather
+    // than upstream's own lowercase "human" default, which their
+    // createBody()-equivalent's own `race === "HUMAN"` checks wouldn't
+    // actually match. Still unused today — the only real constructor call
+    // site (player.ts) never passes it — ported for shape parity only.
+    raceName?: string;
   }
 
   // === statusEffects.ts ===
@@ -1027,9 +1120,9 @@ declare global {
     enchantBonus?: EnchantBonus;
     shields?: Record<string, number>;
     moveCooldowns?: Record<string, number>;
-    mainWeapon?: Item | null;
-    offhandWeapon?: Item | null;
-    weapons?: Item[];
+    mainWeapon?: WeaponItem | null;
+    offhandWeapon?: WeaponItem | null;
+    weapons?: WeaponItem[];
     [key: string]: any;
   }
 
@@ -1059,7 +1152,7 @@ declare global {
   interface ThrownWeaponRecord {
     ch: Combatant;
     slot: string;
-    weapon: Item;
+    weapon: WeaponItem;
   }
 
   interface CombatStartOpts {
@@ -1115,22 +1208,46 @@ declare global {
   interface GridLocation {
     name: string;
     placeType?: string;
+    passage?: string;
+    description?: string;
     type?: string;
     subtype?: string;
     color?: string;
     icon?: { src?: string };
     sublocations?: GridLocation[];
-    [key: string]: any;
   }
 
-  interface GridTile {
+  // Common contract for grid.ts's consumer functions (getMaxifiedGrid,
+  // goToTileLocation, etc.) that only ever read x/y/location/travelConfig/
+  // isStartingPoint off their *input* data — never isNavigable, which they
+  // always compute fresh. Lets those functions accept either a real GridTile
+  // or maps/allGrids.ts's narrower MapCatalogTile (see that section) without
+  // a cast. See "grid isNavigable" investigation: maps/allGrids.ts's
+  // generated tiles never carry isNavigable because upstream's own
+  // conversion pipeline (tools/convert_maps.py) already filters out
+  // impassable cells before emitting them, mirroring how the Java original's
+  // Cell has no such field either — impassability there is a PlaceType
+  // (GENERIC_IMPASSABLE), not a stored boolean.
+  // Shape of every generated tile's "travelConfig" literal (tools/convert_maps.py's
+  // output, src/maps/allGrids.ts) — a passage into another grid at a fixed tile.
+  interface TravelConfig {
+    travelType: string;
+    label: string;
+    nextLocationName: string;
+    nextGridName: string;
+    coords: { x: number; y: number };
+  }
+
+  interface TileLike {
     x: number;
     y: number;
-    isNavigable: boolean;
     location: GridLocation | null;
+    travelConfig?: TravelConfig | null;
     isStartingPoint?: boolean;
-    travelConfig?: any;
-    [key: string]: any;
+  }
+
+  interface GridTile extends TileLike {
+    isNavigable: boolean;
   }
 
   interface GridState {
@@ -1149,21 +1266,80 @@ declare global {
     lastTransMethod: string;
     gridData?: GridTile[][];
     locations: GridLocation[];
-    homes: any[];
-    favoritedLocations: any[];
-    locationConditions: any[];
+    // Grid-editor selection state, initialized here to mirror Lifebound's
+    // editor (see this file's header comment) but never read anywhere in
+    // this codebase yet — no real usage exists to derive real shapes from.
+    selectedLocation: unknown | null;
+    selectedColorLocation: unknown | null;
+    selectedColor: unknown | null;
+    selectedTravelType: unknown | null;
+    selectedTravelLocation: unknown | null;
+    selectedLocationIcon: unknown | null;
+    selectedTravelLocationCoords: unknown;
+    // Initialized to [] in grid.ts's declareGridVariables and never
+    // otherwise read or populated anywhere in the codebase — `unknown[]`
+    // rather than a guessed element type, since no real usage exists to
+    // derive one from.
+    homes: unknown[];
+    favoritedLocations: unknown[];
+    locationConditions: unknown[];
     currentTile: GridTile | null;
     currentLocation: string;
     currentLocationType: string;
     currentLocationSubtype: string;
     currentEstablishment: string;
     currentRegion: string;
-    currentTilePeople: any[];
+    currentTilePeople: unknown[];
     hidden: boolean;
     selectedTile: GridTile | null;
     onMove?: (tile: GridTile | null, grid: GridState) => void;
     onLoad?: (tile: GridTile | null, grid: GridState) => void;
-    [key: string]: any;
+  }
+
+  // grid.ts repurposes the global `print`/`window.print` name (normally the
+  // browser's print-dialog trigger) as a console logging shim — never used
+  // for its DOM meaning anywhere in this codebase.
+  interface PrintLike {
+    log(...args: unknown[]): void;
+    warn(...args: unknown[]): void;
+    error(...args: unknown[]): void;
+  }
+
+  // === maps/allGrids.ts ===
+  // Entirely generated data (tools/convert_maps.py — do not edit by hand),
+  // read directly from the Java source's WorldType.java/PlaceType.java.
+
+  interface PlaceTypeEntry {
+    id: string;
+    name: string;
+    description: string;
+    colourName?: string;
+    backgroundName?: string;
+    // Two different optional icon-reference keys depending on which code path
+    // in convert_maps.py produced the entry (XML-sourced vs PNG-decoded) —
+    // genuinely both present in the generated data, not a typo to unify.
+    svg?: string | null;
+    svgFile?: string | null;
+  }
+
+  // The flat "minified" tile format convert_maps.py emits — see TileLike's
+  // comment above for why there's no isNavigable field here.
+  interface MapCatalogTile extends TileLike {
+    travelConfig?: {
+      travelType: string;
+      label: string;
+      nextLocationName: string;
+      nextGridName: string;
+      coords: { x: number; y: number };
+    };
+  }
+
+  interface GridMeta {
+    id: string;
+    name: string;
+    width: number;
+    height: number;
+    tiles: number;
   }
 
   // === content/bodyChanging.ts ===
@@ -1267,6 +1443,61 @@ declare global {
     action?: () => void;
   }
 
+  // === engine/game.ts ===
+
+  interface GameState {
+    started: boolean;
+    currentNode: ContentNodeDef | null;
+    secondsPassed: number;
+    startingYear: number;
+    startingMonth: number;
+    startingDay: number;
+    player: Character | null;
+    npcs: Record<string, any>;
+    flags: Record<string, any>;
+    renderAttributes: boolean;
+    renderMap: boolean;
+    textStart: string;
+    textEnd: string;
+    _responseTab?: number;
+    readonly clock: string;
+    setContent(node: ContentNodeDef | string | null | undefined): void;
+    choose(response: LTResponse | null | undefined): void;
+    advanceTime(seconds: number): void;
+    flag(name: string): boolean;
+    setFlag(name: string, on?: boolean): void;
+    // Every other file that touches LT.game reaches for fields not named here
+    // (save.ts's returnNode, discoveredWorlds; grid/roam.ts's world-travel
+    // bookkeeping, etc.) — same convention as Character/Combatant/EnchantCarrier.
+    [key: string]: any;
+  }
+
+  // === sex.ts ===
+  // The shape every register()/registerPair()/registerSelf()/registerPosition()
+  // call in sex.ts ultimately builds and stores in LT.SEX_ACTIONS. src/tgt stay
+  // `Combatant` (which already falls through to `any` per-field via its own
+  // index signature) rather than a narrower sex-specific participant type —
+  // sex.ts reads dozens of ad-hoc fields (arousal, sexExposed, fuckableNipples,
+  // mainWeapon, ...) off whatever's passed as LT.sex.player/.partner, and
+  // narrowing to only the fields actually read hasn't been done (that's the
+  // rest of sex.ts's own typing pass, not this array-element-type fix).
+  interface SexAction {
+    id: string;
+    name: string;
+    tab: number;
+    type: string;
+    selfArousal: string;
+    targetArousal: string;
+    isOrgasm?: boolean;
+    endsSex?: boolean;
+    // Set by registerPair()/registerSelf() to the shared spec.id linking an
+    // action's _start/base/_stop trio — never actually read anywhere.
+    pair?: string;
+    canUse: (src: Combatant, tgt?: Combatant | null) => boolean;
+    tooltip: (src: Combatant, tgt?: Combatant | null) => string;
+    perform: (src: Combatant, tgt?: Combatant | null) => string;
+  }
+
   // === LTNamespace ===
   // Base index signature plus every module's typed members, merged into one
   // interface. `LT.whatever` resolves to the specific signature below when
@@ -1354,6 +1585,44 @@ declare global {
     ensureVicky(): Npc;
     npcAtCurrentTile(): Npc[];
 
+    // weaponRuntime.ts
+    DAMAGE_VARIANCE: Record<string, number>;
+    WEAPON_SLOTS: { id: string; label: string }[];
+    getWeaponType(id: string | { id: string } | null | undefined): WeaponType | null;
+    weaponRarityColour(rarity: string | null | undefined): string;
+    makeWeapon(id: string | null | undefined, damageType?: string | null): WeaponItem | null;
+    getMainWeapon(ch: Combatant | null | undefined): WeaponItem | null;
+    getOffhandWeapon(ch: Combatant | null | undefined): WeaponItem | null;
+    isTwoHandedEquipped(ch: Combatant | null | undefined): boolean;
+    weaponUsesUnarmed(weaponOrType: WeaponItem | WeaponType | null | undefined): boolean;
+    baseWeaponDamage(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): number;
+    weaponRange(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): { min: number; max: number };
+    rollWeapon(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): number;
+    equipOfficialLoadout<T extends Combatant | null | undefined>(who: string, ch: T): T;
+    armMuggerFromOutfit<T extends Combatant | null | undefined>(ch: T, opts?: ArmMuggerOptions | null): T;
+    weaponAttackName(weapon: WeaponItem | null | undefined): string;
+    parseWeaponText(text: string | null | undefined, attacker: Combatant | null | undefined, target: Combatant | null | undefined): string;
+    weaponHitText(src: Combatant | null | undefined, tgt: Combatant | null | undefined, weapon: WeaponItem | null | undefined): string;
+    unequipWeapon(player: Combatant, slot: string): void;
+    equipWeapon(player: Combatant, uid: string, slot: string): boolean;
+    ownedWeaponIds(player: Combatant): Record<string, boolean>;
+    grantAllWeapons(player: Combatant): number;
+    vickyWeaponIds(): string[];
+    weaponBuyPrice(id: string | null | undefined): number;
+    weaponSellPrice(id: string | null | undefined): number;
+    vickyStock(): Record<string, number>;
+    ensureWeaponSlots<T extends Combatant | null | undefined>(ch: T): T;
+    weaponArcaneCost(weapon: WeaponItem | null | undefined): number;
+    oneShotRecover(weapon: WeaponItem | null | undefined): OneShotRecoverChance;
+    queuedEssenceCost(ch: Combatant | null | undefined): number;
+    canAffordWeapon(ch: Combatant, slot: string): boolean;
+    CRITICAL_DAMAGE: number;
+    isMoveCrit(ch: Combatant | null | undefined, moveId: string, turnIndex: number | null | undefined): boolean;
+    applyCrit(ch: Combatant | null | undefined, moveId: string, turnIndex: number | null | undefined, dmg: number): { dmg: number; crit: boolean };
+    consumeOneShot(ch: Combatant | null | undefined, slot: string, weapon: WeaponItem | null | undefined): void;
+    recoverThrownAfterTurn(): string[];
+    recoverThrownAfterCombat(): void;
+
     // slavery.ts
     SLAVE_JOBS: Record<string, SlaveJob>;
     SLAVE_JOB_HOURS: Record<string, SlaveJobHoursPreset>;
@@ -1421,14 +1690,14 @@ declare global {
         title: string,
         tooltipText?: string | null,
         nextDialogue?: string | null,
-        effects?: (() => void) | null,
+        effects?: ((game?: GameState) => void) | null,
       ): LTResponse;
       prototype: LTResponse;
     };
     effectsOnly(
       title: string,
       tooltipText?: string | null,
-      effects?: (() => void) | null,
+      effects?: ((game?: GameState) => void) | null,
     ): LTResponse;
 
     // enchanting.ts
@@ -1506,7 +1775,7 @@ declare global {
     EYE: SwatchEntry[];
     hairLengthIndex(id: string): number;
     bodyShapeOf(size: BodyEnumEntry | null | undefined, muscle: BodyEnumEntry | null | undefined): BodyShape;
-    findById<T extends { id: any }>(arr: T[], id: any): T;
+    findById<T extends { id: string }>(arr: T[], id: string): T;
     BODY_HAIR: EnumEntry[];
     BODY_MATERIAL: EnumEntry[];
     GENITAL_ARRANGEMENT: EnumEntry[];
@@ -1539,7 +1808,7 @@ declare global {
     TATTOO_TYPES: HelpEntry[];
 
     // body.ts
-    emptyOrifice(opts?: { wetness?: any; capacity?: any; depth?: any; elasticity?: any; plasticity?: any; modifiers?: string[]; stuffed?: boolean; virgin?: boolean }): Orifice;
+    emptyOrifice(opts?: OrificeOpts): Orifice;
     createBody(opts?: Record<string, any> | null): CharacterBody;
     syncCharacterFromBody(ch: BodyCarrier | null | undefined): BodyCarrier | null | undefined;
     ensureBody(ch: BodyCarrier | null | undefined): CharacterBody | null;
@@ -1633,18 +1902,21 @@ declare global {
     refreshShields(ch: Combatant | null | undefined): void;
     shieldAbsorb(ch: Combatant | null | undefined, type: string | null | undefined, amount: number): number;
     applyTypedDamage(target: Combatant | null | undefined, amount: number, type?: string | null): number;
-    strikeDamageType(weapon: Item | null | undefined): string;
+    strikeDamageType(weapon: WeaponItem | null | undefined): string;
     spellCostOf(ch: Combatant | null | undefined, spell: { cost?: number } | null | undefined): number;
     lustDamageBonus(ch: Combatant | null | undefined): number;
-    applyEnchantDamage(ch: Combatant | null | undefined, weapon: Item | null | undefined, amount: number): number;
+    applyEnchantDamage(ch: Combatant | null | undefined, weapon: WeaponItem | null | undefined, amount: number): number;
     lustDamageMultiplier(ch: Combatant | null | undefined): number;
     modifyOutgoingLust(ch: Combatant | null | undefined, amount: number): number;
 
     // roam.ts
-    findPlaceTile(gridName: string, placeType: string | null | undefined): GridTile | null;
+    findPlaceTile(gridName: string, placeType: string | null | undefined): TileLike | null;
     enterWorld(gridName: string, placeType?: string | null, coords?: { x: number; y: number } | null): GridTile | null;
     travelToPlace(gridName: string, placeType?: string | null): boolean;
     useTileTravel(): boolean;
+
+    // maps/allGrids.ts
+    places: Record<string, PlaceTypeEntry>;
 
     // content/bodyChanging.ts
     bodyChangingTarget?: Character | null;
@@ -1672,7 +1944,7 @@ declare global {
     parkEncounterEntries(): EncounterEntry[];
     harpyWalkwayEntries(): EncounterEntry[];
     harpyLookForTroubleEntries(): EncounterEntry[];
-    generateHarpyAttacker(opts?: { feminine?: boolean; race?: any; level?: number } | null): Combatant;
+    generateHarpyAttacker(opts?: { feminine?: boolean; race?: { id: string; fem: string; masc: string }; level?: number } | null): Combatant;
     maybePlaceEncounter(opts?: { tableId?: string; force?: boolean; noRedirect?: boolean } | null): string | null;
     // Reassigned by both content/weather.ts and content/encounters.ts (the
     // latter loads after weather.ts in boot.ts, so its implementation is
@@ -1700,10 +1972,40 @@ declare global {
     loadGame(name: string): void;
     importSave(file: File, onDone?: (name: string | null) => void): void;
     rememberReturn(): void;
+
+    // engine/game.ts
+    game: GameState;
+    waitUntilHour(hour: number): void;
+    STARTING_MONEY: number;
+    SLAVER_LICENSE_COST: number;
+    gameNow(): Date;
+    dayNumber(): number;
+    formatGameDate(): string;
+    isDayTime(): boolean;
+    getMoney(): number;
+    incrementMoney(delta: number): string;
+    scarlettPrice(): number;
+    startSlaveryQuest(): string;
+    advanceSlaveryQuest(nextId: string): string;
+
+    // ui/responses.ts
+    setResponses(responses: LTResponse[] | null | undefined, tabs: string[] | null | undefined, selectedTab?: number): void;
+    renderResponses(): void;
+    initResponseHotkeys(): void;
+
+    // sex/sex.ts (partial — only the registry itself; LT.sex's own state bag
+    // and most of sex.ts's helpers aren't typed yet)
+    SEX_ACTIONS: Record<string, SexAction>;
   }
 
   interface Window {
     LT: LTNamespace;
+    grid: GridState;
+    selectedTile: GridTile | null;
+    gridContainer: HTMLElement | null;
+    gridInfoBox: HTMLElement | null;
+    allGrids: Record<string, MapCatalogTile[]>;
+    LT_GRID_META: Record<string, GridMeta>;
   }
 
   var LT: LTNamespace;
@@ -1711,45 +2013,43 @@ declare global {
   // A handful of globals live outside the LT namespace: they're declared
   // inside an IIFE (mainly js/grid/*) and exposed only via a runtime
   // `window.X = X` assignment, which TS can't see as a real declaration.
-  // Declared loosely here rather than fixed up per converted file.
-  var grid: any;
-  var player: any;
-  var ltGame: any;
-  var selectedTile: any;
-  var gridContainer: any;
-  var gridInfoBox: any;
-  var LT_GRID_META: any;
-  var allGrids: any;
-  function getCurrentTile(...args: any[]): any;
-  function openUI(...args: any[]): any;
-  function print(...args: any[]): any;
-  function updateInfo(...args: any[]): any;
-  function movePlayer(...args: any[]): any;
-  function getLocation(...args: any[]): any;
-  function getLocationByName(...args: any[]): any;
-  function findTile(...args: any[]): any;
-  function findTileMinified(...args: any[]): any;
-  function findFirstNavigableTile(...args: any[]): any;
-  function goToTileLocation(...args: any[]): any;
-  function selectTile(...args: any[]): any;
-  function showGrid(...args: any[]): any;
-  function hideGrid(...args: any[]): any;
-  function unhideGrid(...args: any[]): any;
-  function renderGrid(...args: any[]): any;
-  function loadGrid(...args: any[]): any;
-  function cycleGridZoom(...args: any[]): any;
-  function createEmptyGrid(...args: any[]): any;
-  function createClusteredGrid(...args: any[]): any;
-  function generateGrid(...args: any[]): any;
-  function generateContinent(...args: any[]): any;
-  function generateCellular(...args: any[]): any;
-  function generateDrunkards(...args: any[]): any;
-  function generateDungeon(...args: any[]): any;
-  function thickenCorridors(...args: any[]): any;
-  function addRooms(...args: any[]): any;
-  function addBetterRooms(...args: any[]): any;
-  function declareGridVariables(...args: any[]): any;
-  function getMinifiedGrid(...args: any[]): any;
-  function getMaxifiedGrid(...args: any[]): any;
+  var grid: GridState;
+  var player: Character | null | undefined;
+  var ltGame: GameState;
+  var selectedTile: GridTile | null;
+  var gridContainer: HTMLElement | null;
+  var gridInfoBox: HTMLElement | null;
+  var LT_GRID_META: Record<string, GridMeta>;
+  var allGrids: Record<string, MapCatalogTile[]>;
+  function getCurrentTile(): GridTile | null;
+  function openUI(id: string, opts?: UIOpenOpts | null): string;
+  function updateInfo(): void;
+  function movePlayer(dx: number, dy: number, moveMode?: string): void;
+  function getLocation(name: string | null | undefined, locations?: GridLocation[]): GridLocation | null;
+  function getLocationByName(name: string | null | undefined, locations?: GridLocation[]): GridLocation | null;
+  function findTile(gridData: GridTile[][] | null | undefined, x: number, y: number): GridTile | null;
+  function findTileMinified(gridData: GridTile[] | null | undefined, x: number, y: number): GridTile | null;
+  function findFirstNavigableTile(inputGrid?: GridTile[][] | null): GridTile | null;
+  function goToTileLocation(locationName: string): boolean;
+  function selectTile(row: number, col: number): void;
+  function showGrid(setState?: boolean): void;
+  function hideGrid(setState?: boolean): void;
+  function unhideGrid(setState?: boolean): void;
+  function renderGrid(): void;
+  function loadGrid(newGrid: string | TileLike[] | TileLike[][] | null | undefined, tile?: { x?: number; y?: number } | null): void;
+  function cycleGridZoom(): void;
+  function createEmptyGrid(size?: number): GridTile[][];
+  function createClusteredGrid(size: number, locations?: GridLocation[]): GridTile[][];
+  function generateGrid(mode?: string): void;
+  function generateContinent(grid: number[][]): number[][];
+  function generateCellular(grid: number[][]): number[][];
+  function generateDrunkards(grid: number[][]): void;
+  function generateDungeon(grid: number[][], x: number, y: number): void;
+  function thickenCorridors(grid: number[][], amount: number): void;
+  function addRooms(grid: number[][]): void;
+  function addBetterRooms(grid: number[][]): void;
+  function declareGridVariables(): void;
+  function getMinifiedGrid(gridData: GridTile[][] | null | undefined): GridTile[];
+  function getMaxifiedGrid(minimizedGrid: TileLike[] | TileLike[][] | null | undefined, gridSize?: number, gridHeight?: number): GridTile[][];
   function startDrawing(...args: any[]): any;
 }

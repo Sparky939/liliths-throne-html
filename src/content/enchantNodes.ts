@@ -136,7 +136,7 @@
 
   LT.openEnchant = function (uid) {
     var s = session();
-    var found = LT.findCarriedByUid(LT.game.player, uid);
+    var found = LT.findCarriedByUid(LT.game.player!, uid);
     if (!found || !found.item) return;
     s.uid = uid;
     s.effects = (found.item.effects || []).slice();
@@ -186,7 +186,7 @@
           LT.game.setContent("enchant.main");
           return;
         }
-        LT.replaceCarried(LT.game.player, s.uid, result.item);
+        LT.replaceCarried(LT.game.player!, s.uid, result.item);
         s.uid = result.item.uid;
         LT.game.textStart =
           "<p>You spend " +
@@ -208,10 +208,12 @@
     },
   });
 
-  document.addEventListener("click", function (e: any) {
+  document.addEventListener("click", function (e: MouseEvent) {
     if (!LT.game.currentNode || LT.game.currentNode.id !== "enchant.main") return;
     var s = session();
-    var primary = e.target.closest("[data-enchant-primary]");
+    var target = e.target as Element | null;
+    if (!target) return;
+    var primary = target.closest("[data-enchant-primary]");
     if (primary) {
       s.primary = primary.getAttribute("data-enchant-primary");
       var allowed = secondariesFor(s.primary);
@@ -219,13 +221,13 @@
       LT.game.setContent("enchant.main");
       return;
     }
-    var secondary = e.target.closest("[data-enchant-secondary]");
+    var secondary = target.closest("[data-enchant-secondary]");
     if (secondary) {
       s.secondary = secondary.getAttribute("data-enchant-secondary");
       LT.game.setContent("enchant.main");
       return;
     }
-    var potency = e.target.closest("[data-enchant-potency]");
+    var potency = target.closest("[data-enchant-potency]");
     if (potency) {
       s.potency = potency.getAttribute("data-enchant-potency");
       LT.game.setContent("enchant.main");

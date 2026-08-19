@@ -1,8 +1,10 @@
 "use strict";
-// The `as any` here is the one deliberate escape hatch: TS has no way to see a plain
-// ES5 constructor function as satisfying a `new (...) => LTResponse` signature, even
-// with an explicit `this` parameter. Everything downstream — every `new LT.Response(...)`
-// call site and the prototype methods below — is fully typed as a result.
+// The `as unknown as ...` here is the one deliberate escape hatch: TS has no way to see
+// a plain ES5 constructor function as satisfying a `new (...) => LTResponse` signature,
+// even with an explicit `this` parameter — routed through `unknown` rather than `any`
+// so the cast's target type (LTNamespace["Response"]) is still checked, just not the
+// source. Everything downstream — every `new LT.Response(...)` call site and the
+// prototype methods below — is fully typed as a result.
 LT.Response = function (title, tooltipText, nextDialogue, effects) {
     this.title = title;
     this.tooltipText = tooltipText || "";

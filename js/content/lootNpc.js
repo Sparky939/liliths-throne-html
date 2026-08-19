@@ -115,21 +115,24 @@
         var npc = typeof LT.currentLootNpc === "function" ? LT.currentLootNpc() : null;
         if (!npc)
             return;
-        var cloth = e.target.closest("[data-loot-cloth]");
+        var target = e.target;
+        if (!target)
+            return;
+        var cloth = target.closest("[data-loot-cloth]");
         if (cloth) {
             var item = LT.takeNpcClothing(npc, cloth.getAttribute("data-loot-cloth"));
             LT.game.textStart = item ? "<p>You take the " + item.name + ".</p>" : "";
             LT.game.setContent("loot.npc");
             return;
         }
-        var bag = e.target.closest("[data-loot-item]");
+        var bag = target.closest("[data-loot-item]");
         if (bag) {
             var taken = LT.takeNpcItem(npc, bag.getAttribute("data-loot-item"));
             LT.game.textStart = taken ? "<p>You take the " + taken.name + ".</p>" : "";
             LT.game.setContent("loot.npc");
             return;
         }
-        var wep = e.target.closest("[data-loot-wep]");
+        var wep = target.closest("[data-loot-wep]");
         if (wep) {
             var weapon = LT.takeNpcWeapon(npc, wep.getAttribute("data-loot-wep"));
             LT.game.textStart = weapon ? "<p>You take the " + weapon.name + ".</p>" : "";

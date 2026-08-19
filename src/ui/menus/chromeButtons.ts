@@ -19,8 +19,8 @@
   ];
 
   function copyDialogue() {
-    var stage: any = document.getElementById("ui-stage");
-    var visible: any = stage ? stage.querySelector("[data-ui]:not([hidden])") : null;
+    var stage = document.getElementById("ui-stage");
+    var visible = stage ? stage.querySelector<HTMLElement>("[data-ui]:not([hidden])") : null;
     var text = visible ? visible.innerText : "";
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
   }
@@ -50,8 +50,8 @@
   }
 
   LT.initChromeButtons = function () {
-    var left: any = document.getElementById("left-buttons");
-    var right: any = document.getElementById("right-buttons");
+    var left = document.getElementById("left-buttons")!;
+    var right = document.getElementById("right-buttons")!;
     left.innerHTML = "";
     right.innerHTML = "";
     for (var i = 0; i < LEFT.length; i++) left.appendChild(makeBtn(LEFT[i]));

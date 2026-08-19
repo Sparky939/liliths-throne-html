@@ -6,6 +6,11 @@
         W: { dx: -1, dy: 0 },
         E: { dx: 1, dy: 0 },
     };
+    // Same discriminant as grid.ts's isFlatTileArray — separate file/closure,
+    // so it needs its own copy.
+    function isFlatTileArray(g) {
+        return g.length > 0 && typeof g[0].x === "number";
+    }
     function roaming() {
         if (!window.grid || !grid.gridData || !LT.game || !LT.game.renderMap)
             return false;
@@ -57,10 +62,10 @@
         LT.game.setContent(id);
     }
     LT.findPlaceTile = function (gridName, placeType) {
-        var tiles = window.allGrids && window.allGrids[gridName];
+        var tiles = (window.allGrids && window.allGrids[gridName]);
         if (!tiles)
             return null;
-        if (tiles.length && tiles[0] && typeof tiles[0].x === "number") {
+        if (isFlatTileArray(tiles)) {
             for (var i = 0; i < tiles.length; i++) {
                 if (tiles[i].location && tiles[i].location.placeType === placeType)
                     return tiles[i];
@@ -143,7 +148,8 @@
     document.addEventListener("lt-move", function (e) {
         if (!roaming())
             return;
-        var dir = DIRS[e.detail && e.detail.dir];
+        var detail = e.detail;
+        var dir = detail && detail.dir ? DIRS[detail.dir] : undefined;
         if (!dir)
             return;
         if (typeof getCurrentTile === "function" && window.grid && grid.gridData) {

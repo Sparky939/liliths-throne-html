@@ -42,8 +42,8 @@
               leaveNode,
               function () {
                 var made = LT.makeClothing(id);
-                LT.game.player.wardrobe = LT.game.player.wardrobe || [];
-                LT.game.player.wardrobe.push(made);
+                LT.game.player!.wardrobe = LT.game.player!.wardrobe || [];
+                LT.game.player!.wardrobe.push(made);
                 LT.game.textEnd = LT.incrementMoney(-price);
                 LT.game.textStart =
                   "<p>You buy the " +
@@ -388,8 +388,8 @@
                     ],
                     name: "enchanted " + item.name,
                   };
-                  LT.game.player.wardrobe = LT.game.player.wardrobe || [];
-                  LT.game.player.wardrobe.push(made);
+                  LT.game.player!.wardrobe = LT.game.player!.wardrobe || [];
+                  LT.game.player!.wardrobe.push(made);
                   LT.game.textEnd = LT.incrementMoney(-price);
                   LT.game.textStart =
                     "<p>You buy the " +
@@ -519,7 +519,7 @@
       "Have Kate restyle and recolour your hair.",
       "kate.hair",
       function () {
-        LT.game.player.hairColour = "auburn";
+        LT.game.player!.hairColour = "auburn";
       },
     );
     service(
@@ -527,7 +527,7 @@
       "Have Kate change your eye colour.",
       "kate.eyes",
       function () {
-        LT.game.player.eyeColour = "amber";
+        LT.game.player!.eyeColour = "amber";
       },
     );
     service(
@@ -535,7 +535,7 @@
       "Have Kate apply cosmetics.",
       "kate.cosmetics",
       function () {
-        LT.game.player.makeup = true;
+        LT.game.player!.makeup = true;
       },
     );
     if (typeof LT.itemShopResponses === "function") {
@@ -687,11 +687,8 @@
         LT.maybePlaceEncounter();
     },
     getContent: function () {
-      var info =
-        (typeof getCurrentTile === "function" &&
-          getCurrentTile() &&
-          getCurrentTile().location) ||
-        {};
+      var tile = typeof getCurrentTile === "function" ? getCurrentTile() : null;
+      var info: Partial<GridLocation> = (tile && tile.location) || {};
       var html =
         "<p>" + (info.description || "The warehouse district.") + "</p>";
       if (

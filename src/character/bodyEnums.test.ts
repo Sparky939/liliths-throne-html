@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "./bodyEnums";
 
-const LT = (globalThis as any).LT;
+const LT = globalThis.LT;
 
 describe("LT body enum catalogues", () => {
   it("builds BODY_SIZE entries with id/name/colour", () => {

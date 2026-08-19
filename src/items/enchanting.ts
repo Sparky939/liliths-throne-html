@@ -212,7 +212,7 @@
       if (!effects) return;
       for (var i = 0; i < effects.length; i++) LT.applyEffectToBonus(bonus, effects[i], 1);
     });
-    function addWeapon(wep?: Item | null) {
+    function addWeapon(wep?: WeaponItem | null) {
       var effects = wep && wep.effects;
       if (!effects) return;
       var i;
@@ -347,7 +347,7 @@
       };
     }
     var cost = LT.enchantCost(ingredient, next);
-    var p = LT.game.player;
+    var p = LT.game.player!;
     if ((p.essences || 0) < cost) return { error: "You need " + cost + " arcane essences." };
     p.essences -= cost;
     var crafted = {} as Item;

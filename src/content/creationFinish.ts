@@ -1,6 +1,6 @@
 (function () {
   function femaleNpc() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     return p.orientation.id === "GYNEPHILIC" || (p.orientation.id === "AMBIPHILIC" && p.hasPenis());
   }
 
@@ -37,7 +37,7 @@
   }
 
   function wardrobeHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     if (!p.wardrobeReady || p.wardrobeFem !== p.getFemininity().id) {
       LT.dressPlayer(p);
       p.wardrobeReady = true;
@@ -83,7 +83,7 @@
   }
 
   function backgroundHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var aroused = p.hasPenis()
       ? "you're struggling to keep yourself from getting an erection."
       : "you can feel your pussy getting wet from arousal.";
@@ -139,7 +139,7 @@
   }
 
   function jobsHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var jobs = LT.availableOccupations(p);
     var html =
       '<div class="container-full-width"><h6 style="text-align:center">Job Selection</h6><p style="text-align:center">Click on the job that you\'d like, and then choose Continue.</p></div>';
@@ -164,7 +164,7 @@
   }
 
   function sexHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var job = p.occupation;
     var speech = job ? job.speech : "I work around the city.";
     var flush =
@@ -254,7 +254,7 @@
   }
 
   function finalHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var job = p.occupation ? p.occupation.name : "unemployed";
     return (
       '<div class="container-full-width" style="text-align:center;"><i>Once you\'re happy with your appearance, press the Start Game button to begin!<br/>' +
@@ -372,7 +372,7 @@
           function () {
             LT.game.started = true;
             if (typeof LT.startArrivalStorm === "function") LT.startArrivalStorm();
-            LT.game.player.money = (LT.game.player.money || 0) + (LT.STARTING_MONEY || 5000);
+            LT.game.player!.money = (LT.game.player!.money || 0) + (LT.STARTING_MONEY || 5000);
             LT.game.flags.quest = "MAIN_1_A_LILAYAS_TESTS";
             if (typeof LT.incrementExperience === "function") LT.incrementExperience(5);
             if (typeof LT.refreshVitals === "function") LT.refreshVitals(LT.game.player, true);
@@ -387,32 +387,34 @@
     },
   });
 
-  document.addEventListener("click", function (e: any) {
+  document.addEventListener("click", function (e: MouseEvent) {
     var node = LT.game.currentNode;
     if (!node) return;
-    var p = LT.game.player;
+    var p = LT.game.player!;
     if (!p) return;
-    var jobEl = e.target.closest("[data-job]");
+    var target = e.target as Element | null;
+    if (!target) return;
+    var jobEl = target.closest("[data-job]");
     if (jobEl && node.id === "creation.jobs") {
-      p.occupation = LT.findOccupation(jobEl.getAttribute("data-job"));
+      p.occupation = LT.findOccupation(jobEl.getAttribute("data-job")!);
       LT.game.setContent(node);
       return;
     }
-    var unequip = e.target.closest("[data-unequip]");
+    var unequip = target.closest("[data-unequip]");
     if (unequip && node.id === "creation.wardrobe") {
-      LT.unequipToWardrobe(p, unequip.getAttribute("data-unequip"));
+      LT.unequipToWardrobe(p, unequip.getAttribute("data-unequip")!);
       LT.game.setContent(node);
       return;
     }
-    var equip = e.target.closest("[data-equip]");
+    var equip = target.closest("[data-equip]");
     if (equip && node.id === "creation.wardrobe") {
-      LT.equipFromWardrobe(p, equip.getAttribute("data-equip"));
+      LT.equipFromWardrobe(p, equip.getAttribute("data-equip")!);
       LT.game.setContent(node);
       return;
     }
-    var sex = e.target.closest("[data-sex]");
+    var sex = target.closest("[data-sex]");
     if (sex && node.id === "creation.sex") {
-      var act = sex.getAttribute("data-sex");
+      var act = sex.getAttribute("data-sex")!;
       if (act === "penisVirgin" || act === "vaginaVirgin") p.sex[act] = !p.sex[act];
       else if (act.slice(-4) === "_INC") {
         var k = act.slice(0, -4);

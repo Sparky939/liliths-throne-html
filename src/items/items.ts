@@ -36,24 +36,40 @@
     race?: string;
     fem?: string;
     masc?: string;
-    [key: string]: any;
+    tags: Record<string, boolean>;
+    flags: Record<string, boolean>;
+    dirty: boolean;
 
     constructor(opts: ItemCatalogEntry) {
       this.id = opts.id;
       this.uid = "";
       this.name = opts.name;
-      this.description = (opts as any).description || "";
+      this.description = opts.description || "";
       this.kind = opts.kind;
       this.value = opts.value;
       this.soldBy = opts.soldBy || [];
       this.race = opts.race;
       this.fem = opts.fem;
       this.masc = opts.masc;
+      this.tags = {};
+      this.flags = {};
+      this.dirty = false;
     }
     genUid(prefix?: string) {
       this.uid = (prefix || this.kind || "item") + "_" + Math.random().toString(36).slice(2, 8);
     }
     equip() {
+      throw new Error("Not Implemented");
+    }
+    // Ported from upstream PR #5 for shape parity — unused stubs there too
+    // (see the Item interface comment in global.d.ts).
+    onEquip() {
+      throw new Error("Not Implemented");
+    }
+    pickup() {
+      throw new Error("Not Implemented");
+    }
+    onPickup() {
       throw new Error("Not Implemented");
     }
   }
@@ -412,7 +428,7 @@
         } else {
           list.push(
             new LT.Response(title, "Buy " + type.name + " for " + price + " flames.", null, function () {
-              LT.game.textStart = LT.buyItem(LT.game.player, id);
+              LT.game.textStart = LT.buyItem(LT.game.player!, id);
               LT.game.setContent(LT.game.currentNode);
             }),
           );

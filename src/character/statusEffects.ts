@@ -86,7 +86,7 @@
     };
   }
 
-  function weatherRemainingExtra(_ch?: any) {
+  function weatherRemainingExtra(_ch?: Combatant | null) {
     var f = LT.game && LT.game.flags;
     if (!f) return [];
     if (f.weather === "MAGIC_STORM" || f.weather === "MAGIC_STORM_GATHERING") {
@@ -710,7 +710,7 @@
   };
 
   LT.paintStatusEffects = function (ch) {
-    var root: any = document.getElementById("status-effects");
+    var root = document.getElementById("status-effects");
     if (!root) return;
     ch = ch || (LT.game && LT.game.player);
     if (ch) LT.refreshConditionalStatusEffects(ch);
@@ -737,7 +737,7 @@
     for (i = 0; i < icons.length; i++) {
       (function (el) {
         if (typeof LT.bindTooltip === "function") LT.bindTooltip(el, function () {
-          return LT.statusTooltip(ch, el.getAttribute("data-status"));
+          return LT.statusTooltip(ch, el.getAttribute("data-status")!);
         });
       })(icons[i]);
     }
@@ -816,7 +816,7 @@
   };
 
   LT.tickStatuses = function (ch) {
-    var lines: any[] = [];
+    var lines: string[] = [];
     if (!ch || !ch.statusEffects) return lines;
     var poison = ch.statusEffects.POISON_VAPOURS;
     if (poison && poison.combatTurns > 0) {
@@ -847,7 +847,7 @@
 
   LT.statusSummary = function (ch) {
     if (!ch || !ch.statusEffects) return "";
-    var bits: any[] = [];
+    var bits: string[] = [];
     LT.listStatusEffects(ch).forEach(function (entry) {
       if (!entry.def.combat) return;
       var turns = entry.applied.combatTurns;

@@ -186,7 +186,7 @@
       if (typeof LT.isDevMode === "function" && LT.isDevMode()) {
         list.push(
           new LT.Response("Take all weapons", "DEV: add one of every official weapon type you don't already have.", "inventory.main", function () {
-            if (typeof LT.grantAllWeapons === "function") LT.grantAllWeapons(LT.game.player);
+            if (typeof LT.grantAllWeapons === "function") LT.grantAllWeapons(LT.game.player!);
           }),
         );
       }
@@ -194,16 +194,18 @@
     },
   });
 
-  document.addEventListener("click", function (e: any) {
+  document.addEventListener("click", function (e: MouseEvent) {
     if (!LT.game.currentNode || LT.game.currentNode.id !== "inventory.main") return;
     var p = LT.game.player;
     if (!p) return;
-    var enchantFirst = e.target.closest("[data-inv-enchant]");
+    var target = e.target as Element | null;
+    if (!target) return;
+    var enchantFirst = target.closest("[data-inv-enchant]");
     if (enchantFirst) {
       if (typeof LT.openEnchant === "function") LT.openEnchant(enchantFirst.getAttribute("data-inv-enchant"));
       return;
     }
-    var use = e.target.closest("[data-inv-use]");
+    var use = target.closest("[data-inv-use]");
     if (use) {
       var useUid = use.getAttribute("data-inv-use");
       var carried = (p.items || []).filter(function (it) { return it && it.uid === useUid; })[0];
@@ -213,7 +215,7 @@
       }
       return;
     }
-    var read = e.target.closest("[data-inv-read]");
+    var read = target.closest("[data-inv-read]");
     if (read) {
       var uid = read.getAttribute("data-inv-read");
       var book = (p.items || []).filter(function (it) { return it.uid === uid; })[0];
@@ -223,38 +225,38 @@
       }
       return;
     }
-    var wepUnequip = e.target.closest("[data-inv-wep-unequip]");
+    var wepUnequip = target.closest("[data-inv-wep-unequip]");
     if (wepUnequip) {
-      LT.unequipWeapon(p, wepUnequip.getAttribute("data-inv-wep-unequip"));
+      LT.unequipWeapon(p, wepUnequip.getAttribute("data-inv-wep-unequip")!);
       LT.game.setContent("inventory.main");
       return;
     }
-    var wepMain = e.target.closest("[data-inv-wep-main]");
+    var wepMain = target.closest("[data-inv-wep-main]");
     if (wepMain) {
-      LT.equipWeapon(p, wepMain.getAttribute("data-inv-wep-main"), "main");
+      LT.equipWeapon(p, wepMain.getAttribute("data-inv-wep-main")!, "main");
       LT.game.setContent("inventory.main");
       return;
     }
-    var wepOff = e.target.closest("[data-inv-wep-off]");
+    var wepOff = target.closest("[data-inv-wep-off]");
     if (wepOff) {
-      LT.equipWeapon(p, wepOff.getAttribute("data-inv-wep-off"), "offhand");
+      LT.equipWeapon(p, wepOff.getAttribute("data-inv-wep-off")!, "offhand");
       LT.game.setContent("inventory.main");
       return;
     }
-    var unequip = e.target.closest("[data-inv-unequip]");
+    var unequip = target.closest("[data-inv-unequip]");
     if (unequip) {
-      LT.unequipToWardrobe(p, unequip.getAttribute("data-inv-unequip"));
+      LT.unequipToWardrobe(p, unequip.getAttribute("data-inv-unequip")!);
       LT.game.setContent("inventory.main");
       return;
     }
-    var enchant = e.target.closest("[data-inv-enchant]");
+    var enchant = target.closest("[data-inv-enchant]");
     if (enchant) {
       if (typeof LT.openEnchant === "function") LT.openEnchant(enchant.getAttribute("data-inv-enchant"));
       return;
     }
-    var equip = e.target.closest("[data-inv-equip]");
+    var equip = target.closest("[data-inv-equip]");
     if (equip) {
-      LT.equipFromWardrobe(p, equip.getAttribute("data-inv-equip"));
+      LT.equipFromWardrobe(p, equip.getAttribute("data-inv-equip")!);
       LT.game.setContent("inventory.main");
     }
   });

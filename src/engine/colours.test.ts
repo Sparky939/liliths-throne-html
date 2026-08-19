@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "./colours";
 
-const LT = (globalThis as any).LT;
+const LT = globalThis.LT;
 
 describe("LT.Colour", () => {
   it("defines the full palette as hex strings", () => {

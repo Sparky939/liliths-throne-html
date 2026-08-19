@@ -6,6 +6,12 @@
     E: { dx: 1, dy: 0 },
   };
 
+  // Same discriminant as grid.ts's isFlatTileArray — separate file/closure,
+  // so it needs its own copy.
+  function isFlatTileArray(g: TileLike[] | TileLike[][]): g is TileLike[] {
+    return g.length > 0 && typeof (g[0] as TileLike).x === "number";
+  }
+
   function roaming(): boolean {
     if (!window.grid || !grid.gridData || !LT.game || !LT.game.renderMap) return false;
     if (LT.game.currentNode && LT.game.currentNode.travelDisabled) return false;
@@ -53,11 +59,11 @@
   }
 
   LT.findPlaceTile = function (gridName, placeType) {
-    var tiles = window.allGrids && window.allGrids[gridName];
+    var tiles = (window.allGrids && window.allGrids[gridName]) as TileLike[] | TileLike[][] | undefined;
     if (!tiles) return null;
-    if (tiles.length && tiles[0] && typeof tiles[0].x === "number") {
+    if (isFlatTileArray(tiles)) {
       for (var i = 0; i < tiles.length; i++) {
-        if (tiles[i].location && tiles[i].location.placeType === placeType) return tiles[i];
+        if (tiles[i].location && tiles[i].location!.placeType === placeType) return tiles[i];
       }
       return null;
     }
@@ -77,7 +83,7 @@
     if (typeof LT.syncQuestWorld === "function") LT.syncQuestWorld();
     LT.game.renderAttributes = true;
     LT.game.renderMap = true;
-    var tile: any = coords && coords.x != null ? coords : null;
+    var tile: TileLike | { x: number; y: number } | null = coords && coords.x != null ? coords : null;
     if (!tile && placeType) tile = LT.findPlaceTile(gridName, placeType);
     loadGrid(gridName, tile || {});
     LT.openUI("map", { target: "left-map" });
@@ -127,9 +133,10 @@
     };
   }
 
-  document.addEventListener("lt-move", function (e: any) {
+  document.addEventListener("lt-move", function (e: Event) {
     if (!roaming()) return;
-    var dir = DIRS[e.detail && e.detail.dir];
+    var detail = (e as CustomEvent<{ dir?: string }>).detail;
+    var dir = detail && detail.dir ? DIRS[detail.dir] : undefined;
     if (!dir) return;
     if (typeof getCurrentTile === "function" && window.grid && grid.gridData) {
       var here = grid.playerPosition;
@@ -139,9 +146,9 @@
     movePlayer(dir.dx, dir.dy);
   });
 
-  document.addEventListener("keydown", function (e: any) {
+  document.addEventListener("keydown", function (e: KeyboardEvent) {
     if (!roaming()) return;
-    if (e.target.matches("input, textarea")) return;
+    if ((e.target as HTMLElement).matches("input, textarea")) return;
     var map: Record<string, string> = { arrowup: "N", arrowdown: "S", arrowleft: "W", arrowright: "E" };
     var dir = map[e.key.toLowerCase()];
     if (!dir) return;

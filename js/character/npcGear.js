@@ -124,6 +124,13 @@
         npc.wardrobe = npc.wardrobe || [];
         return npc;
     };
+    // NpcGearItem is deliberately loose (see its declaration), so pushing one
+    // into a Character's strictly-typed carrier arrays needs a cast at each
+    // call site below. Safe here specifically: these three helpers are only
+    // ever fed items retrieved via takeNpcClothing/takeNpcItem/takeNpcWeapon,
+    // which pull from an NPC's equipped/items/weapons — populated exclusively
+    // by LT.makeClothing/LT.makeItem/weapon-creation, so the runtime shape is
+    // always the real ClothingItem/Item, never a genuinely partial bag.
     function givePlayerClothing(item) {
         var p = LT.game && LT.game.player;
         if (!p || !item)

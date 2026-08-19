@@ -73,7 +73,7 @@
   });
 
   function stockHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var stock = LT.vickyStock();
     var ids = LT.vickyWeaponIds();
     var buy = "";
@@ -89,15 +89,15 @@
         '" style="border-color:' +
         (typeof LT.weaponRarityColour === "function" ? LT.weaponRarityColour(type && type.rarity) : "#888") +
         ';"><b>' +
-        type.name +
+        type!.name +
         "</b><br><span class='muted'>£" +
         price +
         " · " +
         qty +
         " in stock · " +
-        (type.twoHanded ? "two-handed" : "one-handed") +
+        (type!.twoHanded ? "two-handed" : "one-handed") +
         " · " +
-        type.damage +
+        type!.damage +
         " dmg</span></div>";
     }
     if (!buy) buy = '<p class="muted">Vicky has no weapons in stock.</p>';
@@ -144,7 +144,7 @@
   });
 
   function bookStockHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var stock = LT.vickyBookStock();
     var buy = "";
     for (var i = 0; i < LT.SPELL_BOOK_IDS.length; i++) {
@@ -192,30 +192,32 @@
     },
   });
 
-  document.addEventListener("click", function (e: any) {
+  document.addEventListener("click", function (e: MouseEvent) {
+    var target = e.target as Element | null;
+    if (!target) return;
     if (LT.game.currentNode && LT.game.currentNode.id === "vicky.spells") {
-      var bookBtn = e.target.closest("[data-vicky-book]");
+      var bookBtn = target.closest("[data-vicky-book]");
       if (!bookBtn) return;
-      var sid = bookBtn.getAttribute("data-vicky-book");
-      var stock = LT.vickyBookStock();
-      var price = LT.spellBookBuyPrice(sid);
-      var p = LT.game.player;
-      if ((stock[sid] || 0) <= 0 || (p.money || 0) < price) return;
+      var sid = bookBtn.getAttribute("data-vicky-book")!;
+      var bookStock = LT.vickyBookStock();
+      var bookPrice = LT.spellBookBuyPrice(sid);
+      var p = LT.game.player!;
+      if ((bookStock[sid] || 0) <= 0 || (p.money || 0) < bookPrice) return;
       var book = LT.makeSpellBook(sid);
       if (!book) return;
-      p.money -= price;
+      p.money -= bookPrice;
       p.items = p.items || [];
       p.items.push(book);
-      stock[sid] -= 1;
+      bookStock[sid] -= 1;
       LT.game.setContent("vicky.spells");
       return;
     }
     if (!LT.game.currentNode || LT.game.currentNode.id !== "vicky.weapons") return;
-    var p = LT.game.player;
+    var p = LT.game.player!;
     if (!p) return;
-    var buy = e.target.closest("[data-vicky-buy]");
+    var buy = target.closest("[data-vicky-buy]");
     if (buy) {
-      var id = buy.getAttribute("data-vicky-buy");
+      var id = buy.getAttribute("data-vicky-buy")!;
       var stock = LT.vickyStock();
       var price = LT.weaponBuyPrice(id);
       if ((stock[id] || 0) <= 0) return;
@@ -229,7 +231,7 @@
       LT.game.setContent("vicky.weapons");
       return;
     }
-    var sell = e.target.closest("[data-vicky-sell]");
+    var sell = target.closest("[data-vicky-sell]");
     if (sell) {
       var uid = sell.getAttribute("data-vicky-sell");
       var idx = -1;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "./enchanting";
 
-const LT = (globalThis as any).LT;
+const LT = globalThis.LT;
 
 describe("LT.TF_MODIFIER", () => {
   it("derives value from rarity via the RARITY_COST table", () => {

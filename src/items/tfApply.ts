@@ -7,10 +7,10 @@
     return table[potency] || 0;
   }
 
-  function listOf(obj) {
+  function listOf<T>(obj: T[] | Record<string, T>) {
     if (Array.isArray(obj)) return obj;
     var keys = Object.keys(obj);
-    var out: any[] = [];
+    var out: T[] = [];
     var i;
     for (i = 0; i < keys.length; i++) out.push(obj[keys[i]]);
     return out;
@@ -235,7 +235,7 @@
   LT.applyRacialEffects = function (ch, item) {
     var effects = (item && item.effects) || [];
     if (!effects.length) return "";
-    var lines: any[] = [];
+    var lines: string[] = [];
     var i;
     for (i = 0; i < effects.length; i++) {
       var text = LT.applyRacialEffect(ch, effects[i], item);

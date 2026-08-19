@@ -37,7 +37,7 @@
         return LT.WEAPONS[id] || null;
     };
     LT.weaponRarityColour = function (rarity) {
-        return RARITY_COLOUR[rarity] || "#888888";
+        return (rarity && RARITY_COLOUR[rarity]) || "#888888";
     };
     LT.makeWeapon = function (id, damageType) {
         var type = LT.getWeaponType(id);
@@ -138,7 +138,7 @@
         var rnd = opts.random || Math.random;
         var level = ch.level || 1;
         var elem = function () {
-            return opts.damageType || pick(DEMON_ELEM, rnd);
+            return opts.damageType || (pick(DEMON_ELEM, rnd) || undefined);
         };
         if (opts.dark) {
             if (opts.hasWeapon === false || (opts.hasWeapon == null && rnd() > 0.8))
@@ -172,7 +172,7 @@
             }
         }
         else {
-            ch.mainWeapon = LT.makeWeapon(opts.meleeId || pick(MUGGER_MELEE, rnd), "PHYSICAL");
+            ch.mainWeapon = LT.makeWeapon(opts.meleeId || (pick(MUGGER_MELEE, rnd) || undefined), "PHYSICAL");
         }
         return ch;
     };
@@ -351,7 +351,7 @@
     };
     LT.oneShotRecover = function (weapon) {
         var id = weapon && weapon.id;
-        return ONE_SHOT_RECOVER[id] || { turn: 0, combat: 0 };
+        return (id && ONE_SHOT_RECOVER[id]) || { turn: 0, combat: 0 };
     };
     LT.queuedEssenceCost = function (ch) {
         var total = 0;

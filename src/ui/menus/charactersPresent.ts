@@ -5,7 +5,7 @@
   }
 
   LT.paintCharactersPresent = function () {
-    var root: any = document.querySelector('[data-ui="characters-present"] [data-node-content]');
+    var root = document.querySelector<HTMLElement>('[data-ui="characters-present"] [data-node-content]');
     if (!root) return;
     if (typeof LT.updateHouseNpcLocations === "function") LT.updateHouseNpcLocations();
     var list = typeof LT.npcAtCurrentTile === "function" ? LT.npcAtCurrentTile() : [];

@@ -89,7 +89,7 @@
 
   LT.statusSummary = function (ch) {
     if (!ch || !ch.statuses) return "";
-    var bits: any[] = [];
+    var bits: string[] = [];
     if (ch.statuses.FLASH && ch.statuses.FLASH.turns > 0) bits.push("Blinded (−1 AP)");
     if (ch.statuses.POISON_VAPOURS && ch.statuses.POISON_VAPOURS.turns > 0) {
       bits.push("Poison Vapours (" + ch.statuses.POISON_VAPOURS.turns + ")");

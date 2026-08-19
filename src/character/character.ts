@@ -53,9 +53,9 @@
     location: { world?: string; place?: string; x?: number; y?: number } | null;
     equipped: Record<string, ClothingItem | undefined>;
     wardrobe: ClothingItem[];
-    mainWeapon: Item | null;
-    offhandWeapon: Item | null;
-    weapons: Item[];
+    mainWeapon: WeaponItem | null;
+    offhandWeapon: WeaponItem | null;
+    weapons: WeaponItem[];
     occupation: Occupation | null;
     sex: { vaginal: number; anal: number; oral: number; penisVirgin: boolean; vaginaVirgin: boolean };
 
@@ -97,12 +97,11 @@
     enchantBonus?: EnchantBonus;
     statusEffects?: Record<string, AppliedStatusEffect | undefined>;
 
-    [key: string]: any;
-
     constructor(opts?: GameCharacterOpts) {
       opts = opts || {};
       this.id = opts.id;
       this.player = !!opts.player;
+      this.raceName = opts.raceName || "HUMAN";
       this.names = { masculine: "Unknown", androgynous: "Unknown", feminine: "Unknown" };
       this.surname = "";
       this.gender = LT.Gender.FEMALE;
@@ -248,7 +247,7 @@
           vaginaCapacity: this.vaginaCapacity && this.vaginaCapacity.id,
           labiaSize: this.labiaSize,
           clitorisSize: this.clitorisSize,
-          race: "HUMAN",
+          race: this.raceName || "HUMAN",
         });
       }
       if (typeof LT.ensureCharacterSystems === "function") LT.ensureCharacterSystems(this);

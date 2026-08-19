@@ -137,7 +137,8 @@
         }
     }
     document.addEventListener("click", function (e) {
-        var btn = e.target.closest("[data-save-action]");
+        var target = e.target;
+        var btn = target && target.closest("[data-save-action]");
         if (!btn)
             return;
         if (!LT.game.currentNode || LT.game.currentNode.id !== "boot.save-load")
@@ -162,20 +163,21 @@
                 new LT.Response("Import file", "Load a .ltjson save from disk into a new browser slot.", null, function () {
                     var input = document.getElementById("lt-import-file");
                     if (!input) {
-                        input = document.createElement("input");
-                        input.type = "file";
-                        input.id = "lt-import-file";
-                        input.accept = ".ltjson,application/json";
-                        input.hidden = true;
-                        input.addEventListener("change", function () {
-                            if (!input.files || !input.files[0])
+                        var el = document.createElement("input");
+                        el.type = "file";
+                        el.id = "lt-import-file";
+                        el.accept = ".ltjson,application/json";
+                        el.hidden = true;
+                        el.addEventListener("change", function () {
+                            if (!el.files || !el.files[0])
                                 return;
-                            LT.importSave(input.files[0], function () {
+                            LT.importSave(el.files[0], function () {
                                 refresh();
                             });
-                            input.value = "";
+                            el.value = "";
                         });
-                        document.body.appendChild(input);
+                        document.body.appendChild(el);
+                        input = el;
                     }
                     input.click();
                 }),

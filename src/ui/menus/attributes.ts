@@ -53,7 +53,7 @@
   }
 
   LT.paintAttributes = function () {
-    var root: any = document.querySelector('[data-ui="attributes"]');
+    var root = document.querySelector<HTMLElement>('[data-ui="attributes"]');
     if (!root) return;
     var player = LT.game.player;
     var Colour = LT.Colour;
@@ -134,9 +134,9 @@
 
   LT.initTimeListener = function () {
     document.addEventListener("lt-time", function () {
-      var el: any = document.getElementById("game-time");
+      var el = document.getElementById("game-time");
       if (el) el.textContent = LT.game.clock;
-      var dateEl: any = document.getElementById("game-date");
+      var dateEl = document.getElementById("game-date");
       if (dateEl && typeof LT.formatGameDate === "function") dateEl.textContent = LT.formatGameDate();
       if (typeof LT.updateHouseNpcLocations === "function") LT.updateHouseNpcLocations();
       if (typeof LT.paintCharactersPresent === "function") LT.paintCharactersPresent();

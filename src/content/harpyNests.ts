@@ -9,7 +9,7 @@
 
   function locDesc() {
     var t = typeof getCurrentTile === "function" ? getCurrentTile() : null;
-    var loc = (t && t.location) || {};
+    var loc: Partial<GridLocation> = (t && t.location) || {};
     if (loc.description) return "<p>" + loc.description + "</p>";
     return "<p>You are on the Harpy Nests.</p>";
   }

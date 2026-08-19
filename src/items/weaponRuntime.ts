@@ -11,7 +11,7 @@
     { id: "offhand", label: "Offhand" },
   ];
 
-  var RARITY_COLOUR = {
+  var RARITY_COLOUR: Record<string, string> = {
     COMMON: "#888888",
     UNCOMMON: "#57be7e",
     RARE: "#6f9be3",
@@ -20,7 +20,7 @@
     QUEST: "#ff6bda",
   };
 
-  function ensureLists(ch) {
+  function ensureLists<T extends Combatant | null | undefined>(ch: T): T {
     if (!ch) return ch;
     if (!ch.weapons) ch.weapons = [];
     if (ch.mainWeapon === undefined) ch.mainWeapon = null;
@@ -35,7 +35,7 @@
   };
 
   LT.weaponRarityColour = function (rarity) {
-    return RARITY_COLOUR[rarity] || "#888888";
+    return (rarity && RARITY_COLOUR[rarity]) || "#888888";
   };
 
   LT.makeWeapon = function (id, damageType) {
@@ -70,7 +70,7 @@
     return !!(type && type.twoHanded);
   };
 
-  function varianceOf(weapon) {
+  function varianceOf(weapon: WeaponItem | null | undefined): number {
     var type = weapon && LT.getWeaponType(weapon.id);
     var key = type && type.variance;
     if (key && LT.DAMAGE_VARIANCE[key] != null) return LT.DAMAGE_VARIANCE[key];
@@ -78,7 +78,7 @@
   }
 
   LT.weaponUsesUnarmed = function (weaponOrType) {
-    var type = weaponOrType && weaponOrType.damage != null ? weaponOrType : LT.getWeaponType(weaponOrType);
+    var type: WeaponType | null = weaponOrType && (weaponOrType as WeaponType).damage != null ? (weaponOrType as WeaponType) : LT.getWeaponType(weaponOrType as WeaponItem);
     var tags = (type && type.tags) || [];
     return tags.indexOf("WEAPON_UNARMED") >= 0;
   };
@@ -108,7 +108,7 @@
     return typeof LT.applyEnchantDamage === "function" ? LT.applyEnchantDamage(attacker, weapon, rolled) : rolled;
   };
 
-  function pick(list, rnd) {
+  function pick<T>(list: T[] | null | undefined, rnd?: () => number): T | "" {
     rnd = rnd || Math.random;
     if (!list || !list.length) return "";
     return list[Math.floor(rnd() * list.length)];
@@ -139,7 +139,7 @@
     var rnd = opts.random || Math.random;
     var level = ch.level || 1;
     var elem = function () {
-      return opts.damageType || pick(DEMON_ELEM, rnd);
+      return opts!.damageType || (pick(DEMON_ELEM, rnd) || undefined);
     };
     if (opts.dark) {
       if (opts.hasWeapon === false || (opts.hasWeapon == null && rnd() > 0.8)) return ch;
@@ -165,7 +165,7 @@
         ch.offhandWeapon = LT.makeWeapon("innoxia_knuckleDusters_knuckle_dusters", "PHYSICAL");
       }
     } else {
-      ch.mainWeapon = LT.makeWeapon(opts.meleeId || pick(MUGGER_MELEE, rnd), "PHYSICAL");
+      ch.mainWeapon = LT.makeWeapon(opts.meleeId || (pick(MUGGER_MELEE, rnd) || undefined), "PHYSICAL");
     }
     return ch;
   };
@@ -176,13 +176,13 @@
     return desc.charAt(0).toUpperCase() + desc.slice(1);
   };
 
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined): string {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function pickText(list) {
+  function pickText(list: string[] | null | undefined): string {
     if (!list || !list.length) return "";
     return list[Math.floor(Math.random() * list.length)];
   }
@@ -205,18 +205,18 @@
     return nameOf(src) + " hits " + nameOf(tgt) + " with " + ((weapon && weapon.name) || "a weapon");
   };
 
-  function findCarried(player, uid) {
+  function findCarried(player: Combatant, uid: string): number {
     ensureLists(player);
-    for (var i = 0; i < player.weapons.length; i++) {
-      if (player.weapons[i].uid === uid) return i;
+    for (var i = 0; i < player.weapons!.length; i++) {
+      if (player.weapons![i].uid === uid) return i;
     }
     return -1;
   }
 
-  function stash(player, weapon) {
+  function stash(player: Combatant, weapon: WeaponItem | null | undefined): void {
     if (!weapon) return;
     ensureLists(player);
-    player.weapons.push(weapon);
+    player.weapons!.push(weapon);
   }
 
   LT.unequipWeapon = function (player, slot) {
@@ -240,11 +240,11 @@
     ensureLists(player);
     var idx = findCarried(player, uid);
     if (idx < 0) return false;
-    var item = player.weapons[idx];
+    var item = player.weapons![idx];
     var type = LT.getWeaponType(item.id);
     if (!type) return false;
     if (slot === "offhand" && type.twoHanded) return false;
-    player.weapons.splice(idx, 1);
+    player.weapons!.splice(idx, 1);
     if (slot === "offhand") {
       if (LT.isTwoHandedEquipped(player)) LT.unequipWeapon(player, "main");
       if (player.offhandWeapon) stash(player, player.offhandWeapon);
@@ -264,31 +264,31 @@
 
   LT.ownedWeaponIds = function (player) {
     ensureLists(player);
-    var ids: any = {};
+    var ids: Record<string, boolean> = {};
     if (player.mainWeapon) ids[player.mainWeapon.id] = true;
     if (player.offhandWeapon) ids[player.offhandWeapon.id] = true;
-    for (var i = 0; i < player.weapons.length; i++) ids[player.weapons[i].id] = true;
+    for (var i = 0; i < player.weapons!.length; i++) ids[player.weapons![i].id] = true;
     return ids;
   };
 
   LT.grantAllWeapons = function (player) {
     ensureLists(player);
     var owned = LT.ownedWeaponIds(player);
-    var ids = LT.WEAPON_IDS || Object.keys(LT.WEAPONS || {});
+    var ids: string[] = LT.WEAPON_IDS || Object.keys(LT.WEAPONS || {});
     var added = 0;
     for (var i = 0; i < ids.length; i++) {
       if (owned[ids[i]]) continue;
       var made = LT.makeWeapon(ids[i]);
       if (!made) continue;
-      player.weapons.push(made);
+      player.weapons!.push(made);
       added++;
     }
     return added;
   };
 
   LT.vickyWeaponIds = function () {
-    var ids = LT.WEAPON_IDS || Object.keys(LT.WEAPONS || {});
-    var out: any[] = [];
+    var ids: string[] = LT.WEAPON_IDS || Object.keys(LT.WEAPONS || {});
+    var out: string[] = [];
     for (var i = 0; i < ids.length; i++) {
       var type = LT.WEAPONS[ids[i]];
       if (!type || !type.tags) continue;
@@ -313,7 +313,7 @@
     LT.game.flags = LT.game.flags || {};
     var day = Math.floor(((LT.game && LT.game.secondsPassed) || 0) / 86400);
     if (LT.game.flags.vickyStockDay === day && LT.game.flags.vickyStock) return LT.game.flags.vickyStock;
-    var stock: any = {};
+    var stock: Record<string, number> = {};
     var ids = LT.vickyWeaponIds();
     for (var i = 0; i < ids.length; i++) stock[ids[i]] = 2 + Math.floor(Math.random() * 5);
     LT.game.flags.vickyStockDay = day;
@@ -323,7 +323,7 @@
 
   LT.ensureWeaponSlots = ensureLists;
 
-  var ONE_SHOT_RECOVER = {
+  var ONE_SHOT_RECOVER: Record<string, OneShotRecoverChance> = {
     innoxia_thrown_tennis_ball: { turn: 75, combat: 100 },
     innoxia_thrown_yarn: { turn: 75, combat: 100 },
   };
@@ -335,7 +335,7 @@
 
   LT.oneShotRecover = function (weapon) {
     var id = weapon && weapon.id;
-    return ONE_SHOT_RECOVER[id] || { turn: 0, combat: 0 };
+    return (id && ONE_SHOT_RECOVER[id]) || { turn: 0, combat: 0 };
   };
 
   LT.queuedEssenceCost = function (ch) {
@@ -383,16 +383,16 @@
     if (LT.combat) {
       LT.combat.thrownThisTurn = LT.combat.thrownThisTurn || [];
       LT.combat.thrownThisCombat = LT.combat.thrownThisCombat || [];
-      var rec = { ch: ch, slot: slot, weapon: weapon };
+      var rec: ThrownWeaponRecord = { ch: ch, slot: slot, weapon: weapon };
       LT.combat.thrownThisTurn.push(rec);
       LT.combat.thrownThisCombat.push(rec);
     }
   };
 
   LT.recoverThrownAfterTurn = function () {
-    var lines: any[] = [];
+    var lines: string[] = [];
     var list = (LT.combat && LT.combat.thrownThisTurn) || [];
-    var kept: any[] = [];
+    var kept: ThrownWeaponRecord[] = [];
     for (var i = 0; i < list.length; i++) {
       var rec = list[i];
       var chance = LT.oneShotRecover(rec.weapon).turn;
@@ -401,7 +401,7 @@
         else if (rec.slot === "main" && !rec.ch.mainWeapon) rec.ch.mainWeapon = rec.weapon;
         var name = rec.ch.getName ? rec.ch.getName() : rec.ch.name || "someone";
         lines.push("<p>" + name + " recovers " + rec.weapon.name + ".</p>");
-        LT.combat.thrownThisCombat = (LT.combat.thrownThisCombat || []).filter(function (x) {
+        LT.combat.thrownThisCombat = (LT.combat.thrownThisCombat || []).filter(function (x: ThrownWeaponRecord) {
           return x !== rec;
         });
       } else {

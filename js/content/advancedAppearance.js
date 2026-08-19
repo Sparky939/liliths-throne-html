@@ -557,9 +557,10 @@
     });
     document.addEventListener("click", function (e) {
         var stage = document.getElementById("ui-stage");
-        if (!stage || !stage.contains(e.target))
+        var evtTarget = e.target;
+        if (!stage || !evtTarget || !stage.contains(evtTarget))
             return;
-        var btn = e.target.closest("[data-act]");
+        var btn = evtTarget.closest("[data-act]");
         if (!btn || btn.classList.contains("disabled"))
             return;
         var node = LT.game.currentNode;

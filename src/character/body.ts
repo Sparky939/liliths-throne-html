@@ -11,7 +11,7 @@
     return list[i];
   }
 
-  function orifice(opts?: { wetness?: any; capacity?: any; depth?: any; elasticity?: any; plasticity?: any; modifiers?: string[]; stuffed?: boolean; virgin?: boolean }): Orifice {
+  function orifice(opts?: OrificeOpts): Orifice {
     opts = opts || {};
     return {
       wetness: idOf(opts.wetness, "TWO_MOIST"),

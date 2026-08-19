@@ -98,7 +98,7 @@
           new LT.Response("Resume", "Return to the game.", LT.game.returnNode || "place.generic", function () {
             if (!LT.game.returnNode && LT.game.player && LT.game.player.location && typeof LT.enterWorld === "function") {
               var loc = LT.game.player.location;
-              LT.enterWorld(loc.world, loc.place, loc.x != null ? { x: loc.x, y: loc.y } : null);
+              LT.enterWorld(loc.world!, loc.place, loc.x != null ? { x: loc.x, y: loc.y! } : null);
             }
             LT.game.returnNode = null;
           }),

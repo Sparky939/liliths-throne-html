@@ -8,12 +8,13 @@
     return { id: id, name: name || String(id).toLowerCase().replace(/_/g, "-") };
   }
 
-  function listOf(obj: any) {
+  function listOf<T>(obj: T[] | Record<string, T> | null | undefined): T[] {
     if (Array.isArray(obj)) return obj;
-    var keys = Object.keys(obj || {});
-    var out: any[] = [];
+    var rec = obj || ({} as Record<string, T>);
+    var keys = Object.keys(rec);
+    var out: T[] = [];
     var i;
-    for (i = 0; i < keys.length; i++) out.push(obj[keys[i]]);
+    for (i = 0; i < keys.length; i++) out.push(rec[keys[i]]);
     return out;
   }
 
@@ -34,7 +35,7 @@
 
   function raceId(ch: Character | null | undefined): string {
     if (!ch) return "HUMAN";
-    var b: any = ch.body || {};
+    var b: Partial<CharacterBody> = ch.body || {};
     var raw = b.subspeciesOverride || b.subspecies || ch.fullRace || ch.raceName || "human";
     return String(raw).toUpperCase().replace(/-/g, "_").replace(/_MORPH$/, "_MORPH");
   }
@@ -53,7 +54,7 @@
   LT.isDemonTFMenu = function (ch?: Character | null): boolean {
     ch = ch || LT.bodyChangingTarget || (LT.game && LT.game.player);
     if (!ch) return false;
-    var b: any = ch.body || {};
+    var b: Partial<CharacterBody> = ch.body || {};
     if (idOf(b.bodyMaterial, "FLESH") === "SLIME") return false;
     var id = raceId(ch);
     return id === "DEMON" || id === "LILIN" || id === "ELDER_LILIN" || id === "IMP" || id === "ELEMENTAL";
@@ -113,12 +114,12 @@
     return ch.body;
   }
 
-  // `b` stays loosely typed here on purpose: this function's whole job is
-  // backfilling a body object that may be missing fields CharacterBody
-  // otherwise declares as always-present (legacy save data, or a body
-  // object built before every default was applied) — every other function
-  // in this file runs after ensureExtras and can trust the full shape.
-  function ensureExtras(ch: Character | null | undefined, b: any) {
+  // `b` is typed as the full CharacterBody even though this function's whole
+  // job is backfilling fields CharacterBody declares as always-present but
+  // that may genuinely be missing (legacy save data, or a body object built
+  // before every default was applied) — every other function in this file
+  // runs after ensureExtras and can trust the full shape.
+  function ensureExtras(ch: Character | null | undefined, b: CharacterBody) {
     if (!ch || !b) return;
     if (ch.appearedAge == null && typeof ch.getAgeValue === "function") ch.appearedAge = ch.getAgeValue();
     if (ch.appearedAge == null) ch.appearedAge = 18;
@@ -175,6 +176,10 @@
     return list;
   }
 
+  // root/return type genuinely can't be narrower than `any`: this walks an
+  // arbitrary dot-separated path (e.g. "penis.testicle.count") into
+  // CharacterBody, and every intermediate value along that walk is a
+  // different, unrelated shape depending on which path string was passed in.
   function getAt(root: any, path: string): any {
     var parts = path.split(".");
     var obj = root;
@@ -547,7 +552,7 @@
   }
 
   function savePreset(): void {
-    var input: any = document.getElementById("tf-preset-name");
+    var input = document.getElementById("tf-preset-name") as HTMLInputElement | null;
     var name = input && input.value ? String(input.value).trim() : "";
     if (!name) name = "Preset";
     var ch = target();
@@ -1055,14 +1060,15 @@
     if (LT.game) LT.game.setContent("body.core");
   };
 
-  document.addEventListener("click", function (e: any) {
-    var stage: any = document.getElementById("ui-stage");
-    if (!stage || !stage.contains(e.target)) return;
-    var btn = e.target.closest("[data-act]");
+  document.addEventListener("click", function (e: MouseEvent) {
+    var stage = document.getElementById("ui-stage");
+    var evtTarget = e.target as HTMLElement | null;
+    if (!stage || !evtTarget || !stage.contains(evtTarget)) return;
+    var btn = evtTarget.closest("[data-act]") as HTMLElement | null;
     if (!btn || btn.classList.contains("disabled")) return;
     var node = LT.game && LT.game.currentNode;
     if (!node || String(node.id).indexOf("body.") !== 0) return;
-    if (!applyAct(btn.getAttribute("data-act"))) return;
+    if (!applyAct(btn.getAttribute("data-act")!)) return;
     LT.game.setContent(LT.game.currentNode);
   });
 })();

@@ -173,7 +173,7 @@
   }
 
   LT.availableSpecials = function (ch) {
-    var out: any[] = [];
+    var out: string[] = [];
     for (var i = 0; i < LT.WEAPON_SPECIAL_IDS.length; i++) {
       var id = LT.WEAPON_SPECIAL_IDS[i];
       var def = LT.WEAPON_SPECIALS[id];

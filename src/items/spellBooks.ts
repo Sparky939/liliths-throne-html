@@ -56,7 +56,7 @@
     LT.game.flags = LT.game.flags || {};
     var day = Math.floor(((LT.game && LT.game.secondsPassed) || 0) / 86400);
     if (LT.game.flags.vickyBookDay === day && LT.game.flags.vickyBooks) return LT.game.flags.vickyBooks;
-    var stock: any = {};
+    var stock: Record<string, number> = {};
     for (var i = 0; i < LT.SPELL_BOOK_IDS.length; i++) stock[LT.SPELL_BOOK_IDS[i]] = 1;
     LT.game.flags.vickyBookDay = day;
     LT.game.flags.vickyBooks = stock;

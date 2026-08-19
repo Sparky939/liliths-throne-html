@@ -62,7 +62,7 @@
         return html;
     };
     function findDominionTile(placeType) {
-        var tiles = window.allGrids && window.allGrids.DOMINION;
+        var tiles = (window.allGrids && window.allGrids.DOMINION);
         if (!tiles)
             return null;
         for (var i = 0; i < tiles.length; i++) {
@@ -72,7 +72,7 @@
         return null;
     }
     function findDominionXY(x, y) {
-        var tiles = window.allGrids && window.allGrids.DOMINION;
+        var tiles = (window.allGrids && window.allGrids.DOMINION);
         if (!tiles)
             return null;
         for (var i = 0; i < tiles.length; i++) {

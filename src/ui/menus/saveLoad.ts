@@ -104,7 +104,7 @@
 
   function onAction(action: string, name: string) {
     if (action === "new") {
-      var input: any = document.getElementById("new_save_name");
+      var input = document.getElementById("new_save_name") as HTMLInputElement | null;
       var n = (input && input.value) || "New Save";
       if (LT.readSave(n) && confirm.overwrite !== n) {
         confirm = { overwrite: n, load: "", delete: "" };
@@ -117,7 +117,7 @@
       return;
     }
     if (action === "export-current") {
-      var input2: any = document.getElementById("new_save_name");
+      var input2 = document.getElementById("new_save_name") as HTMLInputElement | null;
       LT.exportSave((input2 && input2.value) || "export");
       return;
     }
@@ -159,11 +159,12 @@
     }
   }
 
-  document.addEventListener("click", function (e: any) {
-    var btn = e.target.closest("[data-save-action]");
+  document.addEventListener("click", function (e: MouseEvent) {
+    var target = e.target as HTMLElement | null;
+    var btn = target && (target.closest("[data-save-action]") as HTMLElement | null);
     if (!btn) return;
     if (!LT.game.currentNode || LT.game.currentNode.id !== "boot.save-load") return;
-    onAction(btn.getAttribute("data-save-action"), btn.getAttribute("data-save-name"));
+    onAction(btn.getAttribute("data-save-action")!, btn.getAttribute("data-save-name")!);
   });
 
   LT.defineNode({
@@ -182,21 +183,22 @@
           LT.game.returnNode = null;
         }),
         new LT.Response("Import file", "Load a .ltjson save from disk into a new browser slot.", null, function () {
-          var input: any = document.getElementById("lt-import-file");
+          var input = document.getElementById("lt-import-file") as HTMLInputElement | null;
           if (!input) {
-            input = document.createElement("input");
-            input.type = "file";
-            input.id = "lt-import-file";
-            input.accept = ".ltjson,application/json";
-            input.hidden = true;
-            input.addEventListener("change", function () {
-              if (!input.files || !input.files[0]) return;
-              LT.importSave(input.files[0], function () {
+            var el = document.createElement("input");
+            el.type = "file";
+            el.id = "lt-import-file";
+            el.accept = ".ltjson,application/json";
+            el.hidden = true;
+            el.addEventListener("change", function () {
+              if (!el.files || !el.files[0]) return;
+              LT.importSave(el.files[0], function () {
                 refresh();
               });
-              input.value = "";
+              el.value = "";
             });
-            document.body.appendChild(input);
+            document.body.appendChild(el);
+            input = el;
           }
           input.click();
         }),

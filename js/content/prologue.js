@@ -240,8 +240,9 @@
                 p.wardrobe = [];
                 for (var i = 0; i < left.length; i++) {
                     var item = left[i];
-                    if (p.equipped[item.slot])
-                        p.wardrobe.push(p.equipped[item.slot]);
+                    var existing = p.equipped[item.slot];
+                    if (existing)
+                        p.wardrobe.push(existing);
                     p.equipped[item.slot] = item;
                 }
                 p.weapon = "demonstone";

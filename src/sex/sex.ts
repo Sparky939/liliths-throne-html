@@ -179,7 +179,7 @@
     return ((this.player && this.player.orgasmedThisSex) || 0) + ((this.partner && this.partner.orgasmedThisSex) || 0) > 0;
   };
 
-  function register(def) {
+  function register(def: SexAction) {
     LT.SEX_ACTIONS[def.id] = def;
   }
 
@@ -1793,7 +1793,7 @@
       return "You've reached your climax, and can't hold back your orgasm any longer.";
     },
     perform: function (src, tgt) {
-      var bits: any[] = [];
+      var bits: string[] = [];
       bits.push("[npc.Name] [npc.verb(reach)] around and [npc.verb(grab)] [npc2.namePos] [npc2.ass+], pulling [npc2.herHim] close and letting out [npc.a_moan+] as [npc.she] [npc.verb(prepare)] to reach [npc.her] climax.");
       if (hasVagina(src)) {
         bits.push("A desperate, shuddering heat suddenly crashes up from [npc.namePos] [npc.pussy+], and [npc.she] [npc.verb(let)] out a manic squeal as a blinding wave of pure ecstasy washes over [npc.herHim].");
@@ -1939,7 +1939,7 @@
   }
 
   function clothingSlotActs(who, ch) {
-    var acts: any[] = [];
+    var acts: SexAction[] = [];
     if (!ch || !ch.equipped) return acts;
     var slots = Object.keys(ch.equipped);
     var i;
@@ -1997,7 +1997,7 @@
   }
 
   LT.sex.availableActions = function (tab) {
-    var list: any[] = [];
+    var list: SexAction[] = [];
     var src = this.player;
     var tgt = this.partner;
     if ((src.arousal || 0) >= LT.MAX_AROUSAL && LT.SEX_ACTIONS.orgasm && LT.SEX_ACTIONS.orgasm.canUse(src, tgt)) {
@@ -2091,7 +2091,7 @@
     if (!this.active || this.finished) return;
     var act = (this._clothActs && this._clothActs[actionId]) || LT.SEX_ACTIONS[actionId];
     if (!act || (act.canUse && !act.canUse(this.player, this.partner))) return;
-    var lines: any[] = [];
+    var lines: string[] = [];
     lines.push("<p>" + runAction(this.player, this.partner, act) + "</p>");
     if (act.endsSex) {
       this.lastResolution = lines.join("");

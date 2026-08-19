@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "./paths";
 
-const LT = (globalThis as any).LT;
+const LT = globalThis.LT;
 
 describe("LT path helpers", () => {
   it("builds an assets/ui path", () => {

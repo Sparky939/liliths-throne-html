@@ -292,7 +292,7 @@
             e = e.replace(/game\.isDayTime\(\)/g, bool(LT.isDayTime ? LT.isDayTime() : LT.isWorkTime && LT.isWorkTime()));
             e = e.replace(/game\.isExtendedWorkTime\(\)/g, bool(LT.isWorkTime && LT.isWorkTime()));
             e = e.replace(/pc\.getAttributeValue\(ATTRIBUTE_MAJOR_PHYSIQUE\)>=(\d+)/g, function (_, n) {
-                return bool((LT.game.player && (LT.game.player.physique || 0)) >= Number(n));
+                return bool(((LT.game.player && LT.game.player.physique) || 0) >= Number(n));
             });
             e = e.replace(/flags\.getSavedLong\('([^']+)'\)(>=|==)(\d+)/g, function (_, id, op, n) {
                 var key = id === "amber_door_knock_repeat_count" ? "amberDoorKnockRepeatCount" : id;
@@ -333,7 +333,7 @@
             e = e.replace(/npc\.isCharacterReactedToPregnancy\([^)]*\)/g, "false");
             e = e.replace(/npc\.getPregnantLitter\(\)[^=]*=[^=]*\([^)]*\)/g, "false");
             e = e.replace(/brax\.getFoughtPlayerCount\(\)>(\d+)/g, function (_, n) {
-                return bool((LT.game.flags && LT.game.flags.braxFoughtCount || 0) > Number(n));
+                return bool(((LT.game.flags && LT.game.flags.braxFoughtCount) || 0) > Number(n));
             });
             e = e.replace(/pc\.getTailType\(\)\.getRace\(\)==RACE_[A-Z0-9_]+/g, "false");
             e = e.replace(/game\.isNonConEnabled\(\)/g, "false");

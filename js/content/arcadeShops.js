@@ -514,10 +514,8 @@
                 LT.maybePlaceEncounter();
         },
         getContent: function () {
-            var info = (typeof getCurrentTile === "function" &&
-                getCurrentTile() &&
-                getCurrentTile().location) ||
-                {};
+            var tile = typeof getCurrentTile === "function" ? getCurrentTile() : null;
+            var info = (tile && tile.location) || {};
             var html = "<p>" + (info.description || "The warehouse district.") + "</p>";
             if (LT.game.flags &&
                 LT.game.flags.nyanQuest ===

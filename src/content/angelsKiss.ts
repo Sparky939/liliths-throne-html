@@ -23,7 +23,8 @@
       if (typeof LT.maybePlaceEncounter === "function") LT.maybePlaceEncounter();
     },
     getContent: function () {
-      var info = (typeof getCurrentTile === "function" && getCurrentTile() && getCurrentTile().location) || {};
+      var tile = typeof getCurrentTile === "function" ? getCurrentTile() : null;
+      var info: Partial<GridLocation> = (tile && tile.location) || {};
       return "<p>" + (info.description || LT.places.DOMINION_RED_LIGHT_DISTRICT.description) + "</p>";
     },
     getResponses: function () {

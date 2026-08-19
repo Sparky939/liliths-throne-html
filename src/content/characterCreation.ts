@@ -151,7 +151,7 @@
   }
 
   function nameHtml() {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     var sir = p.isFeminine() ? "Miss" : "Sir";
     var bag = p.isFeminine() ? "purse" : "pocket";
     return (
@@ -201,7 +201,7 @@
   };
 
   function handleAct(act) {
-    var p = LT.game.player;
+    var p = LT.game.player!;
     if (act === "CHOOSE_GENDER_MALE") p.setGender(LT.Gender.MALE);
     else if (act === "CHOOSE_GENDER_FEMALE") p.setGender(LT.Gender.FEMALE);
     else if (act.indexOf("CHOOSE_FEM_") === 0) p.setFemininity(LT.Femininity[act.slice("CHOOSE_FEM_".length)]);
@@ -236,19 +236,21 @@
   };
 
   LT.bindCreationClicks = function () {
-    document.getElementById("ui-stage")!.addEventListener("click", function (e: any) {
-      var btn = e.target.closest("[data-act]");
+    document.getElementById("ui-stage")!.addEventListener("click", function (e: MouseEvent) {
+      var target = e.target as Element | null;
+      var btn = target && target.closest("[data-act]");
       if (!btn || btn.classList.contains("disabled")) return;
       if (!LT.game.player) return;
       handleAct(btn.getAttribute("data-act"));
     });
-    document.getElementById("ui-stage")!.addEventListener("input", function (e: any) {
+    document.getElementById("ui-stage")!.addEventListener("input", function (e: Event) {
       if (!LT.game.player) return;
-      var id = e.target.id;
-      if (id === "name-masc") LT.game.player.names.masculine = e.target.value;
-      if (id === "name-andro") LT.game.player.names.androgynous = e.target.value;
-      if (id === "name-fem") LT.game.player.names.feminine = e.target.value;
-      if (id === "name-surname") LT.game.player.surname = e.target.value;
+      var target = e.target as HTMLInputElement;
+      var id = target.id;
+      if (id === "name-masc") LT.game.player.names.masculine = target.value;
+      if (id === "name-andro") LT.game.player.names.androgynous = target.value;
+      if (id === "name-fem") LT.game.player.names.feminine = target.value;
+      if (id === "name-surname") LT.game.player.surname = target.value;
     });
   };
 
@@ -278,10 +280,10 @@
         new LT.Response("Continue", "Give the doorman your name.", "creation.advanced"),
         new LT.Response("Random", "Generate a random name based on your gender.", "creation.name", function () {
           var trip = typeof LT.randomHumanNameTriplet === "function" ? LT.randomHumanNameTriplet() : ["Alex", "Alex", "Alex"];
-          LT.game.player.setName(trip[0], trip[1], trip[2]);
+          LT.game.player!.setName(trip[0], trip[1], trip[2]);
         }),
         new LT.Response("Random Surname", "Generate a random surname.", "creation.name", function () {
-          LT.game.player.surname = typeof LT.randomHumanSurname === "function" ? LT.randomHumanSurname() : "Smith";
+          LT.game.player!.surname = typeof LT.randomHumanSurname === "function" ? LT.randomHumanSurname() : "Smith";
         }),
       ];
     },

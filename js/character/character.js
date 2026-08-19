@@ -30,6 +30,7 @@
             opts = opts || {};
             this.id = opts.id;
             this.player = !!opts.player;
+            this.raceName = opts.raceName || "HUMAN";
             this.names = { masculine: "Unknown", androgynous: "Unknown", feminine: "Unknown" };
             this.surname = "";
             this.gender = LT.Gender.FEMALE;
@@ -171,7 +172,7 @@
                     vaginaCapacity: this.vaginaCapacity && this.vaginaCapacity.id,
                     labiaSize: this.labiaSize,
                     clitorisSize: this.clitorisSize,
-                    race: "HUMAN",
+                    race: this.raceName || "HUMAN",
                 });
             }
             if (typeof LT.ensureCharacterSystems === "function")

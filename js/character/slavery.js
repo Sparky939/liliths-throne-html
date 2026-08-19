@@ -422,10 +422,11 @@
         var cells = allGrids[parsed.world];
         var i;
         for (i = 0; i < cells.length; i++) {
-            if (cells[i].x === parsed.x && cells[i].y === parsed.y && cells[i].location) {
-                cells[i].location.name = upgrade ? upgrade.name : "Room";
+            var loc = cells[i].location;
+            if (cells[i].x === parsed.x && cells[i].y === parsed.y && loc) {
+                loc.name = upgrade ? upgrade.name : "Room";
                 if (upgrade)
-                    cells[i].location.color = upgrade.colour;
+                    loc.color = upgrade.colour;
                 if (typeof renderGrid === "function")
                     renderGrid();
                 return;
@@ -841,8 +842,9 @@
             var cells = allGrids[dest.world];
             var i;
             for (i = 0; i < cells.length; i++) {
-                if (cells[i].x === dest.x && cells[i].y === dest.y && cells[i].location) {
-                    npc.location.place = cells[i].location.placeType;
+                var loc = cells[i].location;
+                if (cells[i].x === dest.x && cells[i].y === dest.y && loc) {
+                    npc.location.place = loc.placeType;
                     break;
                 }
             }

@@ -75,9 +75,9 @@
   };
 
   LT.renderResponses = function () {
-    var tabRow: any = document.getElementById("response-tabs");
-    var grid: any = document.getElementById("response-grid");
-    var leftover: any = document.getElementById("response-0");
+    var tabRow = document.getElementById("response-tabs");
+    var grid = document.getElementById("response-grid");
+    var leftover = document.getElementById("response-0");
     if (!grid || !tabRow) return;
 
     tabRow.innerHTML = "";
@@ -142,8 +142,8 @@
   };
 
   LT.initResponseHotkeys = function () {
-    document.addEventListener("keydown", function (e: any) {
-      if (e.target.matches("input, textarea")) return;
+    document.addEventListener("keydown", function (e: KeyboardEvent) {
+      if ((e.target as HTMLElement).matches("input, textarea")) return;
       var key = e.key.toLowerCase();
       if (key === "0") {
         activateResponse(lookupResponse(0));

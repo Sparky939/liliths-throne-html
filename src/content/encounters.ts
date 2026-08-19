@@ -215,7 +215,7 @@
     return "enc.happiness";
   }
 
-  LT.generateHarpyAttacker = function (opts?: { feminine?: boolean; race?: any; level?: number } | null): Combatant {
+  LT.generateHarpyAttacker = function (opts?: { feminine?: boolean; race?: { id: string; fem: string; masc: string }; level?: number } | null): Combatant {
     opts = opts || {};
     var npc = LT.generateAlleyMugger({
       storm: false,

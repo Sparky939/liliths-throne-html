@@ -197,7 +197,7 @@
   };
 
   LT.updateMapVignette = function () {
-    var el: any = document.getElementById("map-vignette");
+    var el = document.getElementById("map-vignette");
     if (!el) return;
     if (!LT.game || !LT.game.renderMap) {
       el.hidden = true;

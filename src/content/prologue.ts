@@ -188,7 +188,7 @@
       null,
       new LT.Response("Wake up", "You slowly start to regain consciousness.", "prologue.new-world-1", function () {
         LT.game.renderMap = true;
-        LT.game.player.location = { world: "dominion", place: "aunts-home" };
+        LT.game.player!.location = { world: "dominion", place: "aunts-home" };
       }),
     ];
   }, true);
@@ -236,7 +236,7 @@
     return [
       null,
       new LT.Response("Follow", "Follow Lily as she leads you back to her house.", "prologue.new-world-3", function () {
-        LT.game.player.location = { world: "lilaya-f0", place: "entrance" };
+        LT.game.player!.location = { world: "lilaya-f0", place: "entrance" };
       }),
     ];
   }, true);
@@ -245,7 +245,7 @@
     return [
       null,
       new LT.Response("To the lab", "Follow Lilaya to her lab.", "prologue.new-world-4", function () {
-        LT.game.player.location = { world: "lilaya-f0", place: "lab" };
+        LT.game.player!.location = { world: "lilaya-f0", place: "lab" };
       }),
     ];
   });
@@ -254,7 +254,7 @@
     return [
       null,
       new LT.Response("Blinded", "The pink flash was so bright that you're left temporarily blinded!", "prologue.new-world-5", function () {
-        var p = LT.game.player;
+        var p = LT.game.player!;
         var slots = Object.keys(p.equipped || {});
         for (var i = 0; i < slots.length; i++) LT.unequipToWardrobe(p, slots[i]);
       }),
@@ -265,12 +265,13 @@
     return [
       null,
       new LT.Response("I'm a demon?!", "Lilaya keeps using the word 'Demon' to describe your aura.", "prologue.new-world-6", function () {
-        var p = LT.game.player;
+        var p = LT.game.player!;
         var left = p.wardrobe.slice();
         p.wardrobe = [];
         for (var i = 0; i < left.length; i++) {
           var item = left[i];
-          if (p.equipped[item.slot]) p.wardrobe.push(p.equipped[item.slot]);
+          var existing = p.equipped[item.slot];
+          if (existing) p.wardrobe.push(existing);
           p.equipped[item.slot] = item;
         }
         p.weapon = "demonstone";
@@ -296,7 +297,7 @@
     return [
       null,
       new LT.Response("Your room", "You follow Rose as she leads you up to your new room.", "prologue.new-world-8", function () {
-        LT.game.player.location = { world: "lilaya-f1", place: "player-room" };
+        LT.game.player!.location = { world: "lilaya-f1", place: "player-room" };
       }),
     ];
   }, true);
@@ -305,7 +306,7 @@
     return [
       null,
       new LT.Response("Knocking", "Rose said she'd be back in about half an hour, so that must be her knocking at your door.", "prologue.new-world-9", function () {
-        LT.game.player.money = (LT.game.player.money || 0) + (LT.STARTING_MONEY || 5000);
+        LT.game.player!.money = (LT.game.player!.money || 0) + (LT.STARTING_MONEY || 5000);
         LT.game.flags.quest = "MAIN_1_A_LILAYAS_TESTS";
         LT.game.textEnd =
           "<p style='text-align:center;'>" +

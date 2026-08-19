@@ -360,25 +360,28 @@
         var p = LT.game.player;
         if (!p)
             return;
-        var jobEl = e.target.closest("[data-job]");
+        var target = e.target;
+        if (!target)
+            return;
+        var jobEl = target.closest("[data-job]");
         if (jobEl && node.id === "creation.jobs") {
             p.occupation = LT.findOccupation(jobEl.getAttribute("data-job"));
             LT.game.setContent(node);
             return;
         }
-        var unequip = e.target.closest("[data-unequip]");
+        var unequip = target.closest("[data-unequip]");
         if (unequip && node.id === "creation.wardrobe") {
             LT.unequipToWardrobe(p, unequip.getAttribute("data-unequip"));
             LT.game.setContent(node);
             return;
         }
-        var equip = e.target.closest("[data-equip]");
+        var equip = target.closest("[data-equip]");
         if (equip && node.id === "creation.wardrobe") {
             LT.equipFromWardrobe(p, equip.getAttribute("data-equip"));
             LT.game.setContent(node);
             return;
         }
-        var sex = e.target.closest("[data-sex]");
+        var sex = target.closest("[data-sex]");
         if (sex && node.id === "creation.sex") {
             var act = sex.getAttribute("data-sex");
             if (act === "penisVirgin" || act === "vaginaVirgin")

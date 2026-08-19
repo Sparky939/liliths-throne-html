@@ -38,11 +38,25 @@
             this.race = opts.race;
             this.fem = opts.fem;
             this.masc = opts.masc;
+            this.tags = {};
+            this.flags = {};
+            this.dirty = false;
         }
         genUid(prefix) {
             this.uid = (prefix || this.kind || "item") + "_" + Math.random().toString(36).slice(2, 8);
         }
         equip() {
+            throw new Error("Not Implemented");
+        }
+        // Ported from upstream PR #5 for shape parity — unused stubs there too
+        // (see the Item interface comment in global.d.ts).
+        onEquip() {
+            throw new Error("Not Implemented");
+        }
+        pickup() {
+            throw new Error("Not Implemented");
+        }
+        onPickup() {
             throw new Error("Not Implemented");
         }
     }

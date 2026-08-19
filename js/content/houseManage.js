@@ -528,7 +528,8 @@
     }
     if (typeof document !== "undefined" && document.addEventListener) {
         document.addEventListener("click", function (e) {
-            var btn = e.target && e.target.closest && e.target.closest("[data-act]");
+            var target = e.target;
+            var btn = target && target.closest("[data-act]");
             if (!btn || btn.classList.contains("disabled"))
                 return;
             var node = LT.game && LT.game.currentNode;

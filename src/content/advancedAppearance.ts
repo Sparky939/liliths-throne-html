@@ -76,7 +76,7 @@
   }
 
   function hubHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     var named =
       p.surname && p.surname.length
         ? p.getName() + " " + p.surname
@@ -103,7 +103,7 @@
   }
 
   function coreHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     var shape = p.getBodyShape();
     return (
       note() +
@@ -122,7 +122,7 @@
   }
 
   function faceHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     return (
       note() +
       pills("Lip Size", "How large your lips are.", LT.LIP_LIST, p.lipSize.id, "LIP_") +
@@ -132,7 +132,7 @@
   }
 
   function hairHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     var lenI = LT.hairLengthIndex(p.hairLength.id);
     var styles: HairStyleEntry[] = [];
     for (var i = 0; i < LT.HAIR_STYLE.length; i++) {
@@ -147,7 +147,7 @@
   }
 
   function breastsHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     return (
       note() +
       pills("Breast Size", "How large your breasts are.", LT.CUP_LIST, p.breastSize.id, "CUP_") +
@@ -159,7 +159,7 @@
   }
 
   function assHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     return (
       note() +
       pills("Ass Size", "How large your ass is.", LT.SIZE5, p.assSize.id, "ASS_") +
@@ -169,7 +169,7 @@
   }
 
   function genitalsHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     if (p.hasPenis()) {
       return (
         note() +
@@ -233,7 +233,7 @@
   }
 
   function makeupHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     ensureAppearanceExtras(p);
     var html = note();
     (LT.MAKEUP_SLOTS || []).forEach(function (slot) {
@@ -244,7 +244,7 @@
   }
 
   function piercingsHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     ensureAppearanceExtras(p);
     var html = note();
     (LT.PIERCING_TYPES || []).forEach(function (slot) {
@@ -269,7 +269,7 @@
   }
 
   function tattoosHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     ensureAppearanceExtras(p);
     var html =
       '<div class="container-full-width" style="text-align:center;"><i>Later on in the game, you can get enchanted and glowing tattoos. For now, however, your tattoo choices are limited to more mundane options.</i></div>';
@@ -299,7 +299,7 @@
   }
 
   function tattooAddHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     ensureAppearanceExtras(p);
     var slotId = LT.game.flags.creationTattooSlot;
     var draft = LT.game.flags.creationTattooDraft || { type: "hearts", colour: "BLACK", writing: "" };
@@ -318,7 +318,7 @@
   }
 
   function bodyHairHtml(): string {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     ensureAppearanceExtras(p);
     // ensureAppearanceExtras() only backfills facialHair/pubicHair/
     // underarmHair/assHair, and only if p.body already exists — real player
@@ -347,7 +347,7 @@
   }
 
   function handleAct(act: string): void {
-    var p: Character = LT.game.player;
+    var p: Character = LT.game.player!;
     if (!p) return;
     if (act === "HEIGHT_DEC") p.heightCm = Math.max(140, p.heightCm - 1);
     else if (act === "HEIGHT_INC") p.heightCm = Math.min(210, p.heightCm + 1);
@@ -516,11 +516,11 @@
     getResponses: function () {
       var draft = (LT.game.flags && LT.game.flags.creationTattooDraft) || { type: "hearts", colour: "BLACK", writing: "" };
       var apply = new LT.Response("Apply", "Add this tattoo.", "creation.tattoos", function () {
-        var p: Character = LT.game.player;
+        var p: Character = LT.game.player!;
         ensureAppearanceExtras(p);
         var slotId = LT.game.flags.creationTattooSlot;
         var next = LT.game.flags.creationTattooDraft || { type: "hearts", colour: "BLACK", writing: "" };
-        var input: any = document.getElementById("tattoo-writing");
+        var input = document.getElementById("tattoo-writing") as HTMLInputElement | null;
         if (input) next.writing = String(input.value || "").trim();
         p.tattoos![slotId] = {
           type: next.type,
@@ -539,14 +539,15 @@
     },
   });
 
-  document.addEventListener("click", function (e: any) {
-    var stage: any = document.getElementById("ui-stage");
-    if (!stage || !stage.contains(e.target)) return;
-    var btn = e.target.closest("[data-act]");
+  document.addEventListener("click", function (e: MouseEvent) {
+    var stage = document.getElementById("ui-stage");
+    var evtTarget = e.target as HTMLElement | null;
+    if (!stage || !evtTarget || !stage.contains(evtTarget)) return;
+    var btn = evtTarget.closest("[data-act]") as HTMLElement | null;
     if (!btn || btn.classList.contains("disabled")) return;
     var node = LT.game.currentNode;
     if (!node || String(node.id).indexOf("creation.") !== 0) return;
     if (node.id === "creation.appearance" || node.id === "creation.name") return;
-    handleAct(btn.getAttribute("data-act"));
+    handleAct(btn.getAttribute("data-act")!);
   });
 })();

@@ -67,8 +67,8 @@
     return html;
   };
 
-  function findDominionTile(placeType: string): GridTile | null {
-    var tiles: GridTile[] = window.allGrids && window.allGrids.DOMINION;
+  function findDominionTile(placeType: string): TileLike | null {
+    var tiles = (window.allGrids && window.allGrids.DOMINION) as TileLike[] | undefined;
     if (!tiles) return null;
     for (var i = 0; i < tiles.length; i++) {
       if (tiles[i].location && tiles[i].location!.placeType === placeType) return tiles[i];
@@ -76,8 +76,8 @@
     return null;
   }
 
-  function findDominionXY(x: number, y: number): GridTile | null {
-    var tiles: GridTile[] = window.allGrids && window.allGrids.DOMINION;
+  function findDominionXY(x: number, y: number): TileLike | null {
+    var tiles = (window.allGrids && window.allGrids.DOMINION) as TileLike[] | undefined;
     if (!tiles) return null;
     for (var i = 0; i < tiles.length; i++) {
       if (tiles[i].x === x && tiles[i].y === y) return tiles[i];
@@ -89,7 +89,7 @@
     var existing = findDominionTile("DOMINION_DEMON_HOME_ARTHUR");
     if (existing) return existing;
     var tower = findDominionTile("DOMINION_LILITHS_TOWER");
-    var tile: GridTile | null = null;
+    var tile: TileLike | null = null;
     if (tower) tile = findDominionXY(tower.x - 2, tower.y - 1);
     if (!tile || !tile.location || tile.location.placeType !== "DOMINION_DEMON_HOME") {
       tile = findDominionTile("DOMINION_DEMON_HOME");
@@ -112,7 +112,7 @@
     var existing = findDominionTile("DOMINION_DEMON_HOME_ZARANIX");
     if (existing) return existing;
     var tower = findDominionTile("DOMINION_LILITHS_TOWER");
-    var tile: GridTile | null = null;
+    var tile: TileLike | null = null;
     if (tower) tile = findDominionXY(tower.x + 1, tower.y - 2);
     if (!tile || !tile.location || tile.location.placeType !== "DOMINION_DEMON_HOME") {
       tile = findDominionTile("DOMINION_DEMON_HOME");

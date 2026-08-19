@@ -189,23 +189,26 @@
         },
     });
     document.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!target)
+            return;
         if (LT.game.currentNode && LT.game.currentNode.id === "vicky.spells") {
-            var bookBtn = e.target.closest("[data-vicky-book]");
+            var bookBtn = target.closest("[data-vicky-book]");
             if (!bookBtn)
                 return;
             var sid = bookBtn.getAttribute("data-vicky-book");
-            var stock = LT.vickyBookStock();
-            var price = LT.spellBookBuyPrice(sid);
+            var bookStock = LT.vickyBookStock();
+            var bookPrice = LT.spellBookBuyPrice(sid);
             var p = LT.game.player;
-            if ((stock[sid] || 0) <= 0 || (p.money || 0) < price)
+            if ((bookStock[sid] || 0) <= 0 || (p.money || 0) < bookPrice)
                 return;
             var book = LT.makeSpellBook(sid);
             if (!book)
                 return;
-            p.money -= price;
+            p.money -= bookPrice;
             p.items = p.items || [];
             p.items.push(book);
-            stock[sid] -= 1;
+            bookStock[sid] -= 1;
             LT.game.setContent("vicky.spells");
             return;
         }
@@ -214,7 +217,7 @@
         var p = LT.game.player;
         if (!p)
             return;
-        var buy = e.target.closest("[data-vicky-buy]");
+        var buy = target.closest("[data-vicky-buy]");
         if (buy) {
             var id = buy.getAttribute("data-vicky-buy");
             var stock = LT.vickyStock();
@@ -233,7 +236,7 @@
             LT.game.setContent("vicky.weapons");
             return;
         }
-        var sell = e.target.closest("[data-vicky-sell]");
+        var sell = target.closest("[data-vicky-sell]");
         if (sell) {
             var uid = sell.getAttribute("data-vicky-sell");
             var idx = -1;

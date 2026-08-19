@@ -219,7 +219,10 @@
         if (!LT.game.currentNode || LT.game.currentNode.id !== "enchant.main")
             return;
         var s = session();
-        var primary = e.target.closest("[data-enchant-primary]");
+        var target = e.target;
+        if (!target)
+            return;
+        var primary = target.closest("[data-enchant-primary]");
         if (primary) {
             s.primary = primary.getAttribute("data-enchant-primary");
             var allowed = secondariesFor(s.primary);
@@ -228,13 +231,13 @@
             LT.game.setContent("enchant.main");
             return;
         }
-        var secondary = e.target.closest("[data-enchant-secondary]");
+        var secondary = target.closest("[data-enchant-secondary]");
         if (secondary) {
             s.secondary = secondary.getAttribute("data-enchant-secondary");
             LT.game.setContent("enchant.main");
             return;
         }
-        var potency = e.target.closest("[data-enchant-potency]");
+        var potency = target.closest("[data-enchant-potency]");
         if (potency) {
             s.potency = potency.getAttribute("data-enchant-potency");
             LT.game.setContent("enchant.main");

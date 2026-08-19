@@ -13,7 +13,7 @@
 
   function locDesc() {
     var t = typeof getCurrentTile === "function" ? getCurrentTile() : null;
-    var loc = (t && t.location) || {};
+    var loc: Partial<GridLocation> = (t && t.location) || {};
     if (loc.description) return p(loc.description);
     return p("You are in " + (loc.name || "Slaver Alley") + ".");
   }

@@ -555,8 +555,9 @@
   }
 
   if (typeof document !== "undefined" && document.addEventListener) {
-    document.addEventListener("click", function (e: any) {
-      var btn = e.target && e.target.closest && e.target.closest("[data-act]");
+    document.addEventListener("click", function (e: MouseEvent) {
+      var target = e.target as Element | null;
+      var btn = target && target.closest("[data-act]");
       if (!btn || btn.classList.contains("disabled")) return;
       var node = LT.game && LT.game.currentNode;
       if (!node || (node.id !== "house.job" && node.id !== "house.perms")) return;

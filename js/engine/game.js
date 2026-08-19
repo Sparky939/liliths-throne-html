@@ -122,7 +122,13 @@
             delta += 86400;
         LT.game.advanceTime(delta);
     };
-    LT.game = new Game();
+    // The `as unknown as ...` here is the same deliberate escape hatch as
+    // engine/response.ts's LT.Response: TS can't see a plain ES5 constructor
+    // function as satisfying a `new () => GameState` signature even with an
+    // explicit `this` parameter — routed through `unknown` rather than `any`
+    // so the cast's target type is still checked, just not the source.
+    var GameCtor = Game;
+    LT.game = new GameCtor();
     LT.STARTING_MONEY = 5000;
     LT.SLAVER_LICENSE_COST = 5000;
     function ordinal(n) {

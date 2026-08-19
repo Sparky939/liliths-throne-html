@@ -1,5 +1,5 @@
 (function () {
-  function Game() {
+  function Game(this: GameState) {
     this.started = false;
     this.currentNode = null;
     this.secondsPassed = 20 * 3600 + 34 * 60;
@@ -15,7 +15,7 @@
     this.textEnd = "";
   }
 
-  Game.prototype.setContent = function (node) {
+  Game.prototype.setContent = function (this: GameState, node: ContentNodeDef | string | null | undefined) {
     if (!node) return;
     if (typeof node === "string") node = LT.getNode(node);
     this.currentNode = node;
@@ -33,14 +33,14 @@
       left: node.chrome && node.chrome.left != null ? node.chrome.left : this.renderAttributes,
       right: node.chrome && node.chrome.right != null ? node.chrome.right : this.renderMap,
     });
-    var app: any = document.getElementById("app");
+    var app = document.getElementById("app");
     if (app) {
       if (node.travelDisabled) app.classList.add("travel-disabled");
       else app.classList.remove("travel-disabled");
     }
     LT.openUI(ui, { node: node, game: this });
 
-    var contentEl: any = document.querySelector('[data-ui="' + ui + '"] .dialogue-text, [data-ui="' + ui + '"] [data-node-content]');
+    var contentEl = document.querySelector('[data-ui="' + ui + '"] .dialogue-text, [data-ui="' + ui + '"] [data-node-content]');
     if (contentEl) {
       var body = typeof node.getContent === "function" ? node.getContent(this) : node.content || "";
       var header = typeof node.getHeaderContent === "function" ? node.getHeaderContent(this) : "";
@@ -50,9 +50,9 @@
     var tabIndex = 0;
     if (node.id === "combat.fight" && LT.combat && LT.combat.responseTab) tabIndex = LT.combat.responseTab;
     if (node.id === "sex.scene" && LT.sex && LT.sex.responseTab) tabIndex = LT.sex.responseTab;
-    var raw = node.getResponses ? node.getResponses(this, tabIndex) : node.responses || [];
+    var raw: LTResponse[] = node.getResponses ? node.getResponses(this, tabIndex) : node.responses || [];
     this._responseTab = tabIndex;
-    var list: any[] = [];
+    var list: LTResponse[] = [];
     for (var i = 0; i < raw.length; i++) {
       var r = raw[i];
       if (!r) continue;
@@ -66,7 +66,7 @@
     document.dispatchEvent(new CustomEvent("lt-content", { detail: { node: node, game: this } }));
   };
 
-  Game.prototype.choose = function (response) {
+  Game.prototype.choose = function (this: GameState, response: LTResponse | null | undefined) {
     if (!response || response.disabled) return;
     if (response.secondsPassed != null) this.advanceTime(response.secondsPassed);
     else if (this.currentNode && this.currentNode.secondsPassed) this.advanceTime(this.currentNode.secondsPassed);
@@ -74,7 +74,7 @@
     if (response.nextDialogue) this.setContent(response.nextDialogue);
   };
 
-  Game.prototype.advanceTime = function (seconds) {
+  Game.prototype.advanceTime = function (this: GameState, seconds: number) {
     this.secondsPassed += seconds;
     if (typeof LT.tickWeather === "function") LT.tickWeather(seconds);
     if (typeof LT.tickSlavery === "function") LT.tickSlavery(seconds);
@@ -85,7 +85,7 @@
   };
 
   Object.defineProperty(Game.prototype, "clock", {
-    get: function () {
+    get: function (this: GameState) {
       var s = ((this.secondsPassed % 86400) + 86400) % 86400;
       var h = Math.floor(s / 3600);
       var m = Math.floor((s % 3600) / 60);
@@ -93,11 +93,11 @@
     },
   });
 
-  Game.prototype.flag = function (name) {
+  Game.prototype.flag = function (this: GameState, name: string) {
     return !!this.flags[name];
   };
 
-  Game.prototype.setFlag = function (name, on) {
+  Game.prototype.setFlag = function (this: GameState, name: string, on?: boolean) {
     if (on === undefined) on = true;
     if (on) this.flags[name] = true;
     else delete this.flags[name];
@@ -111,12 +111,18 @@
     LT.game.advanceTime(delta);
   };
 
-  LT.game = new Game();
+  // The `as unknown as ...` here is the same deliberate escape hatch as
+  // engine/response.ts's LT.Response: TS can't see a plain ES5 constructor
+  // function as satisfying a `new () => GameState` signature even with an
+  // explicit `this` parameter — routed through `unknown` rather than `any`
+  // so the cast's target type is still checked, just not the source.
+  var GameCtor = Game as unknown as { new (): GameState };
+  LT.game = new GameCtor();
 
   LT.STARTING_MONEY = 5000;
   LT.SLAVER_LICENSE_COST = 5000;
 
-  function ordinal(n) {
+  function ordinal(n: number) {
     var v = n % 100;
     if (v >= 11 && v <= 13) return n + "th";
     if (v % 10 === 1) return n + "st";
@@ -157,7 +163,7 @@
     return (LT.game.player && LT.game.player.money) || 0;
   };
 
-  LT.incrementMoney = function (delta) {
+  LT.incrementMoney = function (delta: number) {
     var p = LT.game.player;
     if (!p) return "";
     p.money = Math.max(0, (p.money || 0) + delta);
@@ -182,7 +188,7 @@
     return LT.game.flags && LT.game.flags.punishedByHelena ? 10000 : 15000;
   };
 
-  var SIDE_SLAVERY_NAMES = {
+  var SIDE_SLAVERY_NAMES: Record<string, string> = {
     SIDE_SLAVER_NEED_RECOMMENDATION: "Letter of recommendation",
     SIDE_SLAVER_RECOMMENDATION_OBTAINED: "Present letter",
   };
@@ -196,7 +202,7 @@
     );
   };
 
-  LT.advanceSlaveryQuest = function (nextId) {
+  LT.advanceSlaveryQuest = function (nextId: string) {
     var prev = LT.game.flags.slaveryQuest;
     LT.game.flags.slaveryQuest = nextId;
     if (nextId === "complete") {

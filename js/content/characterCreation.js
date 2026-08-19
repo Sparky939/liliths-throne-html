@@ -232,7 +232,8 @@
     };
     LT.bindCreationClicks = function () {
         document.getElementById("ui-stage").addEventListener("click", function (e) {
-            var btn = e.target.closest("[data-act]");
+            var target = e.target;
+            var btn = target && target.closest("[data-act]");
             if (!btn || btn.classList.contains("disabled"))
                 return;
             if (!LT.game.player)
@@ -242,15 +243,16 @@
         document.getElementById("ui-stage").addEventListener("input", function (e) {
             if (!LT.game.player)
                 return;
-            var id = e.target.id;
+            var target = e.target;
+            var id = target.id;
             if (id === "name-masc")
-                LT.game.player.names.masculine = e.target.value;
+                LT.game.player.names.masculine = target.value;
             if (id === "name-andro")
-                LT.game.player.names.androgynous = e.target.value;
+                LT.game.player.names.androgynous = target.value;
             if (id === "name-fem")
-                LT.game.player.names.feminine = e.target.value;
+                LT.game.player.names.feminine = target.value;
             if (id === "name-surname")
-                LT.game.player.surname = e.target.value;
+                LT.game.player.surname = target.value;
         });
     };
     LT.defineNode({

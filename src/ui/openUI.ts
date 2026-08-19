@@ -8,17 +8,17 @@
   };
 
   function inferTarget(id: string): string {
-    var el: any = document.querySelector('[data-ui="' + id + '"]');
+    var el = document.querySelector<HTMLElement>('[data-ui="' + id + '"]');
     return (el && el.getAttribute("data-ui-target")) || "stage";
   }
 
   function hideSection(id: string) {
-    var el: any = document.querySelector('[data-ui="' + id + '"]');
+    var el = document.querySelector<HTMLElement>('[data-ui="' + id + '"]');
     if (el) el.hidden = true;
   }
 
   function showSection(id: string) {
-    var el: any = document.querySelector('[data-ui="' + id + '"]');
+    var el = document.querySelector<HTMLElement>('[data-ui="' + id + '"]');
     if (el) el.hidden = false;
   }
 
@@ -70,7 +70,7 @@
   };
 
   LT.setTitle = function (text?: string | null) {
-    var el: any = document.getElementById("content-title");
+    var el = document.getElementById("content-title");
     if (!el) return;
     el.innerHTML = text || "";
     el.hidden = !text;
@@ -78,7 +78,7 @@
 
   LT.setChrome = function (opts?: ChromeOpts | null) {
     opts = opts || {};
-    var app: any = document.getElementById("app");
+    var app = document.getElementById("app");
     if (app) {
       if (opts.left === false) app.classList.add("chrome-left-hidden");
       if (opts.left === true) app.classList.remove("chrome-left-hidden");
@@ -89,10 +89,10 @@
   };
 
   LT.initOpenUI = function () {
-    var els = document.querySelectorAll("[data-ui]");
+    var els = document.querySelectorAll<HTMLElement>("[data-ui]");
     for (var i = 0; i < els.length; i++) {
-      var el: any = els[i];
-      var id = el.getAttribute("data-ui");
+      var el = els[i];
+      var id = el.getAttribute("data-ui")!;
       if (!registry[id]) {
         LT.registerUI(id, { target: el.getAttribute("data-ui-target") || "stage" });
       }

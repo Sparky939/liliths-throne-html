@@ -174,7 +174,7 @@
     return p;
   }
 
-  function readIndex(): any[] {
+  function readIndex(): string[] {
     try {
       var raw = localStorage.getItem(INDEX_KEY);
       var list = raw ? JSON.parse(raw) : [];
@@ -223,7 +223,7 @@
 
   LT.listSaves = function () {
     var names = readIndex();
-    var out: any[] = [];
+    var out: SaveEntry[] = [];
     for (var i = 0; i < names.length; i++) {
       var data = LT.readSave(names[i]);
       if (!data) continue;
