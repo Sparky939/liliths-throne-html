@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2019",
-    "lib": ["ES2019", "DOM"],
+    "lib": [
+      "ES2019",
+      "DOM"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "moduleDetection": "legacy",
-    "rootDir": "src",
-    "outDir": "js",
+    "rootDir": "old_src",
+    "outDir": "data",
     "strict": true,
     "sourceMap": true,
     "skipLibCheck": true,
@@ -14,5 +17,7 @@
     "types": [],
     "noEmitOnError": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "old_src/**/*"
+  ]
 }
