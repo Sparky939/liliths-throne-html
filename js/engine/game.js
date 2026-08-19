@@ -73,6 +73,7 @@
     Game.prototype.choose = function (response) {
         if (!response || response.disabled)
             return;
+        document.dispatchEvent(new CustomEvent("lt-choice", { detail: { response: response, game: this } }));
         if (response.secondsPassed != null)
             this.advanceTime(response.secondsPassed);
         else if (this.currentNode && this.currentNode.secondsPassed)

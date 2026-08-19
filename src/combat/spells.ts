@@ -1,5 +1,5 @@
 (function () {
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined): string {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
@@ -264,7 +264,7 @@
     return (ch.mana || 0) - LT.queuedSpellCost(ch) >= cost;
   };
 
-  function parseCast(spell, src, tgt) {
+  function parseCast(spell: Spell, src: Combatant | null | undefined, tgt: Combatant | null | undefined): string {
     var isPlayer = src && ((src.isPlayer && src.isPlayer()) || src.player);
     var text = isPlayer ? spell.castPc : spell.castNpc;
     if (!text) return nameOf(src) + " casts " + spell.name;
@@ -277,7 +277,7 @@
     return LT.parse(text);
   }
 
-  function spendAura(src, spell) {
+  function spendAura(src: Combatant, spell: Spell): boolean {
     var cost = typeof LT.spellCostOf === "function" ? LT.spellCostOf(src, spell) : spell.cost;
     var before = src.mana || 0;
     if (before < cost) return false;
@@ -285,7 +285,7 @@
     return true;
   }
 
-  function colourOf(spell) {
+  function colourOf(spell: Spell): string {
     if (spell.effect === "lust") return LT.Colour.ATTRIBUTE_LUST;
     if (spell.damageType === "POISON") return LT.Colour.GENERIC_MINOR_GOOD;
     if (spell.damageType === "FIRE") return LT.Colour.GENERIC_BAD;
@@ -293,7 +293,7 @@
     return LT.Colour.ATTRIBUTE_PHYSIQUE;
   }
 
-  function register(spell) {
+  function register(spell: Spell): void {
     var moveId = "spell_" + spell.id;
     LT.MOVES[moveId] = {
       id: moveId,

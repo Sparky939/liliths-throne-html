@@ -5,8 +5,8 @@
     function byId(table, id) {
         if (id == null || !table)
             return null;
-        if (table[id])
-            return table[id];
+        if (!Array.isArray(table))
+            return table[id] || null;
         if (typeof LT.findById === "function")
             return LT.findById(table, id);
         return null;

@@ -1,5 +1,5 @@
 (function () {
-  var RACE_TF = {
+  var RACE_TF: Record<string, string> = {
     cat: "innoxia_race_cat_felines_fancy",
     "cat-morph": "innoxia_race_cat_felines_fancy",
     "cat-girl": "innoxia_race_cat_felines_fancy",
@@ -27,11 +27,11 @@
     incubus: "innoxia_race_demon_liliths_gift",
   };
 
-  function enemyLevel(enemy) {
+  function enemyLevel(enemy: LootTarget | null | undefined): number {
     return Math.max(1, (enemy && enemy.level) || 1);
   }
 
-  function raceKey(enemy) {
+  function raceKey(enemy: LootTarget | null | undefined): string {
     if (!enemy) return "";
     return String(enemy.raceName || enemy.fullRace || (enemy.race && enemy.race.id) || "").toLowerCase();
   }

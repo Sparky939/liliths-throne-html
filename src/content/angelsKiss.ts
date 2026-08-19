@@ -1,5 +1,5 @@
 (function () {
-  function xml(tag) {
+  function xml(tag: string) {
     return LT.parseFromXML("places/dominion/redLightDistrict/angelsKiss", tag);
   }
 
@@ -187,7 +187,7 @@
     return n;
   }
 
-  function paySex(cost, partner, startTag, afterNode, playerDom) {
+  function paySex(cost: number, partner: Npc | null | undefined, startTag: string, afterNode: string, playerDom: boolean): LTResponse {
     if (LT.getMoney() < cost) {
       return new LT.Response("Sex (" + cost + ")", "You don't have " + cost + " flames.", null).disable("You need " + cost + " flames.");
     }
@@ -303,7 +303,7 @@
     getResponses: function () {
       var loppy = LT.ensureLoppy();
       var list = [new LT.Response("Leave", "Step back out.", "place.ANGELS_KISS_BEDROOM_LOPPY")];
-      function wrap(cost, tag, dom) {
+      function wrap(cost: number, tag: string, dom: boolean) {
         var r = paySex(cost, loppy, tag, "loppy.after", dom);
         var orig = r.effects;
         r.effects = function () {
@@ -372,7 +372,7 @@
     },
   });
 
-  function waitNode(id, tag, startTag, afterTag, playerDom) {
+  function waitNode(id: string, tag: string, startTag: string, afterTag: string, playerDom: boolean) {
     LT.defineNode({
       id: id,
       ui: "dialogue",

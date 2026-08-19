@@ -8,8 +8,6 @@
     "rootDir": "src",
     "outDir": "js",
     "strict": true,
-    "noImplicitAny": false,
-    "noImplicitThis": false,
     "sourceMap": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

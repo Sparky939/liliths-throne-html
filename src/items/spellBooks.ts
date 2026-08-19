@@ -1,5 +1,5 @@
 (function () {
-  var VALUE = {
+  var VALUE: Record<string, number> = {
     FIREBALL: 2500,
     ICE_SHARD: 2500,
     SLAM: 2500,
@@ -31,15 +31,15 @@
     "TELEPATHIC_COMMUNICATION",
   ];
 
-  LT.spellBookValue = function (id) {
+  LT.spellBookValue = function (id: string) {
     return VALUE[id] || 2500;
   };
 
-  LT.spellBookBuyPrice = function (id) {
+  LT.spellBookBuyPrice = function (id: string) {
     return Math.round(LT.spellBookValue(id) * 1.5);
   };
 
-  LT.makeSpellBook = function (id) {
+  LT.makeSpellBook = function (id: string) {
     var spell = LT.SPELLS && LT.SPELLS[id];
     if (!spell) return null;
     return {
@@ -63,7 +63,7 @@
     return stock;
   };
 
-  LT.readSpellBook = function (player, book) {
+  LT.readSpellBook = function (player: Character | null | undefined, book: Item | null | undefined) {
     if (!player || !book || !book.spellId) return "That is not a spell book.";
     var spell = LT.SPELLS[book.spellId];
     if (!spell) return "That spell is not in this build.";
@@ -76,7 +76,7 @@
       );
     }
     if (typeof LT.learnSpell === "function") LT.learnSpell(player, book.spellId);
-    player.items = (player.items || []).filter(function (it) {
+    player.items = (player.items || []).filter(function (it: Item) {
       return it !== book && it.uid !== book.uid;
     });
     return (

@@ -3,7 +3,7 @@
   var PREG_0_EXTRA_HOURS = 5;
   var PREGNANCY_DURATION_WEEKS = 1;
 
-  function bag(ch) {
+  function bag(ch: Combatant) {
     if (!ch.pregnancy) {
       ch.pregnancy = { possibilities: [], litter: null, incubating: {}, seconds: 0, pregnant: false };
     }
@@ -12,37 +12,37 @@
     return ch.pregnancy;
   }
 
-  function fertilityOf(ch) {
+  function fertilityOf(ch: Combatant | null | undefined) {
     var base = (ch && ch.attributes && ch.attributes.fertility != null) ? ch.attributes.fertility : 10;
     var bonus = (typeof LT.statusBonus === "function" && LT.statusBonus(ch).fertility) || 0;
     return base + bonus;
   }
 
-  function virilityOf(ch) {
+  function virilityOf(ch: Combatant | null | undefined) {
     var base = (ch && ch.attributes && ch.attributes.virility != null) ? ch.attributes.virility : 10;
     var bonus = (typeof LT.statusBonus === "function" && LT.statusBonus(ch).virility) || 0;
     return base + bonus;
   }
 
-  function offspringRange(race) {
+  function offspringRange(race: string | null | undefined) {
     var id = String(race || "HUMAN").toUpperCase();
     if (id === "DEMON" || id === "IMP" || id === "LILIN") return { low: 2, high: 3 };
     if (id === "HARPY") return { low: 2, high: 4 };
     return { low: 1, high: 1 };
   }
 
-  function raceOf(ch) {
+  function raceOf(ch: Combatant | null | undefined) {
     if (!ch) return "HUMAN";
     if (ch.body && ch.body.subspecies) return String(ch.body.subspecies).toUpperCase();
     return String(ch.raceName || "human").toUpperCase().replace(/-/g, "_");
   }
 
-  LT.isPregnant = function (ch) {
+  LT.isPregnant = function (ch: Combatant | null | undefined) {
     ch = ch || (LT.game && LT.game.player);
     return !!(ch && ch.pregnancy && ch.pregnancy.litter);
   };
 
-  LT.isVisiblyPregnant = function (ch) {
+  LT.isVisiblyPregnant = function (ch: Combatant | null | undefined) {
     ch = ch || (LT.game && LT.game.player);
     if (!ch) return false;
     return (
@@ -52,14 +52,14 @@
     );
   };
 
-  LT.isAbleToBeImpregnated = function (ch) {
+  LT.isAbleToBeImpregnated = function (ch: Combatant | null | undefined) {
     if (!ch || !(ch.hasVagina && ch.hasVagina())) return false;
     if (LT.isVisiblyPregnant(ch)) return false;
     if (ch.pregnancy && ch.pregnancy.incubating && ch.pregnancy.incubating.VAGINA) return false;
     return true;
   };
 
-  LT.pregnancyChance = function (mother, father) {
+  LT.pregnancyChance = function (mother: Combatant | null | undefined, father: Combatant | null | undefined) {
     if (!LT.isAbleToBeImpregnated(mother)) return 0;
     if (father && father.hasPenis && !father.hasPenis()) return 0;
     var chance = 0.1;
@@ -70,14 +70,14 @@
     return chance;
   };
 
-  function chanceLabel(chance) {
+  function chanceLabel(chance: number) {
     if (chance <= 0) return { id: "NO_CHANCE", name: "no chance" };
     if (chance < 0.2) return { id: "LOW", name: "small chance" };
     if (chance < 0.6) return { id: "AVERAGE", name: "chance" };
     return { id: "HIGH", name: "high chance" };
   }
 
-  function makeLitter(mother, father, count) {
+  function makeLitter(mother: Combatant, father: Combatant | null | undefined, count: number) {
     var takesAfterMother = 0;
     var sons = 0;
     var daughters = 0;
@@ -102,7 +102,7 @@
     };
   }
 
-  LT.rollForPregnancy = function (mother, father) {
+  LT.rollForPregnancy = function (mother: Combatant | null | undefined, father: Combatant | null | undefined) {
     mother = mother || (LT.game && LT.game.player);
     if (!mother) return "";
     var preg = bag(mother);
@@ -144,7 +144,7 @@
     return html;
   };
 
-  LT.endPregnancy = function (ch, withBirth) {
+  LT.endPregnancy = function (ch: Combatant | null | undefined, withBirth: boolean) {
     ch = ch || (LT.game && LT.game.player);
     if (!ch) return null;
     var preg = bag(ch);
@@ -164,7 +164,7 @@
     return litter;
   };
 
-  LT.lastLitterBirthed = function (ch) {
+  LT.lastLitterBirthed = function (ch: Combatant | null | undefined) {
     ch = ch || (LT.game && LT.game.player);
     if (!ch || !ch.offspring || !ch.offspring.length) return null;
     return ch.offspring[ch.offspring.length - 1];
@@ -186,7 +186,7 @@
     flags.pregnancyQuest = "SIDE_PREGNANCY_CONSULT_LILAYA";
   }
 
-  LT.advanceFirstPregnancyQuest = function (next) {
+  LT.advanceFirstPregnancyQuest = function (next: string) {
     if (!LT.game.flags) return;
     LT.game.flags.pregnancyQuest = next;
   };
@@ -196,7 +196,7 @@
     LT.game.flags.pregnancyQuest = "complete";
   };
 
-  LT.applyPregnancyStageExpire = function (ch, id) {
+  LT.applyPregnancyStageExpire = function (ch: Combatant | null | undefined, id: string) {
     if (!ch) return "";
     if (id === "PREGNANT_0") {
       if (LT.isPregnant(ch)) {
@@ -236,21 +236,21 @@
     return "";
   };
 
-  function birthXml(tag) {
+  function birthXml(tag: string) {
     return typeof LT.parseFromXML === "function" ? LT.parseFromXML("places/dominion/lilayasHome/lilayaBirthing", tag) : "";
   }
 
-  function consultHtml(first) {
+  function consultHtml(first: boolean) {
     if (!first) return birthXml("LILAYA_ASSISTS_PREGNANCY_REPEAT");
     var html = birthXml("LILAYA_ASSISTS_PREGNANCY_START");
     var p = LT.game.player;
     var lilaya = LT.game.npcs && LT.game.npcs.lilaya;
     var hadSex = !!(LT.game.flags && LT.game.flags.hadSexWithLilaya);
     if (hadSex && p && p.pregnancy && p.pregnancy.possibilities) {
-      var anyLilaya = p.pregnancy.possibilities.some(function (x) {
+      var anyLilaya = p.pregnancy.possibilities.some(function (x: PregnancyPossibility) {
         return x.fatherId === "lilaya" || (lilaya && x.fatherId === lilaya.id);
       });
-      var anyOther = p.pregnancy.possibilities.some(function (x) {
+      var anyOther = p.pregnancy.possibilities.some(function (x: PregnancyPossibility) {
         return x.fatherId !== "lilaya" && (!lilaya || x.fatherId !== lilaya.id);
       });
       if (anyLilaya && anyOther) html += birthXml("LILAYA_ASSISTS_PREGNANCY_LILAYA_POSSIBLY_FATHER");

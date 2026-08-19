@@ -8,11 +8,11 @@
     return (t && t.location) || { name: "Unknown", description: "" };
   }
 
-  function p(html) {
+  function p(html: string) {
     return "<p>" + html + "</p>";
   }
 
-  function inferTravelLabel(cfg) {
+  function inferTravelLabel(cfg: TravelConfig | null | undefined) {
     if (!cfg) return "Travel";
     if (cfg.label && cfg.label !== "To") return cfg.label;
     var dest = cfg.nextGridName || "";
@@ -22,17 +22,17 @@
     return "Travel";
   }
 
-  function inferTravelTip(cfg) {
+  function inferTravelTip(cfg: TravelConfig | null | undefined) {
     var label = inferTravelLabel(cfg);
-    if (label === "Enter") return "Enter " + (cfg.nextLocationName || "this location") + ".";
-    if (label === "Exit") return "Leave and return to " + (cfg.nextLocationName || "the street") + ".";
+    if (label === "Enter") return "Enter " + ((cfg && cfg.nextLocationName) || "this location") + ".";
+    if (label === "Exit") return "Leave and return to " + ((cfg && cfg.nextLocationName) || "the street") + ".";
     if (label === "Upstairs") return "Go upstairs.";
     if (label === "Downstairs") return "Go downstairs.";
     if (label === "World map") return "Travel to the world map.";
-    return "Travel to " + (cfg.nextLocationName || "the connected area") + ".";
+    return "Travel to " + ((cfg && cfg.nextLocationName) || "the connected area") + ".";
   }
 
-  function isDominionExit(placeType) {
+  function isDominionExit(placeType: string | null | undefined) {
     return /^DOMINION_EXIT_(EAST|NORTH|WEST|SOUTH)$/.test(placeType || "");
   }
 
@@ -40,7 +40,7 @@
     return !!(LT.game && LT.game.flags && LT.game.flags.discoveredWorldMap);
   }
 
-  LT.canUseTileTravel = function (cfg) {
+  LT.canUseTileTravel = function (cfg?: TravelConfig | null) {
     if (!cfg || !cfg.nextGridName) return true;
     if (/WORLD_MAP/i.test(cfg.nextGridName) && !discoveredWorldMap()) return false;
     return true;

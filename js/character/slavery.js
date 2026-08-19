@@ -313,6 +313,9 @@
             description: "This room has been completely renovated and transformed into a luxurious, private spa, complete with private showers and changing rooms. In the middle of the marble floor, there are a series of large pools, each of which is filled with warm water drawn from geothermal springs.",
         },
     };
+    // rec.job is a dynamic job id (LT.SLAVE_JOBS keys aren't a closed literal
+    // union anywhere in the type system), so this needs a real index
+    // signature rather than relying on the literal's own inferred key set.
     var JOB_SEX = {
         CLEANING: "[npc.Name] is halfway through changing the linens when [npc.she] sees you. Flushing, [npc.she] sets the sheets aside and waits to see what you want.",
         SECURITY: "[npc.Name] is posted at [npc.her] station. After a glance to make sure the hall is empty, [npc.she] lowers [npc.her] eyes and waits.",

@@ -20,7 +20,7 @@
     return { name: "Unknown", description: "" };
   }
 
-  function p(html) {
+  function p(html: string) {
     return "<p>" + html + "</p>";
   }
 
@@ -124,7 +124,7 @@
 
   function fastTravel() {
     var here = placeType();
-    function go(title, tip, world, place) {
+    function go(title: string, tip: string, world: string, place: string) {
       if (here === place) return new LT.Response(title, tip, null).disable("You are already here.");
       return new LT.Response(title, tip, null, function () {
         LT.game.advanceTime(10);
@@ -141,12 +141,12 @@
     ];
   }
 
-  function houseResponses(game, tab) {
+  function houseResponses(game: unknown, tab: number) {
     if (tab === 1) return fastTravel();
     return houseActions();
   }
 
-  function definePlaceNode(id, fallbackTitle) {
+  function definePlaceNode(id: string, fallbackTitle?: string | null) {
     LT.defineNode({
       id: id,
       ui: "dialogue",

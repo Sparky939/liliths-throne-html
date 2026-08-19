@@ -1,5 +1,5 @@
 (function () {
-  function xml(tag) {
+  function xml(tag: string) {
     return LT.parseFromXML("places/dominion/shoppingArcade/arcaneArts", tag);
   }
 

@@ -20,7 +20,7 @@
     return femaleNpc() ? "her" : "him";
   }
 
-  function slotRow(player, slot) {
+  function slotRow(player: Character, slot: ClothingSlot) {
     var item = player.equipped[slot.id];
     var inner = item
       ? '<div class="inv-item" data-unequip="' +
@@ -191,7 +191,7 @@
       " for no longer than ten minutes, you're telling " +
       them() +
       " every little detail about your sexual experiences...</p>";
-    function step(key, label) {
+    function step(key: "vaginal" | "anal" | "oral", label: string) {
       return (
         '<div class="sex-row"><b>' +
         label +
@@ -243,7 +243,7 @@
     );
   }
 
-  function recalcCorruption(p) {
+  function recalcCorruption(p: Character) {
     var c = 0;
     c += p.sex.vaginal * 2;
     c += p.sex.anal * 2;
@@ -417,11 +417,13 @@
       var act = sex.getAttribute("data-sex")!;
       if (act === "penisVirgin" || act === "vaginaVirgin") p.sex[act] = !p.sex[act];
       else if (act.slice(-4) === "_INC") {
-        var k = act.slice(0, -4);
+        // Guaranteed to be one of sex's numeric keys: step() only ever emits
+        // data-sex="vaginal_INC"/"anal_INC"/"oral_INC".
+        var k = act.slice(0, -4) as "vaginal" | "anal" | "oral";
         p.sex[k] = Math.min(50, (p.sex[k] || 0) + 1);
         if (k === "vaginal" && p.hasVagina()) p.sex.vaginaVirgin = false;
       } else if (act.slice(-4) === "_DEC") {
-        var k2 = act.slice(0, -4);
+        var k2 = act.slice(0, -4) as "vaginal" | "anal" | "oral";
         p.sex[k2] = Math.max(0, (p.sex[k2] || 0) - 1);
       }
       recalcCorruption(p);

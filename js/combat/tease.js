@@ -220,6 +220,9 @@
         for (var i = 0; i < LT.TEASE_SPECIAL_IDS.length; i++) {
             var id = LT.TEASE_SPECIAL_IDS[i];
             var move = LT.MOVES[id];
+            // Move.canUse's declared type wants a definite Combatant, but every
+            // real implementation here defensively checks `src &&` first, so a
+            // null/undefined ch behaves identically to any other falsy check.
             if (move && (!move.canUse || move.canUse(ch)))
                 out.push(id);
         }

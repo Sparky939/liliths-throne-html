@@ -1,5 +1,5 @@
 (function () {
-  function xml(tag) {
+  function xml(tag: string) {
     return LT.parseFromXML("misc/prologue", tag);
   }
 
@@ -97,7 +97,7 @@
     var subTip = female
       ? "Give in to your lust, submit to " + LT.parse(who) + ", and let her take the lead as you have sex with her..."
       : "Give in to your lust, submit to " + LT.parse(who) + ", and let " + him + " take the lead as you have sex with " + him + "...";
-    function wrapSex(resp, flag) {
+    function wrapSex(resp: LTResponse, flag: string) {
       var prev = resp.effects;
       resp.effects = function () {
         LT.game.flags.prologueSex = flag;

@@ -1,15 +1,15 @@
 (function () {
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined): string {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function rndInt(n) {
+  function rndInt(n: number): number {
     return Math.floor(Math.random() * n);
   }
 
-  function weaponNamed(src, id) {
+  function weaponNamed(src: Combatant | null | undefined, id: string): WeaponItem | null {
     var main = typeof LT.getMainWeapon === "function" ? LT.getMainWeapon(src) : src && src.mainWeapon;
     if (main && main.id === id) return main;
     var off = typeof LT.getOffhandWeapon === "function" ? LT.getOffhandWeapon(src) : src && src.offhandWeapon;
@@ -43,7 +43,7 @@
     }
   };
 
-  function parseSpecial(text, src, tgt, weaponName) {
+  function parseSpecial(text: string | null | undefined, src: Combatant | null | undefined, tgt: Combatant | null | undefined, weaponName: string | null | undefined): string {
     var filled = String(text || "").split("{weapon}").join(weaponName || "rifle");
     if (typeof LT.parse !== "function") return filled;
     if (typeof LT.withParseTargets === "function") {
@@ -54,13 +54,13 @@
     return LT.parse(filled);
   }
 
-  function magDumpBullets(hitBase, hitSpan) {
+  function magDumpBullets(hitBase: number, hitSpan: number): number {
     var bulletsHit = hitBase - rndInt(hitSpan);
     var perEnemy = bulletsHit;
     return Math.max(1, perEnemy - rndInt(3));
   }
 
-  function registerMagDump(def) {
+  function registerMagDump(def: WeaponSpecialDef): void {
     LT.MOVES[def.id] = {
       id: def.id,
       name: def.name,

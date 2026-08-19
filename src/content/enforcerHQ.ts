@@ -1,16 +1,16 @@
 (function () {
-  var HQ_PUBLIC = {
+  var HQ_PUBLIC: Record<string, boolean> = {
     ENFORCER_HQ_ENTRANCE: true,
     ENFORCER_HQ_WAITING_AREA: true,
     ENFORCER_HQ_RECEPTION_DESK: true,
     ENFORCER_HQ_GUARDED_DOOR: true,
   };
 
-  function generic(tag) {
+  function generic(tag: string) {
     return LT.parseFromXML("places/dominion/enforcerHQ/generic", tag);
   }
 
-  function braxXml(tag) {
+  function braxXml(tag: string) {
     return LT.parseFromXML("places/dominion/enforcerHQ/brax", tag);
   }
 
@@ -22,7 +22,7 @@
     return !!(LT.game.flags && LT.game.flags.accessToEnforcerHQ) && !(LT.questReached && LT.questReached("MAIN_1_D_SLAVERY"));
   }
 
-  LT.canEnterTile = function (tile) {
+  LT.canEnterTile = function (tile?: GridTile | null) {
     if (!tile || !window.grid) return true;
     var pt = tile.location && tile.location.placeType;
     if (grid.gridName === "ENFORCER_HQ") {
@@ -71,8 +71,10 @@
         if (typeof LT.ensureCandi === "function") LT.ensureCandi();
         if (typeof LT.ensureBrax === "function") LT.ensureBrax();
       },
+      // tag is only ever null at call sites that also always provide their own
+      // extras.getContent, so this fallback never actually runs with a null tag.
       getContent: extras.getContent || function () {
-        return generic(tag);
+        return generic(tag || "");
       },
       getResponses: extras.getResponses || function () {
         return LT.travelResponses ? LT.travelResponses() : [null];
@@ -350,7 +352,7 @@
     },
   });
 
-  function braxFight(tip) {
+  function braxFight(tip: string) {
     if (typeof LT.ensureBrax === "function") LT.ensureBrax();
     return LT.ResponseCombat("Fight", LT.parse(tip), {
       enemy: LT.game.npcs.brax,
@@ -368,7 +370,7 @@
     });
   }
 
-  function takeUniform(kind) {
+  function takeUniform(kind: string) {
     return function () {
       LT.game.flags.enforcerUniform = kind;
       LT.game.flags.accessToEnforcerHQ = false;

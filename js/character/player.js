@@ -237,9 +237,17 @@
             }
         }
         var worn = [];
-        if (p.makeup) {
-            Object.keys(p.makeup).forEach(function (key) {
-                var rec = p.makeup[key];
+        // p.makeup's honest `boolean | Record<...>` type (see ItemOwner's own
+        // comment on the field) needs narrowing past the boolean case before it
+        // can be indexed — Object.keys(true) was always `[]` at runtime, so this
+        // typeof check changes nothing observable, just gives TS the same
+        // information the loop already relied on implicitly.
+        if (p.makeup && typeof p.makeup === "object") {
+            // Captured into a local (narrowed to the Record member only) since the
+            // closure below can't otherwise re-derive the typeof narrowing above.
+            var makeup = p.makeup;
+            Object.keys(makeup).forEach(function (key) {
+                var rec = makeup[key];
                 if (rec && rec.colour && rec.colour !== "NONE") {
                     var slot = LT.findById(LT.MAKEUP_SLOTS, key);
                     worn.push((slot ? slot.name.toLowerCase() : key.toLowerCase()) + " (" + rec.colour.toLowerCase().replace(/_/g, " ") + ")");

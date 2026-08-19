@@ -3,7 +3,7 @@
   var SMALL = { MAJOR_DRAIN: -3, DRAIN: -2, MINOR_DRAIN: -1, MINOR_BOOST: 1, BOOST: 2, MAJOR_BOOST: 3 };
   var MEDIUM = { MAJOR_DRAIN: -15, DRAIN: -5, MINOR_DRAIN: -1, MINOR_BOOST: 1, BOOST: 5, MAJOR_BOOST: 15 };
 
-  function delta(table, potency) {
+  function delta(table: Record<string, number>, potency: string): number {
     return table[potency] || 0;
   }
 
@@ -16,7 +16,7 @@
     return out;
   }
 
-  function stepEnum(current, list, amount) {
+  function stepEnum<T extends { id: string }>(current: T, list: T[], amount: number): T {
     if (!list || !list.length || !amount) return current;
     var i = 0;
     for (i = 0; i < list.length; i++) {
@@ -27,17 +27,17 @@
     return list[i];
   }
 
-  function drinkType(item) {
+  function drinkType(item: Item | null | undefined): ItemCatalogEntry | Item | null {
     if (!item) return null;
     return (typeof LT.itemType === "function" && LT.itemType(item.id)) || item;
   }
 
-  function raceLabel(item) {
+  function raceLabel(item: Item | null | undefined): string {
     var t = drinkType(item);
     return (t && t.race) || "human";
   }
 
-  function applyRaceCovering(ch, item) {
+  function applyRaceCovering(ch: Character, item: Item | null | undefined): string {
     var t = drinkType(item);
     if (!t) return "Nothing happens.";
     var fem = ch.isFeminine ? ch.isFeminine() : (ch.femininityValue || 50) >= 50;
@@ -52,12 +52,12 @@
     return "Your body takes on more " + t.race + " features.";
   }
 
-  function syncParts(ch) {
+  function syncParts(ch: Character) {
     if (ch.penisPresent == null) ch.penisPresent = !!(ch.gender && ch.gender.hasPenis);
     if (ch.vaginaPresent == null) ch.vaginaPresent = !!(ch.gender && ch.gender.hasVagina);
   }
 
-  function setPenis(ch, on) {
+  function setPenis(ch: Character, on: boolean) {
     syncParts(ch);
     ch.penisPresent = !!on;
     if (on && !ch.penisLength) ch.penisLength = 15;
@@ -67,7 +67,7 @@
     }
   }
 
-  function setVagina(ch, on) {
+  function setVagina(ch: Character, on: boolean) {
     syncParts(ch);
     ch.vaginaPresent = !!on;
     if (ch.body && ch.body.vagina) {
@@ -91,14 +91,14 @@
     TF_VAGINA: ["TF_TYPE_1", "REMOVAL", "TF_MOD_SIZE", "TF_MOD_SIZE_SECONDARY", "TF_MOD_CAPACITY"],
   };
 
-  LT.isRacialIngredient = function (item) {
+  LT.isRacialIngredient = function (item: Item | null | undefined): boolean {
     if (!item) return false;
     if (item.kind === "tf" || item.kind === "potion") return true;
     var t = drinkType(item);
     return !!(t && t.kind === "tf");
   };
 
-  LT.applyRacialEffect = function (ch, effect, item) {
+  LT.applyRacialEffect = function (ch: Character, effect: EnchantEffect | null | undefined, item: Item | null | undefined): string {
     if (!ch || !effect) return "";
     var pot = effect.potency || "MINOR_BOOST";
     var small = delta(SMALL, pot);
@@ -232,7 +232,7 @@
     return "The potion fizzes, but this body cannot take that change yet.";
   };
 
-  LT.applyRacialEffects = function (ch, item) {
+  LT.applyRacialEffects = function (ch: Character, item: Item | null | undefined): string {
     var effects = (item && item.effects) || [];
     if (!effects.length) return "";
     var lines: string[] = [];

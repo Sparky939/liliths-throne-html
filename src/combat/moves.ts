@@ -1,21 +1,21 @@
 (function () {
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined): string {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function weaponOf(src, slot) {
+  function weaponOf(src: Combatant | null | undefined, slot: string): WeaponItem | null {
     if (slot === "offhand") return typeof LT.getOffhandWeapon === "function" ? LT.getOffhandWeapon(src) : null;
     return typeof LT.getMainWeapon === "function" ? LT.getMainWeapon(src) : null;
   }
 
-  function applyStrike(src, tgt, slot, turnIndex) {
+  function applyStrike(src: Combatant, tgt: Combatant | null | undefined, slot: string, turnIndex: number | undefined): string {
     var wep = weaponOf(src, slot);
     var cost = typeof LT.weaponArcaneCost === "function" ? LT.weaponArcaneCost(wep) : 0;
     if (wep && cost > 0) {
       if ((src.essences || 0) < cost) wep = null;
-      else src.essences -= cost;
+      else src.essences = (src.essences || 0) - cost;
     }
     var dmg = wep && typeof LT.rollStrike === "function" ? LT.rollStrike(src, slot) : LT.rollUnarmed(src);
     var moveId = slot === "offhand" ? "offhand" : "strike";
@@ -35,7 +35,7 @@
     return flavour + " for <b>" + dmg + "</b> damage." + extra;
   }
 
-  function strikeTooltip(src, tgt, slot, unarmedLabel) {
+  function strikeTooltip(src: Combatant | null | undefined, tgt: Combatant | null | undefined, slot: string, unarmedLabel: string): string {
     var wep = weaponOf(src, slot);
     var range = typeof LT.strikeRange === "function" ? LT.strikeRange(src, slot) : LT.unarmedRange(src);
     if (wep) {
@@ -50,7 +50,7 @@
     return unarmedLabel + " " + nameOf(tgt) + " with your fists for " + range.min + "–" + range.max + " damage.";
   }
 
-  function strikePredict(src, tgt, slot, fallbackName) {
+  function strikePredict(src: Combatant | null | undefined, tgt: Combatant | null | undefined, slot: string, fallbackName: string): string {
     var wep = weaponOf(src, slot);
     var range = typeof LT.strikeRange === "function" ? LT.strikeRange(src, slot) : LT.unarmedRange(src);
     var title = wep && LT.weaponAttackName ? LT.weaponAttackName(wep) : fallbackName;

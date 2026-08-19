@@ -1,24 +1,24 @@
 (function () {
-  function nyanXml(tag) {
+  function nyanXml(tag: string) {
     return LT.parseFromXML(
       "places/dominion/shoppingArcade/clothingEmporium",
       tag,
     );
   }
-  function kateXml(tag) {
+  function kateXml(tag: string) {
     return LT.parseFromXML(
       "places/dominion/shoppingArcade/succubisSecrets",
       tag,
     );
   }
-  function ashleyXml(tag) {
+  function ashleyXml(tag: string) {
     return LT.parseFromXML("places/dominion/shoppingArcade/dreamLover", tag);
   }
   function officeOpen() {
     return typeof LT.isOfficeHours === "function" && LT.isOfficeHours();
   }
 
-  function clothingShopResponses(group, leaveNode) {
+  function clothingShopResponses(group: string, leaveNode: string | null) {
     var list = [new LT.Response("Back", "Look at another rack.", leaveNode)];
     var ids = LT.nyanStock(group);
     var i;
@@ -496,7 +496,7 @@
         "place.SHOPPING_ARCADE_KATES_SHOP",
       ),
     ];
-    function service(title, tip, node, apply) {
+    function service(title: string, tip: string, node: string, apply?: (() => void) | null) {
       if (LT.getMoney() < cost) {
         list.push(
           new LT.Response(

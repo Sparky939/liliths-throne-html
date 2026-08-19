@@ -429,17 +429,20 @@
             var s = selectedSlave();
             if (!s)
                 return "<p>That slave is no longer registered to you.</p>";
-            if (LT.game.flags.slaveryJobSelectedFor !== s.id) {
-                LT.game.flags.slaveryJobSelected = s.job && s.job !== "IDLE" ? s.job : "CLEANING";
-                LT.game.flags.slaveryJobSelectedFor = s.id;
+            // Local alias so the .forEach closure below sees the non-null narrowing
+            // (var s itself is still typed SlaveRecord | null inside a closure).
+            var slave = s;
+            if (LT.game.flags.slaveryJobSelectedFor !== slave.id) {
+                LT.game.flags.slaveryJobSelected = slave.job && slave.job !== "IDLE" ? slave.job : "CLEANING";
+                LT.game.flags.slaveryJobSelectedFor = slave.id;
             }
             var selected = selectedJobId();
             var selJob = LT.SLAVE_JOBS[selected] || LT.SLAVE_JOBS.IDLE;
-            var stam = LT.dailySlaveStamina(s);
+            var stam = LT.dailySlaveStamina(slave);
             var html = "<p>Select a job, then click hours to assign it. Clicking an hour that already has that job clears it to Idle.</p>";
             html += "<div class='cosmetics-inner-container full'><b>Available Jobs</b><br/>";
             jobList().forEach(function (id) {
-                html += jobButton(LT.SLAVE_JOBS[id], s, selected === id);
+                html += jobButton(LT.SLAVE_JOBS[id], slave, selected === id);
             });
             html += "</div><div class='cosmetics-inner-container full'><b>Time Slots</b><div class='slave-hours'>";
             var hour;

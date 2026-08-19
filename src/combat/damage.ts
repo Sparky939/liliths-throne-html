@@ -34,7 +34,7 @@
     ch.shields.LUST = LT.resistFromStatuses(ch, "LUST");
   };
 
-  function absorb(ch, type, amount) {
+  function absorb(ch: Combatant, type: string, amount: number): number {
     if (!ch.shields) return amount;
     var s = ch.shields[type] || 0;
     if (s <= 0) return amount;

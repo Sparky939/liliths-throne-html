@@ -116,7 +116,10 @@
     "Williams", "Williamson", "Wilson", "Wood", "Wright", "Young",
   ];
 
-  function pick(list) {
+  // Every call site reads one of this file's own LT.HUMAN_* arrays, which
+  // stay untyped (fall through LTNamespace's index signature to `any`) —
+  // genuinely `any[]`, not a good generic-inference candidate here.
+  function pick(list: any[]): any {
     return list[Math.floor(Math.random() * list.length)];
   }
 

@@ -10,6 +10,7 @@
         { id: "inventory", icon: "inventory.svg", tip: "Inventory", action: function () { LT.openInventory(); } },
         { id: "characters", icon: "people.svg", tip: "Characters present", action: function () { LT.openUI("characters-present"); } },
         { id: "copy", icon: "copy.svg", tip: "Copy dialogue", action: copyDialogue },
+        { id: "bugreport", icon: "bugReport.svg", tip: "Copy bug report", action: copyBugReport },
     ];
     var RIGHT = [
         { id: "zoom", icon: "zoomOut.svg", tip: "Zoom map", action: function () { if (typeof cycleGridZoom === "function")
@@ -24,6 +25,11 @@
         var visible = stage ? stage.querySelector("[data-ui]:not([hidden])") : null;
         var text = visible ? visible.innerText : "";
         if (navigator.clipboard && navigator.clipboard.writeText)
+            navigator.clipboard.writeText(text);
+    }
+    function copyBugReport() {
+        var text = typeof LT.buildBugReport === "function" ? LT.buildBugReport() : "";
+        if (text && navigator.clipboard && navigator.clipboard.writeText)
             navigator.clipboard.writeText(text);
     }
     function makeBtn(spec) {

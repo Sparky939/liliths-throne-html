@@ -23,6 +23,10 @@
         n.relationToPlayer = n.relationToPlayer || opts.relationToPlayer || "";
         if (!n.location || typeof n.location !== "object")
             n.location = opts.location;
+        // name/speechColour/raceName are all required fields on HouseNpcOpts
+        // (opts) and always assigned just above, even though Npc's own fields
+        // stay optional for other constructors — `!` reflects that, matching
+        // the same reasoning as simpleNpc's own getName/getSpeechColour below.
         n.getName = n.getName || function () {
             return this.name;
         };
@@ -280,6 +284,11 @@
             feminine: feminine,
             speechColour: feminine ? LT.Colour.FEMININE : LT.Colour.ANDROGYNOUS,
             gender: feminine ? LT.Gender.FEMALE : LT.Gender.ANDROGYNOUS,
+            // name/speechColour are always set immediately above in this same
+            // literal (simpleNpc's required id/name/feminine params), even though
+            // Npc's own name/speechColour fields stay optional for the sake of
+            // other npc constructors — `!` reflects this constructor's own
+            // guarantee, not Npc's general contract.
             getName: function () {
                 return this.name;
             },

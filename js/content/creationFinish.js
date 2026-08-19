@@ -387,6 +387,8 @@
             if (act === "penisVirgin" || act === "vaginaVirgin")
                 p.sex[act] = !p.sex[act];
             else if (act.slice(-4) === "_INC") {
+                // Guaranteed to be one of sex's numeric keys: step() only ever emits
+                // data-sex="vaginal_INC"/"anal_INC"/"oral_INC".
                 var k = act.slice(0, -4);
                 p.sex[k] = Math.min(50, (p.sex[k] || 0) + 1);
                 if (k === "vaginal" && p.hasVagina())

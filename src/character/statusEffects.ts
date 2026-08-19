@@ -1,5 +1,5 @@
 (function () {
-  function emptyBonus() {
+  function emptyBonus(): StatusEffectBonus {
     return {
       physique: 0,
       arcane: 0,
@@ -21,13 +21,13 @@
     };
   }
 
-  function nameOf(ch) {
+  function nameOf(ch: StatusEffectCarrier | null | undefined) {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function parseFor(ch, text) {
+  function parseFor(ch: StatusEffectCarrier | null | undefined, text: string) {
     if (!text) return "";
     if (typeof LT.parse === "function") {
       if (typeof LT.withParseTargets === "function") {
@@ -44,11 +44,11 @@
     return (LT.game && LT.game.secondsPassed) || 0;
   }
 
-  function currentPlace(ch) {
+  function currentPlace(ch: StatusEffectCarrier | null | undefined) {
     return (ch && ch.location && ch.location.place) || "";
   }
 
-  function currentWorld(ch) {
+  function currentWorld(ch: StatusEffectCarrier | null | undefined) {
     return (ch && ch.location && ch.location.world) || "";
   }
 
@@ -80,7 +80,7 @@
     return (typeof LT.effectiveArcane === "function" ? LT.effectiveArcane(ch as Combatant) : (ch && ch.arcane) || 0) < 10;
   };
 
-  function weatherIcon(day, night) {
+  function weatherIcon(day: string, night: string) {
     return function () {
       return LT.statusIcon(typeof LT.isDayTime === "function" && LT.isDayTime() ? day : night);
     };
@@ -95,12 +95,12 @@
     return [];
   }
 
-  function weatherLibidoExtras(ch) {
+  function weatherLibidoExtras(ch: Combatant | null | undefined) {
     var extra = ["Enhanced libido"];
     return extra.concat(weatherRemainingExtra(ch));
   }
 
-  function se(id, opts) {
+  function se(id: string, opts: StatusEffectDef) {
     opts.id = id;
     LT.STATUS_EFFECTS[id] = opts;
     return opts;
@@ -666,19 +666,19 @@
     }
   };
 
-  function extraList(def, ch) {
+  function extraList(def: StatusEffectDef, ch: StatusEffectCarrier | null | undefined) {
     var extra = def.extra;
     if (typeof extra === "function") extra = extra(ch);
     return extra || [];
   }
 
-  function iconSrc(def, ch) {
+  function iconSrc(def: StatusEffectDef, ch: StatusEffectCarrier | null | undefined) {
     var icon = def.icon;
     if (typeof icon === "function") icon = icon(ch);
     return icon || LT.statusIcon("potionEffects");
   }
 
-  function descriptionOf(def, ch) {
+  function descriptionOf(def: StatusEffectDef, ch: StatusEffectCarrier | null | undefined) {
     if (typeof def.description === "function") return def.description(ch);
     return def.description || "";
   }

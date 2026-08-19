@@ -9,7 +9,15 @@
     FEMININE_STRONG: { id: "FEMININE_STRONG", name: "Very Feminine", value: 90, colour: Colour.FEMININE },
   };
 
-  function gender(id, name, hasPenis, hasVagina, hasBreasts, feminine, colour) {
+  function gender(
+    id: string,
+    name: string,
+    hasPenis: boolean,
+    hasVagina: boolean,
+    hasBreasts: boolean,
+    feminine: boolean,
+    colour: string,
+  ): GenderEntry {
     return { id: id, name: name, hasPenis: hasPenis, hasVagina: hasVagina, hasBreasts: hasBreasts, feminine: feminine, colour: colour };
   }
 

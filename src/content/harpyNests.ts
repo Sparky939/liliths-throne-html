@@ -1,9 +1,9 @@
 (function () {
-  function nestXml(tag) {
+  function nestXml(tag: string) {
     return LT.parseFromXML("places/dominion/harpyNests/helena", tag);
   }
 
-  function generic(tag) {
+  function generic(tag: string) {
     return LT.parseFromXML("places/dominion/harpyNests/generic", tag);
   }
 
@@ -118,7 +118,7 @@
     },
   });
 
-  function otherNest(id, title) {
+  function otherNest(id: string, title: string) {
     LT.defineNode({
       id: id,
       ui: "dialogue",
@@ -247,7 +247,7 @@
     ];
   }
 
-  function punishChoice(id, xmlTag) {
+  function punishChoice(id: string, xmlTag: string) {
     LT.defineNode({
       id: id,
       ui: "dialogue",

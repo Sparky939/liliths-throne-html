@@ -27,16 +27,16 @@
     function inferTravelTip(cfg) {
         var label = inferTravelLabel(cfg);
         if (label === "Enter")
-            return "Enter " + (cfg.nextLocationName || "this location") + ".";
+            return "Enter " + ((cfg && cfg.nextLocationName) || "this location") + ".";
         if (label === "Exit")
-            return "Leave and return to " + (cfg.nextLocationName || "the street") + ".";
+            return "Leave and return to " + ((cfg && cfg.nextLocationName) || "the street") + ".";
         if (label === "Upstairs")
             return "Go upstairs.";
         if (label === "Downstairs")
             return "Go downstairs.";
         if (label === "World map")
             return "Travel to the world map.";
-        return "Travel to " + (cfg.nextLocationName || "the connected area") + ".";
+        return "Travel to " + ((cfg && cfg.nextLocationName) || "the connected area") + ".";
     }
     function isDominionExit(placeType) {
         return /^DOMINION_EXIT_(EAST|NORTH|WEST|SOUTH)$/.test(placeType || "");

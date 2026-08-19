@@ -1,13 +1,13 @@
 (function () {
-  function shopXml(tag) {
+  function shopXml(tag: string) {
     return LT.parseFromXML("places/dominion/slaverAlley/scarlettsShop", tag);
   }
 
-  function alleyXml(tag) {
+  function alleyXml(tag: string) {
     return LT.parseFromXML("places/dominion/slaverAlley/genericDialogue", tag);
   }
 
-  function p(html) {
+  function p(html: string) {
     return "<p>" + html + "</p>";
   }
 
@@ -60,7 +60,7 @@
     },
   });
 
-  function genericStall(id, title) {
+  function genericStall(id: string, title: string) {
     LT.defineNode({
       id: id,
       ui: "dialogue",
@@ -281,7 +281,7 @@
     });
   }
 
-  function purchasedScarlett(kind) {
+  function purchasedScarlett(kind: string) {
     return function () {
       LT.game.textStart = shopXml("HELENAS_SHOP_SCARLETT_PURCHASED_" + kind);
       if (LT.game.flags.quest === "MAIN_1_G_SLAVERY") {
@@ -381,7 +381,7 @@
     },
   });
 
-  function adminXml(tag) {
+  function adminXml(tag: string) {
     return LT.parseFromXML("places/dominion/slaverAlley/slaveryAdministration", tag);
   }
 

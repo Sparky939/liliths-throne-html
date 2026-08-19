@@ -331,7 +331,7 @@
     return html;
   };
 
-  LT.craftEnchantedItem = function (ingredient, effects) {
+  LT.craftEnchantedItem = function (ingredient: CarriedThing | null | undefined, effects: EnchantEffect[] | null | undefined) {
     if (!ingredient) return { error: "Nothing to enchant." };
     var next = effects || [];
     var racial = typeof LT.isRacialIngredient === "function" && LT.isRacialIngredient(ingredient);
@@ -351,8 +351,12 @@
     if ((p.essences || 0) < cost) return { error: "You need " + cost + " arcane essences." };
     p.essences -= cost;
     var crafted = {} as Item;
-    Object.keys(ingredient).forEach(function (k) {
-      crafted[k] = ingredient[k];
+    // Generic shallow clone of whatever fields the ingredient actually has
+    // (Item and ClothingItem carry genuinely different field sets, hence
+    // the cast rather than a typed per-field copy).
+    var src = ingredient as Record<string, any>;
+    Object.keys(src).forEach(function (k) {
+      crafted[k] = src[k];
     });
     crafted.effects = next.slice();
     crafted.enchanted = true;

@@ -193,7 +193,11 @@
         return { id: "strike", type: "ATTACK" };
     };
     LT.combat.planEnemy = function () {
-        if (!this.enemy || defeated(this.enemy))
+        // planEnemy only ever runs while combat is active (called from start()
+        // right after both are set, or from endTurn() which requires active
+        // combat), so player is always set here too even though its type is
+        // nullable — same invariant as the existing enemy check just below.
+        if (!this.enemy || !this.player || defeated(this.enemy))
             return;
         resetAp(this.enemy);
         var src = this.enemy;
@@ -213,7 +217,7 @@
                 break;
             }
             src.selectedMoves.push({ id: pick.id, target: tgt });
-            src.remainingAP -= move.ap || 1;
+            src.remainingAP = (src.remainingAP || 0) - (move.ap || 1);
             used[pick.id] = true;
         }
     };
@@ -236,10 +240,14 @@
         if (reason)
             return reason;
         var move = LT.MOVES[moveId];
-        this.player.selectedMoves.push({ id: moveId, target: this.enemy });
-        this.player.remainingAP -= move.ap;
+        // canQueue just returned null, which already required this.player to be
+        // set (see its own `!this.player` check); enemy is always set alongside
+        // player for the duration of active combat.
+        var player = this.player;
+        player.selectedMoves.push({ id: moveId, target: this.enemy || undefined });
+        player.remainingAP = (player.remainingAP || 0) - move.ap;
         if (move.cooldown && typeof LT.setMoveCooldown === "function") {
-            LT.setMoveCooldown(this.player, moveId, move.cooldown);
+            LT.setMoveCooldown(player, moveId, move.cooldown);
         }
         return null;
     };
@@ -254,7 +262,8 @@
         return list;
     };
     LT.combat.endTurn = function () {
-        if (!this.active || this.finished)
+        // Same invariant as planEnemy: active combat always has both set.
+        if (!this.active || this.finished || !this.player || !this.enemy)
             return;
         this.player.blocking = false;
         this.enemy.blocking = false;
@@ -322,6 +331,8 @@
             return true;
         }
         this.lastResolution = "<p>You failed to escape!</p>";
+        // escape() is only ever invoked from active combat (same invariant as
+        // planEnemy/endTurn), so player is always set here despite its type.
         this.player.selectedMoves = [];
         this.endTurn();
         return false;

@@ -64,12 +64,12 @@
     return html;
   }
 
-  LT.houseRoomContent = function (base) {
+  LT.houseRoomContent = function (base?: string | null) {
     var extra = roomContentOverlay();
     return (base || "") + extra;
   };
 
-  LT.slavePresenceResponses = function (list) {
+  LT.slavePresenceResponses = function (list?: (LTResponse | null)[] | null) {
     list = list || [];
     if (typeof LT.syncSlaveNpcs === "function") LT.syncSlaveNpcs();
     if (LT.game.flags && LT.game.flags.workSex && typeof LT.findSlave === "function" && LT.findSlave(LT.game.flags.workSex) && typeof LT.ResponseSex === "function") {
@@ -101,7 +101,7 @@
     return list;
   };
 
-  LT.houseExtraResponses = function (list) {
+  LT.houseExtraResponses = function (list?: (LTResponse | null)[] | null) {
     list = list || [];
     var place = (LT.game.player && LT.game.player.location && LT.game.player.location.place) || "";
     var up = typeof LT.roomUpgradeAt === "function" ? LT.roomUpgradeAt() : null;
@@ -404,7 +404,7 @@
     return (LT.game.flags && LT.game.flags.slaveryJobSelected) || "CLEANING";
   }
 
-  function jobButton(job, rec, selected) {
+  function jobButton(job: SlaveJob, rec: SlaveRecord, selected: boolean) {
     var name = rec.feminine === false ? job.nameM : job.name;
     var cls = "cosmetics-button" + (selected ? " active" : "");
     var style = "color:" + (job.colour || "#ddd") + ";" + (selected ? "border-color:" + (job.colour || "#999") + ";" : "");
@@ -423,7 +423,7 @@
     );
   }
 
-  function hourButton(rec, hour, selectedId) {
+  function hourButton(rec: SlaveRecord, hour: number, selectedId: string) {
     var id = LT.getSlaveJob(rec, hour);
     var job = LT.SLAVE_JOBS[id] || LT.SLAVE_JOBS.IDLE;
     var check = selectedId === "IDLE" ? { ok: true } : LT.jobHourAvailable(selectedId, rec, hour);
@@ -457,17 +457,20 @@
     getContent: function () {
       var s = selectedSlave();
       if (!s) return "<p>That slave is no longer registered to you.</p>";
-      if (LT.game.flags.slaveryJobSelectedFor !== s.id) {
-        LT.game.flags.slaveryJobSelected = s.job && s.job !== "IDLE" ? s.job : "CLEANING";
-        LT.game.flags.slaveryJobSelectedFor = s.id;
+      // Local alias so the .forEach closure below sees the non-null narrowing
+      // (var s itself is still typed SlaveRecord | null inside a closure).
+      var slave = s;
+      if (LT.game.flags.slaveryJobSelectedFor !== slave.id) {
+        LT.game.flags.slaveryJobSelected = slave.job && slave.job !== "IDLE" ? slave.job : "CLEANING";
+        LT.game.flags.slaveryJobSelectedFor = slave.id;
       }
       var selected = selectedJobId();
       var selJob = LT.SLAVE_JOBS[selected] || LT.SLAVE_JOBS.IDLE;
-      var stam = LT.dailySlaveStamina(s);
+      var stam = LT.dailySlaveStamina(slave);
       var html = "<p>Select a job, then click hours to assign it. Clicking an hour that already has that job clears it to Idle.</p>";
       html += "<div class='cosmetics-inner-container full'><b>Available Jobs</b><br/>";
       jobList().forEach(function (id) {
-        html += jobButton(LT.SLAVE_JOBS[id], s, selected === id);
+        html += jobButton(LT.SLAVE_JOBS[id], slave, selected === id);
       });
       html += "</div><div class='cosmetics-inner-container full'><b>Time Slots</b><div class='slave-hours'>";
       var hour;
@@ -531,7 +534,7 @@
     },
   });
 
-  function handleManageAct(act) {
+  function handleManageAct(act: string | null | undefined) {
     var s = selectedSlave();
     if (!s || !act) return false;
     if (act.indexOf("job:") === 0) {

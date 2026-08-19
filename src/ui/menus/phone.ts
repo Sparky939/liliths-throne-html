@@ -1,5 +1,5 @@
 (function () {
-  var QUESTS = {
+  var QUESTS: Record<string, { line: string; name: string; text: string }> = {
     MAIN_1_A_LILAYAS_TESTS: {
       line: "Lilith's Throne",
       name: "Lilaya's Tests",
@@ -42,7 +42,7 @@
     },
   };
 
-  var SIDE_QUESTS = {
+  var SIDE_QUESTS: Record<string, { line: string; name: string; text: string }> = {
     SIDE_SLAVER_NEED_RECOMMENDATION: {
       line: "Slaver",
       name: "Letter of recommendation",
@@ -163,16 +163,16 @@
         );
       }
       var html = "";
-      var id = LT.game.flags && LT.game.flags.quest;
+      var id: string = LT.game.flags && LT.game.flags.quest;
       var q = QUESTS[id];
       if (q) html += block(q);
-      var sideId = LT.game.flags && LT.game.flags.slaveryQuest;
+      var sideId: string = LT.game.flags && LT.game.flags.slaveryQuest;
       var side = SIDE_QUESTS[sideId];
       if (side) html += block(side);
-      var enchId = LT.game.flags && LT.game.flags.enchantmentQuest;
+      var enchId: string = LT.game.flags && LT.game.flags.enchantmentQuest;
       var ench = SIDE_QUESTS[enchId];
       if (ench) html += block(ench);
-      var pregId = LT.game.flags && LT.game.flags.pregnancyQuest;
+      var pregId: string = LT.game.flags && LT.game.flags.pregnancyQuest;
       var preg = SIDE_QUESTS[pregId];
       if (preg) html += block(preg);
       if (!html) return "<p class='muted'>You don't have any active quests.</p>";

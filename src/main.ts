@@ -1,6 +1,6 @@
 (function () {
   function registerStubMenus() {
-    var stubs = [];
+    var stubs: [string, string][] = [];
     for (var i = 0; i < stubs.length; i++) {
       var el = document.querySelector('[data-ui="' + stubs[i][0] + '"] [data-node-content]');
       if (el && !el.innerHTML.trim()) el.innerHTML = '<p class="muted">' + stubs[i][1] + "</p>";

@@ -1,5 +1,5 @@
 (function () {
-  function nameOf(npc) {
+  function nameOf(npc: NpcGearCarrier | null | undefined) {
     if (!npc) return "them";
     if (npc.getName) return npc.getName();
     return npc.name || "them";
@@ -25,7 +25,7 @@
         " · Take</span></div>";
     });
     html += '</div><h6>Weapons</h6><div class="inv-grid">';
-    function wepCell(which, wep) {
+    function wepCell(which: string | undefined, wep: NpcGearItem | null | undefined) {
       if (!wep) return "";
       return (
         '<div class="inv-item" data-loot-wep="' +
@@ -105,7 +105,7 @@
     },
   });
 
-  LT.lootResponse = function (npc, returnNode) {
+  LT.lootResponse = function (npc: NpcGearCarrier | null | undefined, returnNode: string | null) {
     if (typeof LT.npcHasLoot !== "function" || !LT.npcHasLoot(npc)) {
       return new LT.Response("Inventory", "They have nothing left to take.", null).disable("They have nothing left to take.");
     }

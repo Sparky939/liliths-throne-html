@@ -324,7 +324,10 @@
     },
   };
 
-  var JOB_SEX = {
+  // rec.job is a dynamic job id (LT.SLAVE_JOBS keys aren't a closed literal
+  // union anywhere in the type system), so this needs a real index
+  // signature rather than relying on the literal's own inferred key set.
+  var JOB_SEX: Record<string, string> = {
     CLEANING: "[npc.Name] is halfway through changing the linens when [npc.she] sees you. Flushing, [npc.she] sets the sheets aside and waits to see what you want.",
     SECURITY: "[npc.Name] is posted at [npc.her] station. After a glance to make sure the hall is empty, [npc.she] lowers [npc.her] eyes and waits.",
     LIBRARY: "Between the stacks, [npc.name] looks up from a returned book. [npc.She] keeps [npc.her] voice to a whisper as [npc.she] asks if you needed [npc.herHim].",

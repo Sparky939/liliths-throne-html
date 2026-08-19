@@ -1,7 +1,7 @@
 (function () {
   /* Official AbstractEncounter.getRandomEncounter: Math.random() * 100 < total, then weighted pick. */
 
-  var STREET_PLACES = {
+  var STREET_PLACES: Record<string, boolean> = {
     DOMINION_STREET: true,
     DOMINION_SHOPPING_ARCADE: true,
     DOMINION_NYAN_APARTMENT: true,
@@ -17,7 +17,7 @@
     DOMINION_BACK_ALLEYS_SAFE: true,
   };
 
-  var HARPY_WALKWAYS = {
+  var HARPY_WALKWAYS: Record<string, boolean> = {
     HARPY_NESTS_WALKWAYS: true,
     HARPY_NESTS_WALKWAYS_BRIDGE: true,
   };
@@ -53,7 +53,7 @@
     return !!(LT.game.flags && LT.game.flags.harpyPacified);
   }
 
-  function bindMugger(npc) {
+  function bindMugger(npc: Npc | null | undefined) {
     if (!npc) return npc;
     LT.game.npcs = LT.game.npcs || {};
     LT.game.npcs.alleyMugger = npc;
@@ -65,15 +65,15 @@
     return LT.game.npcs && LT.game.npcs.alleyMugger;
   }
 
-  function muggerDemand(npc) {
+  function muggerDemand(npc: Npc | null | undefined) {
     return 50 + 10 * ((npc && npc.level) || 1);
   }
 
-  function stormXml(tag) {
+  function stormXml(tag: string) {
     return LT.parseFromXML("encounters/dominion/stormStreetAttack", tag);
   }
 
-  function harpyXml(tag) {
+  function harpyXml(tag: string) {
     var pack = LT.isArcaneStorm && LT.isArcaneStorm() ? "encounters/dominion/harpyAttackStorm" : "encounters/dominion/harpyAttack";
     var html = LT.parseFromXML(pack, tag);
     if (html && html.indexOf("Dialogue for") >= 0 && pack !== "encounters/dominion/harpyAttack") {
@@ -82,11 +82,11 @@
     return html;
   }
 
-  function genericXml(tag) {
+  function genericXml(tag: string) {
     return LT.parseFromXML("encounters/dominion/generic", tag);
   }
 
-  function itemName(id) {
+  function itemName(id: string) {
     return (LT.ITEMS && LT.ITEMS[id] && LT.ITEMS[id].name) || id;
   }
 
@@ -270,7 +270,7 @@
     });
   }
 
-  function enslaveIfPossible(list, npc) {
+  function enslaveIfPossible(list: (LTResponse | null)[], npc: Npc | null | undefined) {
     if (!npc || typeof LT.getNode !== "function" || !LT.hasNode("alley.enslave")) return list;
     var resp = new LT.Response("Enslave", "Lock a slave collar around their neck and have them teleported to Slavery Administration.", "alley.enslave");
     if (!(LT.game.flags && LT.game.flags.hasSlaverLicense)) {
@@ -282,7 +282,7 @@
     return list;
   }
 
-  function lootIfPossible(list, npc, back) {
+  function lootIfPossible(list: (LTResponse | null)[], npc: Npc | null | undefined, back: string) {
     if (typeof LT.lootResponse === "function") list.push(LT.lootResponse(npc, back));
     return list;
   }

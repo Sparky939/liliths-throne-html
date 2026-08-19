@@ -31,7 +31,7 @@
     return ["CLOTHING_MAJOR_ATTRIBUTE", "CLOTHING_ATTRIBUTE", "CLOTHING_SPECIAL"];
   }
 
-  function secondariesFor(primary) {
+  function secondariesFor(primary: string) {
     if (isPotion()) return (LT.RACIAL_SECONDARIES && LT.RACIAL_SECONDARIES[primary]) || [];
     if (isWeapon()) {
       if (primary === "CLOTHING_ATTRIBUTE") return LT.WEAPON_ATTRIBUTE_SECONDARIES || [];
@@ -42,7 +42,7 @@
     return LT.CLOTHING_MAJOR_SECONDARIES;
   }
 
-  function chip(label, value, selected, kind) {
+  function chip(label: string, value: string, selected: boolean, kind: string) {
     return (
       '<button type="button" class="inv-wep-btn' +
       (selected ? " selected" : "") +
@@ -134,7 +134,7 @@
     );
   }
 
-  LT.openEnchant = function (uid) {
+  LT.openEnchant = function (uid: string) {
     var s = session();
     var found = LT.findCarriedByUid(LT.game.player!, uid);
     if (!found || !found.item) return;

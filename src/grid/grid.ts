@@ -392,8 +392,8 @@
     if (now - movePlayerLastMove < cooldown) return;
     movePlayerLastMove = now;
 
-    var newX;
-    var newY;
+    var newX: number;
+    var newY: number;
     var width = gridWidth();
     var height = gridHeight();
 

@@ -2,20 +2,20 @@
   var PREFIX = "lt-save-";
   var INDEX_KEY = "lt-saves-index";
 
-  function byId(table, id) {
+  function byId<T extends { id: string }>(table: Record<string, T> | T[] | null | undefined, id: string | null | undefined): T | null {
     if (id == null || !table) return null;
-    if (table[id]) return table[id];
+    if (!Array.isArray(table)) return table[id] || null;
     if (typeof LT.findById === "function") return LT.findById(table, id);
     return null;
   }
 
-  function pickId(v) {
+  function pickId(v: { id: string } | string | null | undefined) {
     if (v == null) return null;
     if (typeof v === "object" && v.id) return v.id;
     return v;
   }
 
-  function serializePlayer(p) {
+  function serializePlayer(p: Character | null | undefined) {
     if (!p) return null;
     return {
       names: p.names,
@@ -103,7 +103,7 @@
     };
   }
 
-  function applyPlayer(p, data) {
+  function applyPlayer(p: Character | null | undefined, data: Record<string, any> | null | undefined) {
     if (!p || !data) return p;
     p.names = data.names || p.names;
     p.surname = data.surname || "";
@@ -185,11 +185,11 @@
     }
   }
 
-  function writeIndex(list) {
+  function writeIndex(list: string[]) {
     localStorage.setItem(INDEX_KEY, JSON.stringify(list));
   }
 
-  function sanitizeName(name) {
+  function sanitizeName(name: string | null | undefined) {
     return String(name || "New Save")
       .replace(/[^A-Za-z0-9 _-]/g, "")
       .trim()

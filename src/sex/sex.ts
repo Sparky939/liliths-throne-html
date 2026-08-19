@@ -11,17 +11,17 @@
     FIVE_EXTREME: 5,
   };
 
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined) {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function pick(list) {
+  function pick<T>(list: T[]): T {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function parseSex(text, src, tgt) {
+  function parseSex(text: string, src?: Combatant | null, tgt?: Combatant | null) {
     if (!text) return "";
     if (typeof LT.parse !== "function") return text;
     var prev = LT._parseSexNames;
@@ -38,28 +38,28 @@
     }
   }
 
-  function ensureSexState(ch) {
+  function ensureSexState(ch: Combatant | null | undefined) {
     if (!ch) return;
     if (ch.arousal == null) ch.arousal = 0;
     ch.sexExposed = ch.sexExposed || { MOUTH: true, BREASTS: false, PENIS: false, VAGINA: false, ANUS: false, FOOT: false };
     if (ch.orgasmedThisSex == null) ch.orgasmedThisSex = 0;
   }
 
-  LT.applyArousal = function (ch, amount) {
+  LT.applyArousal = function (ch: Combatant | null | undefined, amount: number) {
     if (!ch) return 0;
     var before = ch.arousal || 0;
     ch.arousal = Math.max(0, Math.min(LT.MAX_AROUSAL, before + amount));
     return ch.arousal - before;
   };
 
-  function coverKey(area) {
+  function coverKey(area: string): string | null {
     if (area === "BREASTS") return "chest";
     if (area === "VAGINA" || area === "PENIS" || area === "ANUS") return "groin";
     if (area === "FOOT" || area === "FEET") return "foot";
     return null;
   }
 
-  function itemBlocksArea(item, area) {
+  function itemBlocksArea(item: ClothingItem | null | undefined, area: string) {
     if (!item || item.removed || item.displaced) return false;
     var key = coverKey(area);
     if (!key) return false;
@@ -67,7 +67,7 @@
     return covers.indexOf(key) >= 0;
   }
 
-  LT.isSexExposed = function (ch, area) {
+  LT.isSexExposed = function (ch: Combatant | null | undefined, area: string) {
     if (!ch) return false;
     if (area === "MOUTH") return true;
     if (ch.sexExposed && ch.sexExposed[area]) return true;
@@ -90,13 +90,13 @@
     return !!(ch.sexExposed && ch.sexExposed[area]);
   };
 
-  LT.setSexExposed = function (ch, area, on) {
+  LT.setSexExposed = function (ch: Combatant | null | undefined, area: string, on: boolean) {
     if (!ch) return;
     ch.sexExposed = ch.sexExposed || {};
     ch.sexExposed[area] = !!on;
   };
 
-  function dressForSex(ch) {
+  function dressForSex(ch: Combatant | null | undefined) {
     if (!ch) return;
     if (ch.equipped && Object.keys(ch.equipped).length) return;
     if (typeof LT.makeClothing !== "function") return;
@@ -130,7 +130,7 @@
     onEnd: null,
   };
 
-  LT.sex.start = function (opts) {
+  LT.sex.start = function (opts?: SexStartOpts) {
     opts = opts || {};
     var player = LT.game.player;
     var partner = opts.partner;
@@ -265,36 +265,40 @@
     },
   });
 
-  function hasPenis(ch) {
+  function hasPenis(ch: Combatant | null | undefined) {
     return !!(ch && ((ch.hasPenis && ch.hasPenis()) || (ch.gender && ch.gender.hasPenis)));
   }
-  function hasVagina(ch) {
+  function hasVagina(ch: Combatant | null | undefined) {
     return !!(ch && ((ch.hasVagina && ch.hasVagina()) || (ch.gender && ch.gender.hasVagina)));
   }
-  function hasBreasts(ch) {
+  function hasBreasts(ch: Combatant | null | undefined) {
     if (!ch) return false;
     if (ch.hasBreasts) return ch.hasBreasts();
     return !!(ch.gender && ch.gender.hasBreasts);
   }
-  function hasFuckableNipples(ch) {
+  function hasFuckableNipples(ch: Combatant | null | undefined) {
     return !!(ch && ch.fuckableNipples);
   }
-  function pairOngoing(id) {
+  function pairOngoing(id: string) {
     return !!(LT.sex.ongoing && LT.sex.ongoing.id === id);
   }
-  function setOngoing(id, giver, receiver, label) {
+  function setOngoing(id: string, giver: Combatant | null | undefined, receiver: Combatant | null | undefined, label: string) {
     LT.sex.ongoing = { id: id, giver: giver, receiver: receiver, label: label };
   }
-  function takeVirgin(penetrator, receiver) {
-    var flag = receiver.sex && receiver.sex.vaginaVirgin;
-    if (receiver.vaginaVirgin != null) flag = receiver.vaginaVirgin;
+  // penetrator/receiver are read unguarded below (receiver.sex, .vaginaVirgin)
+  // exactly as the original JS did — a genuinely-missing receiver would throw
+  // there just as it always would have, so the `!` assertions preserve that
+  // behavior rather than silently swallowing it behind a new null guard.
+  function takeVirgin(penetrator: Combatant | null | undefined, receiver: Combatant | null | undefined) {
+    var flag = receiver!.sex && receiver!.sex.vaginaVirgin;
+    if (receiver!.vaginaVirgin != null) flag = receiver!.vaginaVirgin;
     if (!flag) return "";
-    if (receiver.sex) receiver.sex.vaginaVirgin = false;
-    receiver.vaginaVirgin = false;
+    if (receiver!.sex) receiver!.sex.vaginaVirgin = false;
+    receiver!.vaginaVirgin = false;
     return parseSex(" As [npc2.sheIs] a virgin, [npc2.name] can't help but let out a shocked [npc2.moan] as [npc2.she] [npc2.verb(experience)] the feeling of being penetrated for the first time.", penetrator, receiver);
   }
 
-  function registerPair(spec) {
+  function registerPair(spec: SexPairSpec) {
     register({
       id: spec.id + "_start",
       pair: spec.id,
@@ -355,23 +359,27 @@
       },
     });
     if (!spec.receive) return;
+    // Captured into a local so the closures below (whose bodies TS can't
+    // prove still see the same `spec.receive` at call time) narrow to
+    // SexPairReceiveSpec instead of SexPairReceiveSpec | undefined.
+    var receive = spec.receive;
     register({
       id: spec.id + "_receive_start",
       pair: spec.id,
-      name: spec.receive.start.name,
+      name: receive.start.name,
       tab: 0,
       type: "START_ONGOING",
-      selfArousal: spec.receive.start.selfA,
-      targetArousal: spec.receive.start.tgtA,
+      selfArousal: receive.start.selfA,
+      targetArousal: receive.start.tgtA,
       canUse: function (src, tgt) {
         return !pairOngoing(spec.id) && spec.ok(tgt, src);
       },
       tooltip: function (src, tgt) {
-        return parseSex(spec.receive.start.tip, src, tgt);
+        return parseSex(receive.start.tip, src, tgt);
       },
       perform: function (src, tgt) {
         setOngoing(spec.id, tgt, src, spec.label);
-        var text = parseSex(pick(spec.receive.start.lines), src, tgt);
+        var text = parseSex(pick(receive.start.lines), src, tgt);
         if (spec.onReceiveStart) text += spec.onReceiveStart(src, tgt) || "";
         return text;
       },
@@ -379,25 +387,25 @@
     register({
       id: spec.id + "_receive",
       pair: spec.id,
-      name: spec.receive.ongoing.name,
+      name: receive.ongoing.name,
       tab: 0,
       type: "ONGOING",
-      selfArousal: spec.receive.ongoing.selfA,
-      targetArousal: spec.receive.ongoing.tgtA,
+      selfArousal: receive.ongoing.selfA,
+      targetArousal: receive.ongoing.tgtA,
       canUse: function (src) {
         return pairOngoing(spec.id) && LT.sex.ongoing.receiver === src;
       },
       tooltip: function (src, tgt) {
-        return parseSex(spec.receive.ongoing.tip, src, tgt);
+        return parseSex(receive.ongoing.tip, src, tgt);
       },
       perform: function () {
-        return parseSex(pick(spec.receive.ongoing.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
+        return parseSex(pick(receive.ongoing.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
       },
     });
     register({
       id: spec.id + "_receive_stop",
       pair: spec.id,
-      name: spec.receive.stop.name,
+      name: receive.stop.name,
       tab: 0,
       type: "STOP_ONGOING",
       selfArousal: "TWO_LOW",
@@ -406,10 +414,10 @@
         return pairOngoing(spec.id) && LT.sex.ongoing.receiver === src;
       },
       tooltip: function (src, tgt) {
-        return parseSex(spec.receive.stop.tip, src, tgt);
+        return parseSex(receive.stop.tip, src, tgt);
       },
       perform: function () {
-        var text = parseSex(pick(spec.receive.stop.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
+        var text = parseSex(pick(receive.stop.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
         LT.sex.ongoing = null;
         return text;
       },
@@ -1372,7 +1380,7 @@
     },
   });
 
-  function registerSelf(spec) {
+  function registerSelf(spec: SexSelfSpec) {
     register({
       id: spec.id + "_start",
       pair: spec.id,
@@ -1562,11 +1570,11 @@
     },
   });
 
-  function setPosition(name) {
+  function setPosition(name: string) {
     LT.sex.positionName = name;
   }
 
-  function registerPosition(spec) {
+  function registerPosition(spec: SexPositionSpec) {
     register({
       id: spec.id,
       name: spec.name,
@@ -1849,13 +1857,17 @@
       return "Quickly pull clothing out of the way, exposing both of you.";
     },
     perform: function (src, tgt) {
-      function strip(ch) {
+      // ch's `.equipped` access below is unguarded for null/undefined, same
+      // as the original JS (a genuinely missing ch would throw there, same
+      // as it always would have) — `!` preserves that rather than adding a
+      // new silent-return guard.
+      function strip(ch: Combatant | null | undefined) {
         ["BREASTS", "PENIS", "VAGINA", "ANUS", "FOOT"].forEach(function (area) {
           LT.setSexExposed(ch, area, true);
         });
-        if (!ch.equipped) return;
-        Object.keys(ch.equipped).forEach(function (slot) {
-          if (ch.equipped[slot]) ch.equipped[slot].displaced = true;
+        if (!ch!.equipped) return;
+        Object.keys(ch!.equipped).forEach(function (slot) {
+          if (ch!.equipped[slot]) ch!.equipped[slot].displaced = true;
         });
       }
       strip(src);
@@ -1931,21 +1943,21 @@
 
   LT.sex.parseText = parseSex;
 
-  function displaceVerb(item) {
+  function displaceVerb(item: ClothingItem) {
     if (item.slot === "groin") return "Shift aside";
     if (item.slot === "leg" || item.slot === "sock") return "Pull down";
     if (item.slot === "chest" || item.slot === "torso" || item.slot === "torsoOver") return "Pull up";
     return "Remove";
   }
 
-  function clothingSlotActs(who, ch) {
+  function clothingSlotActs(who: string, ch: Combatant | null | undefined) {
     var acts: SexAction[] = [];
     if (!ch || !ch.equipped) return acts;
     var slots = Object.keys(ch.equipped);
     var i;
     for (i = 0; i < slots.length; i++) {
       (function (slot) {
-        var item = ch.equipped[slot];
+        var item: ClothingItem = ch.equipped[slot];
         if (!item) return;
         var owner = who === "p" ? "your" : parseSex("[npc2.namePos]", LT.sex.player, LT.sex.partner);
         var label = item.name || slot;
@@ -1996,7 +2008,7 @@
     return acts;
   }
 
-  LT.sex.availableActions = function (tab) {
+  LT.sex.availableActions = function (tab?: number | null) {
     var list: SexAction[] = [];
     var src = this.player;
     var tgt = this.partner;
@@ -2029,7 +2041,7 @@
     return list;
   };
 
-  function runAction(src, tgt, act) {
+  function runAction(src: Combatant, tgt: Combatant | null | undefined, act: SexAction) {
     var text = act.perform(src, tgt) || "";
     if (!act.isOrgasm) {
       LT.applyArousal(src, LT.AROUSAL_INCREASE[act.selfArousal] || 0);
@@ -2087,7 +2099,7 @@
     return LT.SEX_ACTIONS.do_nothing;
   };
 
-  LT.sex.perform = function (actionId) {
+  LT.sex.perform = function (actionId: string) {
     if (!this.active || this.finished) return;
     var act = (this._clothActs && this._clothActs[actionId]) || LT.SEX_ACTIONS[actionId];
     if (!act || (act.canUse && !act.canUse(this.player, this.partner))) return;
@@ -2118,7 +2130,7 @@
     if (this.postSexNode) LT.game.setContent(this.postSexNode);
   };
 
-  LT.sex.bar = function (ch) {
+  LT.sex.bar = function (ch: Combatant) {
     var a = Math.max(0, ch.arousal || 0);
     var pct = Math.max(0, Math.min(100, a));
     var lust = Math.max(0, ch.lust || 0);
@@ -2152,7 +2164,7 @@
     );
   };
 
-  LT.ResponseSex = function (title, tooltipText, opts) {
+  LT.ResponseSex = function (title: string, tooltipText: string, opts?: SexStartOpts) {
     return new LT.Response(title, tooltipText, "sex.scene", function () {
       LT.sex.start(opts);
     }).withColour(LT.Colour.ATTRIBUTE_LUST);

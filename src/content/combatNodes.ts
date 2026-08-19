@@ -1,5 +1,5 @@
 (function () {
-  function slot(index, response) {
+  function slot(index: number, response: LTResponse | null) {
     if (response) response._index = index;
     return response;
   }
@@ -33,7 +33,7 @@
       }
       return html;
     },
-    getResponses: function (game, tabIndex) {
+    getResponses: function (game: unknown, tabIndex: number) {
       var c = LT.combat;
       if (!c) return [null];
       if (c.finished === "victory") {

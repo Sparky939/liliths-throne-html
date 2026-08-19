@@ -45,7 +45,7 @@
     return '<div class="inv-slot"><div class="inv-slot-label">' + slot.label + "</div>" + inner + "</div>";
   }
 
-  function weaponPileItem(it) {
+  function weaponPileItem(it: WeaponItem) {
     var type = LT.getWeaponType && LT.getWeaponType(it.id);
     var range = type && LT.weaponRange ? LT.weaponRange(it, LT.game && LT.game.player) : { min: 0, max: 0 };
     var hands = type && type.twoHanded ? "two-handed" : "one-handed";

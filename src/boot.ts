@@ -2,6 +2,7 @@
   var scripts = [
     "js/lt.js",
     "js/paths.js",
+    "js/engine/bugReport.js",
     "js/engine/colours.js",
     "js/character/enums.js",
     "js/character/statusEffects.js",
@@ -31,6 +32,7 @@
     // class, split out of player.js, loaded in player.js's old slot.
     "js/character/character.js",
     "js/character/player.js",
+    "js/character/appearance.js",
     "js/character/clothing.js",
     "js/character/npcGear.js",
     "js/items/weapons.js",
@@ -42,6 +44,7 @@
     "js/combat/weaponSpecials.js",
     "js/character/occupations.js",
     "js/character/npcs.js",
+    "js/character/npcBodies.js",
     "js/engine/game.js",
     "js/engine/save.js",
     "js/engine/utilText.js",
@@ -110,7 +113,7 @@
     "js/main.js",
   ];
 
-  function loadScript(path, callback) {
+  function loadScript(path: string, callback?: (() => void) | null) {
     var script = document.createElement("script");
     script.src = path;
     script.async = false;

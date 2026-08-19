@@ -7,7 +7,8 @@
     var left = x + 18;
     var top = y + 18;
     if (left + rect.width > window.innerWidth - pad) left = x - rect.width - 12;
-    if (top + rect.height > window.innerHeight - pad) top = y - rect.height - 12;
+    if (top + rect.height > window.innerHeight - pad)
+      top = y - rect.height - 12;
     tip.style.left = Math.max(pad, left) + "px";
     tip.style.top = Math.max(pad, top) + "px";
   }
@@ -22,7 +23,7 @@
   };
 
   LT.hideTooltip = function (delay?: number) {
-    if (delay == null) delay = 40;
+    if (delay === undefined) delay = 40;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function () {
       var tip = document.getElementById("tooltip");
@@ -39,7 +40,8 @@
     el.addEventListener("mousemove", function (e: Event) {
       var mouseEvent = e as MouseEvent;
       var tip = document.getElementById("tooltip");
-      if (tip && !tip.hidden) positionTooltip(tip, mouseEvent.clientX, mouseEvent.clientY);
+      if (tip && !tip.hidden)
+        positionTooltip(tip, mouseEvent.clientX, mouseEvent.clientY);
     });
     el.addEventListener("mouseleave", function () {
       LT.hideTooltip();

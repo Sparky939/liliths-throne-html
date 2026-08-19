@@ -58,7 +58,6 @@ declare global {
     onEquip?(): void;
     pickup?(): void;
     onPickup?(): void;
-    [key: string]: any;
   }
 
   // Ported from upstream PR #5: the real ItemInstance class lives in
@@ -99,13 +98,14 @@ declare global {
     // that individually looked fine) so the collision stays visible instead
     // of hidden. TODO(ts): fix the two `player.makeup = true` assignments
     // (items.ts, content/arcadeShops.ts) to not stomp the real makeup record.
-    makeup?: boolean | Record<string, { colour?: string; modifier?: string } | undefined>;
+    makeup?:
+      | boolean
+      | Record<string, { colour?: string; modifier?: string } | undefined>;
     raceName?: string;
     fullRace?: string;
     gender?: { hasBreasts?: boolean; hasPenis?: boolean; hasVagina?: boolean };
     isFeminine?: () => boolean;
     getRaceName?: () => string;
-    [key: string]: any;
   }
 
   // === clothing.ts ===
@@ -147,6 +147,13 @@ declare global {
     effects?: EnchantEffect[];
     enchanted?: boolean;
     enchantmentKnown?: boolean;
+    // Runtime-only sex-scene state (sex.ts's clothingSlotActs/itemBlocksArea):
+    // an equipped item pushed aside or fully taken off during a sex scene.
+    // `displaced` is set to the display verb ("Pull down", "Shift aside",
+    // etc.), not a plain boolean — both fields are read as truthy checks
+    // elsewhere, so the verb string doubles as the "is displaced" flag.
+    removed?: boolean;
+    displaced?: boolean | string;
   }
 
   // Loosely-known character shape: only the fields this file touches are named.
@@ -159,7 +166,6 @@ declare global {
     essences?: number;
     breastSize?: { id?: string };
     getFemininity(): { id: string };
-    [key: string]: any;
   }
 
   // === npcGear.ts ===
@@ -171,7 +177,6 @@ declare global {
   // values flow into these functions from any of them without a cast.
   interface NpcGearItem extends Partial<CarriedItemBase> {
     slot?: string;
-    [key: string]: any;
   }
 
   interface NpcGearCarrier {
@@ -192,7 +197,6 @@ declare global {
     weapons?: NpcGearItem[];
     mainWeapon?: NpcGearItem | null;
     offhandWeapon?: NpcGearItem | null;
-    [key: string]: any;
   }
 
   interface NpcGearOptions {
@@ -220,7 +224,6 @@ declare global {
     arcaneCost?: number;
     oneShot?: boolean;
     rarity?: string;
-    [key: string]: any;
   }
 
   // === weaponRuntime.ts ===
@@ -275,7 +278,12 @@ declare global {
     fullRace?: string;
     speechColour?: string;
     relationToPlayer?: string;
-    location?: { world?: string; place?: string; x?: number; y?: number } | null;
+    location?: {
+      world?: string;
+      place?: string;
+      x?: number;
+      y?: number;
+    } | null;
     eyeColour?: string;
     level?: number;
     physique?: number;
@@ -294,7 +302,6 @@ declare global {
     hasVagina?: () => boolean;
     hasPenis?: () => boolean;
     hasBreasts?: () => boolean;
-    [key: string]: any;
   }
 
   interface HouseNpcOpts {
@@ -519,7 +526,6 @@ declare global {
     items?: Item[];
     weapons?: WeaponItem[];
     essences?: number;
-    [key: string]: any;
   }
 
   interface CombatEnemyLike {
@@ -598,6 +604,13 @@ declare global {
 
   interface EnumEntry extends NamedEntry {}
 
+  // Character creation's age-category weighting/preference list — a
+  // ColouredEntry plus the inclusive year range it covers.
+  interface AgeCategoryEntry extends ColouredEntry {
+    min: number;
+    max: number;
+  }
+
   // Uses `hex`, not `colour` — genuinely different field, not folded into
   // ColouredEntry (see PillEntry further below, which is the one place both
   // conventions meet).
@@ -634,6 +647,11 @@ declare global {
     modifiers: string[];
     stuffed: boolean;
     virgin: boolean;
+    // Runtime-drifting numeric capacity (distinct from the enum-id `capacity`
+    // above): sex.ts's getStretchedCapacity/setStretchedCapacity lazily seed
+    // this from a capacity-id-to-number median the first time it's read, then
+    // let repeated sex acts push it further — null until first read.
+    stretchedCapacity: number | null;
   }
 
   // Every Orifice size/enum field on the options bag below accepts either a
@@ -650,6 +668,7 @@ declare global {
     modifiers?: string[];
     stuffed?: boolean;
     virgin?: boolean;
+    stretchedCapacity?: number | null;
   }
 
   interface BodyCovering {
@@ -683,7 +702,13 @@ declare global {
     piercedStomach: boolean;
     takesAfterMother: boolean;
     arm: { type: string; rows: number; underarmHair: string };
-    ass: { type: string; size: string; hipSize: string; anus: Orifice; bleached: boolean };
+    ass: {
+      type: string;
+      size: string;
+      hipSize: string;
+      anus: Orifice;
+      bleached: boolean;
+    };
     breast: {
       type: string;
       shape: string;
@@ -697,7 +722,17 @@ declare global {
       milkFlavour?: string;
       milkModifiers?: string[];
       milkRegen?: number;
-      nipple: { shape: string; size: string; countPerBreast: number; pierced: boolean; puffy: boolean; fuckable: boolean };
+      // Not set by LT.createBody either — set on demand by
+      // content/advancedAppearance.ts's Lactation pill selector, an LT.LACTATION id.
+      lactation?: string;
+      nipple: {
+        shape: string;
+        size: string;
+        countPerBreast: number;
+        pierced: boolean;
+        puffy: boolean;
+        fuckable: boolean;
+      };
       areolae: { shape: string; size: string };
       orifice: Orifice;
     };
@@ -715,7 +750,14 @@ declare global {
       milkFlavour?: string;
       milkModifiers?: string[];
       milkRegen?: number;
-      nipple?: { shape: string; size: string; countPerBreast: number; pierced: boolean; puffy: boolean; fuckable: boolean };
+      nipple?: {
+        shape: string;
+        size: string;
+        countPerBreast: number;
+        pierced: boolean;
+        puffy: boolean;
+        fuckable: boolean;
+      };
       areolae?: { shape: string; size: string };
       orifice?: Orifice;
     };
@@ -731,15 +773,32 @@ declare global {
       mouth: Orifice;
       tongue: { length: number; pierced: boolean; modifiers: string[] };
     };
-    eye: { type: string; iris: string; irisShape: string; pupilShape: string; pairs: number };
+    eye: {
+      type: string;
+      iris: string;
+      irisShape: string;
+      pupilShape: string;
+      pairs: number;
+    };
     ear: { type: string; pierced: boolean };
-    hair: { type: string; length: string; style: string; colour: string; neckFluff: boolean };
+    hair: {
+      type: string;
+      length: string;
+      style: string;
+      colour: string;
+      neckFluff: boolean;
+    };
     leg: { type: string; configuration: string; footStructure: string };
     torso: { type: string; covering: BodyCovering };
     antenna: { type: string; length: number; rows: number; perRow: number };
     horn: { type: string; length: number; rows: number; perRow: number };
     tail: { type: string; count: number; girth: string; lengthPercent: number };
-    tentacle: { type: string; count: number; girth: string; lengthPercent: number };
+    tentacle: {
+      type: string;
+      count: number;
+      girth: string;
+      lengthPercent: number;
+    };
     wing: { type: string; size: string };
     spinneret: Orifice;
     penis: {
@@ -754,7 +813,17 @@ declare global {
       cumFlavour?: string;
       cumModifiers?: string[];
       cumExpulsion?: number;
-      testicle: { size: string; count: number; internal: boolean; cumStorage: number; cumStored: number };
+      // cumProduction: not set by LT.createBody either — set on demand by
+      // content/advancedAppearance.ts's Cum production pill selector, an
+      // LT.CUM_PRODUCTION id.
+      testicle: {
+        size: string;
+        count: number;
+        internal: boolean;
+        cumStorage: number;
+        cumStored: number;
+        cumProduction?: string;
+      };
       urethra: Orifice;
     };
     vagina: {
@@ -782,6 +851,10 @@ declare global {
     // requiring specific keys, allows the `coverings = {}` backfill both
     // ensureExtras() and coveringOf() perform before first use.
     coverings: Record<string, BodyCovering>;
+    // Set by character/npcBodies.ts's applyOfficialBody once a unique NPC's
+    // official 0.4.10 preset has been applied, so ensureAppearance doesn't
+    // reapply (and thus discard in-session edits) on every call.
+    _officialApplied?: boolean;
   }
 
   // Loosely-known character bag: only the fields this file calls as methods are
@@ -794,7 +867,7 @@ declare global {
     hasVagina?: () => boolean;
     hasBreasts?: () => boolean;
     gender?: { hasPenis?: boolean; hasVagina?: boolean; hasBreasts?: boolean };
-    [key: string]: any;
+    heightCm: number;
   }
 
   // Return shape of bodyShapeOf/getBodyShape — pulled out to a named type so
@@ -863,7 +936,8 @@ declare global {
   // these should re-run that full check rather than trusting a plain
   // `npm run typecheck` pass to catch conflicts introduced here.
   interface Character
-    extends ItemOwner,
+    extends
+      ItemOwner,
       OccupationOwner,
       ClothingWearer,
       BodyCarrier,
@@ -909,7 +983,13 @@ declare global {
     offhandWeapon: WeaponItem | null;
     weapons: WeaponItem[];
     occupation: Occupation | null;
-    sex: { vaginal: number; anal: number; oral: number; penisVirgin: boolean; vaginaVirgin: boolean };
+    sex: {
+      vaginal: number;
+      anal: number;
+      oral: number;
+      penisVirgin: boolean;
+      vaginaVirgin: boolean;
+    };
 
     // Set by setGender(), not the constructor — once present, overrides
     // gender.hasPenis/hasVagina in hasPenis()/hasVagina() below.
@@ -957,9 +1037,15 @@ declare global {
     // `true`, a genuine pre-existing collision. Keeping the same honest union
     // here (rather than re-narrowing it back to just the Record shape) so the
     // bug stays visible instead of being hidden by this redeclaration.
-    makeup?: boolean | Record<string, { colour?: string; modifier?: string } | undefined>;
+    makeup?:
+      | boolean
+      | Record<string, { colour?: string; modifier?: string } | undefined>;
     piercings?: Record<string, boolean | undefined>;
-    tattoos?: Record<string, { name?: string; type?: string; colour?: string; writing?: string } | undefined>;
+    tattoos?: Record<
+      string,
+      | { name?: string; type?: string; colour?: string; writing?: string }
+      | undefined
+    >;
 
     enchantBonus?: EnchantBonus;
     statusEffects?: Record<string, AppliedStatusEffect | undefined>;
@@ -988,11 +1074,28 @@ declare global {
     her(): string;
     getGenderColour(): string;
 
+    // Set once by content/characterCreation.ts's creation.name node
+    // (applyPreParsingEffects) after auto-rolling a random name for a
+    // player who hasn't set one — guards against re-rolling on repeat visits.
+    _nameRolled?: boolean;
+
+    // Set by character/appearance.ts's LT.revealArea (read by LT.knowsArea) —
+    // tracks which body areas (PENIS/VAGINA/ANUS/NIPPLES/EYES/...) this
+    // character has actually seen on another character, gating the
+    // character-info screen's "you haven't seen X before" fallbacks.
+    areasKnown?: Record<string, boolean>;
+
+    // Set by character/npcBodies.ts's applyOfficialBody from an
+    // OfficialBodySpec preset — only meaningful for unique NPCs, not the
+    // player (whose id never matches an OFFICIAL_BODIES key).
+    ageAppearance?: number;
+    description?: string;
+    raceConcealed?: boolean;
+
     // Every other file in the codebase that touches a player object reaches
     // for fields Character doesn't name yet (slavery.ts's captivity/collar
     // state, combat's runtime AP bookkeeping, save-game bookkeeping, etc.) —
     // same convention as every other "shape" interface in this file.
-    [key: string]: any;
   }
 
   interface GameCharacterOpts {
@@ -1006,6 +1109,89 @@ declare global {
     // actually match. Still unused today — the only real constructor call
     // site (player.ts) never passes it — ported for shape parity only.
     raceName?: string;
+  }
+
+  // === character/npcBodies.ts ===
+  // Official 0.4.10 body/appearance presets for unique NPCs, keyed by the
+  // same id used as their Npc.id — see LT.ensureAppearance. Only the fields
+  // present on literally every entry (including the sparsest, Ashley, whose
+  // race is concealed and who has no breasts) are required; every other
+  // field is genuinely omitted on at least one real preset.
+  interface OfficialBodySpec {
+    feminine: boolean;
+    hasPenis: boolean;
+    hasVagina: boolean;
+    hasBreasts: boolean;
+    height: number;
+    femininity: number;
+    bodySize: string;
+    muscle: string;
+    skin: string;
+    eye: string;
+    race: string;
+    subspecies: string;
+    hair?: string;
+    hairLength?: string;
+    hairStyle?: string;
+    lipSize?: string;
+    breastSize?: string;
+    breastShape?: string;
+    nippleSize?: string;
+    areolaeSize?: string;
+    assSize?: string;
+    hipSize?: string;
+    penisLength?: number;
+    testicleSize?: string;
+    vaginaCapacity?: string;
+    labiaSize?: string;
+    clitorisSize?: string;
+    faceType?: string;
+    earType?: string;
+    hornType?: string;
+    tailType?: string;
+    wingType?: string;
+    wingSize?: string;
+    ageAppearance?: number;
+    description?: string;
+    makeup?: Record<string, string>;
+    raceConcealed?: boolean;
+  }
+
+  // === character/appearance.ts ===
+
+  // The character-information screen (Selfie, Contacts, Characters Present
+  // inspect, museum creator hub) renders both the player and arbitrary named
+  // NPCs through the same code path. Character and Npc both carry an
+  // index signature, so a field named on only one side still resolves (as
+  // `any`) rather than erroring when accessed through this union — same
+  // reasoning as engine/utilText.ts's purpose-built ParseTarget, just backed
+  // by the two real interfaces instead of a third loose one.
+  type CharOrNpc = Character | Npc;
+
+  // voice(ch) below builds one of these once per render call so every
+  // section function can write "you"/"she"/"he" phrasing without repeating
+  // the isPlayer()/feminine() branching each time.
+  interface VoicePronouns {
+    name: string;
+    Name: string;
+    she: string;
+    She: string;
+    her: string;
+    Her: string;
+    him: string;
+    herself: string;
+    has: string;
+    is: string;
+    was: string;
+    doNot: string;
+    NameIs: string;
+    NameHas: string;
+    SheHas: string;
+    SheIs: string;
+  }
+
+  interface CharacterInfoScreenOpts {
+    perkTree?: boolean;
   }
 
   // === statusEffects.ts ===
@@ -1048,7 +1234,6 @@ declare global {
     statusEffects?: Record<string, AppliedStatusEffect | undefined>;
     name?: string;
     getName?: () => string;
-    [key: string]: any;
   }
 
   interface StatusEffectDef {
@@ -1068,9 +1253,17 @@ declare global {
     // internally (`ch && ch.player`, nameOf's own `if (!ch) return
     // "someone"`) rather than assuming a real carrier.
     icon: string | ((ch: StatusEffectCarrier | null | undefined) => string);
-    extra?: string[] | ((ch: StatusEffectCarrier | null | undefined) => string[]);
-    attributes?: Partial<StatusEffectBonus> | ((ch: StatusEffectCarrier | null | undefined) => Partial<StatusEffectBonus>);
-    description: string | ((ch: StatusEffectCarrier | null | undefined) => string);
+    extra?:
+      | string[]
+      | ((ch: StatusEffectCarrier | null | undefined) => string[]);
+    attributes?:
+      | Partial<StatusEffectBonus>
+      | ((
+          ch: StatusEffectCarrier | null | undefined,
+        ) => Partial<StatusEffectBonus>);
+    description:
+      | string
+      | ((ch: StatusEffectCarrier | null | undefined) => string);
     conditions?: (ch: StatusEffectCarrier | null | undefined) => boolean;
     onExpire?: (ch: StatusEffectCarrier | null | undefined) => string;
   }
@@ -1123,7 +1316,6 @@ declare global {
     mainWeapon?: WeaponItem | null;
     offhandWeapon?: WeaponItem | null;
     weapons?: WeaponItem[];
-    [key: string]: any;
   }
 
   interface SelectedMove {
@@ -1137,16 +1329,19 @@ declare global {
     ap: number;
     cooldown?: number;
     special?: boolean;
-    // Kind-specific extras layered on by combat/spells.ts and combat/tease.ts —
-    // spells.ts isn't typed yet, hence `any` rather than a real Spell shape.
-    spell?: any;
+    // Set by combat/spells.ts's register() for every spell-backed Move.
+    spell?: Spell;
     tease?: boolean;
     titleOf?: (src: Combatant) => string;
     canUse?: (src: Combatant, tgt?: Combatant | null) => boolean;
     cannotUseReason?: (src?: Combatant, tgt?: Combatant | null) => string;
     tooltip: (src: Combatant, tgt?: Combatant | null) => string;
     predict: (src: Combatant, tgt?: Combatant | null) => string;
-    perform: (src: Combatant, tgt?: Combatant | null, turnIndex?: number) => string;
+    perform: (
+      src: Combatant,
+      tgt?: Combatant | null,
+      turnIndex?: number,
+    ) => string;
   }
 
   interface ThrownWeaponRecord {
@@ -1188,9 +1383,20 @@ declare global {
     thrownThisTurn?: ThrownWeaponRecord[];
     thrownThisCombat?: ThrownWeaponRecord[];
     start: (opts: CombatStartOpts) => void;
-    typeWeight: (type: string, src: Combatant, tgt: Combatant, already: number, rnd?: () => number) => number;
+    typeWeight: (
+      type: string,
+      src: Combatant,
+      tgt: Combatant,
+      already: number,
+      rnd?: () => number,
+    ) => number;
     affordableEnemySpell: (src: Combatant) => string | null;
-    pickEnemyMove: (src: Combatant, tgt: Combatant, used?: Record<string, boolean>, rnd?: () => number) => { id: string; type: string };
+    pickEnemyMove: (
+      src: Combatant,
+      tgt: Combatant,
+      used?: Record<string, boolean>,
+      rnd?: () => number,
+    ) => { id: string; type: string };
     planEnemy: () => void;
     remainingAp: () => number;
     canQueue: (moveId: string) => string | null;
@@ -1201,6 +1407,99 @@ declare global {
     escape: () => boolean;
     finish: () => void;
     bar: (ch: Combatant, colour: string) => string;
+  }
+
+  // === combat/tease.ts ===
+
+  // Definition literal passed to tease.ts's own local teaseMove() helper,
+  // which builds a real Move from it — not consumed anywhere outside this
+  // file, but centralized here per this project's convention of keeping
+  // every type in one place.
+  interface TeaseDef {
+    id: string;
+    name: string;
+    base?: number;
+    canUse?: (src: Combatant) => boolean;
+    cannotUseReason?: () => string;
+    tooltip: string;
+    flavour: (src: Combatant, tgt: Combatant | null | undefined) => string;
+  }
+
+  // === combat/weaponSpecials.ts ===
+
+  // Catalog entry backing LT.WEAPON_SPECIALS — registerMagDump() turns each
+  // of these into a real Move.
+  interface WeaponSpecialDef {
+    id: string;
+    name: string;
+    title: string;
+    weaponId: string;
+    fallbackName: string;
+    needReason: string;
+    ap: number;
+    cooldown: number;
+    bulletDamage: number;
+    hitBase: number;
+    hitSpan: number;
+    predict: string;
+    tooltip: string;
+    flavour: string;
+  }
+
+  // === combat/loot.ts ===
+
+  // Deliberately narrower than Combatant: loot.ts's functions are called
+  // with real Combatant enemies (combat.ts), CombatEnemyLike (enchanting.ts),
+  // and NpcGearCarrier (npcGear.ts) alike — a Combatant-typed param would
+  // reject the last of those (NpcGearCarrier.mainWeapon is a different item
+  // shape). This names only the fields loot.ts's own functions actually
+  // read, which every one of those callers' real shapes satisfies.
+  interface LootTarget {
+    id?: string;
+    level?: number;
+    raceName?: string;
+    fullRace?: string;
+    race?: { id?: string };
+    lootMoney?: number;
+    lootEssences?: number;
+    lootItems?: unknown[] | null;
+  }
+
+  // === combat/spells.ts ===
+
+  // Catalog entry backing LT.SPELLS — register() turns each of these into a
+  // real Move (attached back onto it as Move.spell).
+  interface Spell {
+    id: string;
+    name: string;
+    school: string;
+    damageType: string;
+    damage: number;
+    // Looked up as LT.DAMAGE_VARIANCE[spell.variance] (a plain
+    // Record<string, number>), so stays a general string rather than a
+    // literal union tied to today's single "LOW" value in every catalog
+    // entry.
+    variance: string;
+    cost: number;
+    ap: number;
+    // Every value actually used across LT.SPELLS' 13 entries and register()'s
+    // own effect-branching logic — a genuinely closed set in this file.
+    effect:
+      | "health"
+      | "flash"
+      | "poison"
+      | "heal"
+      | "shell"
+      | "cloak"
+      | "rain"
+      | "cloud"
+      | "telepathic"
+      | "lust";
+    description: string;
+    castPc: string;
+    castNpc: string;
+    extra?: string;
+    self?: boolean;
   }
 
   // === grid.ts, roam.ts ===
@@ -1385,7 +1684,18 @@ declare global {
   // field usage; out of scope for this pass.
   interface ContentNodeDef {
     id: string;
-    [key: string]: any;
+    ui: string;
+    title: ((gameState: GameState) => string) | string;
+    chrome: { left: boolean; right: boolean };
+    travelDisabled: boolean;
+    getContent: (gameState: GameState) => string;
+    content: string;
+    getHeaderContent: (gameState: GameState) => string;
+    getResponses: (gameState: GameState, tabIndex: number) => LTResponse[];
+    responses: LTResponse[];
+    applyPreParsingEffects: (opts: GameState) => void;
+    tabs: string[];
+    secondsPassed: number;
   }
 
   // === ui/openUI.ts ===
@@ -1395,7 +1705,8 @@ declare global {
   // genuinely free-form per section, hence the index signature.
   interface UIOpenOpts {
     target?: string;
-    [key: string]: any;
+    node: ContentNodeDef;
+    game: GameState;
   }
 
   interface UISectionHooks {
@@ -1466,10 +1777,6 @@ declare global {
     advanceTime(seconds: number): void;
     flag(name: string): boolean;
     setFlag(name: string, on?: boolean): void;
-    // Every other file that touches LT.game reaches for fields not named here
-    // (save.ts's returnNode, discoveredWorlds; grid/roam.ts's world-travel
-    // bookkeeping, etc.) — same convention as Character/Combatant/EnchantCarrier.
-    [key: string]: any;
   }
 
   // === sex.ts ===
@@ -1498,13 +1805,145 @@ declare global {
     perform: (src: Combatant, tgt?: Combatant | null) => string;
   }
 
+  // registerPair/registerSelf/registerPosition's own `spec` parameter shapes
+  // — implicitly `any` before this pass (spec wasn't typed, so every nested
+  // `ok`/`onStart`/etc. callback at each call site was implicitly `any` too).
+  // selfA/tgtA stay `string` (an LT.AROUSAL_INCREASE key), matching
+  // SexAction.selfArousal/targetArousal's own existing looseness rather than
+  // inventing a stricter union not used elsewhere in this file.
+  interface SexActionSubSpec {
+    name: string;
+    tip: string;
+    selfA: string;
+    tgtA: string;
+    lines: string[];
+  }
+
+  interface SexActionStopSpec {
+    name: string;
+    tip: string;
+    lines: string[];
+  }
+
+  interface SexPairReceiveSpec {
+    start: SexActionSubSpec;
+    ongoing: SexActionSubSpec;
+    stop: SexActionStopSpec;
+  }
+
+  interface SexPairSpec {
+    id: string;
+    label: string;
+    // Both params stay optional/nullable, not just Combatant: registerPair's
+    // own internal canUse callbacks are contextually typed against
+    // SexAction.canUse's (src: Combatant, tgt?: Combatant | null) => boolean
+    // signature (register()'s parameter type), so either one genuinely can
+    // be null/undefined by the time it's forwarded into spec.ok — the
+    // "receive" variants below call `spec.ok(tgt, src)` (swapped), so tgt's
+    // nullability can land in either position depending on direction.
+    ok: (giver?: Combatant | null, receiver?: Combatant | null) => boolean;
+    start: SexActionSubSpec;
+    ongoing: SexActionSubSpec;
+    stop: SexActionStopSpec;
+    // Only one real call site (kiss) uses either — confirmed via a full grep
+    // of every registerPair({...}) literal in the file. Same tgt optionality
+    // reasoning as `ok` above.
+    onStart?: (src: Combatant, tgt?: Combatant | null) => string | void;
+    receive?: SexPairReceiveSpec;
+    onReceiveStart?: (src: Combatant, tgt?: Combatant | null) => string | void;
+  }
+
+  interface SexSelfSpec {
+    id: string;
+    label: string;
+    ok: (src: Combatant) => boolean;
+    start: SexActionSubSpec;
+    ongoing: SexActionSubSpec;
+    stop: SexActionStopSpec;
+  }
+
+  interface SexPositionSpec {
+    id: string;
+    name: string;
+    position: string;
+    tip: string;
+    line: string;
+    // registerPosition's own body always calls spec.ok(src, tgt); the one
+    // real call site (pos_mating_press) only declares a 1-arg `ok(src)`,
+    // which structurally satisfies this 2-arg signature (a function is
+    // callable with more args than it declares).
+    ok?: (src: Combatant, tgt?: Combatant | null) => boolean;
+  }
+
+  // LT.sex.start's opts. postSexNode flows straight into LT.game.setContent,
+  // which accepts a bare node-id string. `partner` stays optional (not
+  // required) even though nothing sensible happens without one, matching
+  // the function's own `opts = opts || {}` / `if (!player || !partner)
+  // return;` defensive pattern — the runtime guard, not the type, is what
+  // actually enforces it's present.
+  interface SexStartOpts {
+    partner?: Combatant | null;
+    playerDom?: boolean;
+    consensual?: boolean;
+    manager?: string;
+    positionName?: string;
+    postSexNode?: string | null;
+    startText?: string;
+    onEnd?: (() => string | void) | null;
+  }
+
+  // === pregnancy.ts ===
+  // ch.pregnancy itself stays untyped/`any` (falls through Combatant/
+  // Character's index signatures) — out of scope for this pass, which only
+  // needed to name the shape of one array element it iterates over with an
+  // otherwise-implicit-any callback param.
+  interface PregnancyPossibility {
+    motherId: string;
+    fatherId: string;
+    probability: number;
+  }
+
+  // === engine/bugReport.ts ===
+  // Bounded (most-recent MAX_ENTRIES) rolling logs, captured from page load
+  // onward, that back the "Copy bug report" chrome button — lets alpha/beta
+  // testers hand over recent state/history/errors instead of just "it broke".
+
+  interface BugReportErrorEntry {
+    time: string;
+    message: string;
+    source?: string;
+    line?: number;
+    column?: number;
+    stack?: string;
+  }
+
+  interface BugReportHistoryEntry {
+    time: string;
+    type: "node" | "choice";
+    label: string;
+  }
+
   // === LTNamespace ===
   // Base index signature plus every module's typed members, merged into one
   // interface. `LT.whatever` resolves to the specific signature below when
   // one exists, and falls through to `any` via the index signature otherwise.
   interface LTNamespace {
-    [key: string]: any;
-
+    sex: {
+      responseTab: number;
+    };
+    tickWeather: (seconds: number) => void;
+    tickRegeneration: (player: Character, seconds: number) => void;
+    // Object that holds the colour hex-codes for the various resource types. Used in the UI to colour the resource bars.
+    Colour: {
+      GENERIC_ARCANE: string;
+      GENERIC_GOOD: string;
+      GENERIC_BAD: string;
+      MONEY: string;
+      ESSENCE: string;
+      HEALTH: string;
+      LUST: string;
+      MANA: string;
+    };
     // items.ts
     Item: ItemConstructor;
     ITEMS: Record<string, ItemCatalogEntry>;
@@ -1529,6 +1968,9 @@ declare global {
       item: Item | null | undefined,
     ): string;
     buyItem(player: ItemOwner, id: string): string;
+    hideTooltip(delay?: number): void;
+    bindTooltip(el: Element, htmlOrFn: string | (() => string)): void;
+    showTooltip(el: string, xCoord: number, yCoord: number): void;
     itemShopHtml(seller: string, intro?: string): string;
     itemShopResponses(seller: string, leaveNode: string | null): LTResponse[];
 
@@ -1540,25 +1982,52 @@ declare global {
     creationClothedEnough(player: ClothingWearer): boolean | undefined;
     dressPlayer(player: ClothingWearer): void;
     unequipToWardrobe(player: ClothingWearer, slot: string): boolean;
-    clothingValue(itemOrId: string | ClothingCatalogEntry | null | undefined): number;
-    clothingBuyPrice(itemOrId: string | ClothingCatalogEntry | null | undefined): number;
+    clothingValue(
+      itemOrId: string | ClothingCatalogEntry | null | undefined,
+    ): number;
+    clothingBuyPrice(
+      itemOrId: string | ClothingCatalogEntry | null | undefined,
+    ): number;
     nyanStock(group?: string): string[];
     equipFromWardrobe(player: ClothingWearer, uid: string): boolean | undefined;
 
     // npcGear.ts
-    dressNpcOutfit<T extends NpcGearCarrier | null | undefined>(npc: T, outfitType?: string | null): T;
+    dressNpcOutfit<T extends NpcGearCarrier | null | undefined>(
+      npc: T,
+      outfitType?: string | null,
+    ): T;
     supplyNpcInventory<T extends NpcGearCarrier | null | undefined>(npc: T): T;
-    prepareNpcGear<T extends NpcGearCarrier | null | undefined>(npc: T, opts?: NpcGearOptions | null): T;
-    dressUniqueNpc<T extends NpcGearCarrier | null | undefined>(id: string, npc: T): T;
-    npcEquippedList(npc: NpcGearCarrier | null | undefined): { slot: string; item: NpcGearItem }[];
+    prepareNpcGear<T extends NpcGearCarrier | null | undefined>(
+      npc: T,
+      opts?: NpcGearOptions | null,
+    ): T;
+    dressUniqueNpc<T extends NpcGearCarrier | null | undefined>(
+      id: string,
+      npc: T,
+    ): T;
+    npcEquippedList(
+      npc: NpcGearCarrier | null | undefined,
+    ): { slot: string; item: NpcGearItem }[];
     npcHasLoot(npc: NpcGearCarrier | null | undefined): boolean;
-    takeNpcClothing(npc: NpcGearCarrier | null | undefined, slot: string): NpcGearItem | null;
-    takeNpcItem(npc: NpcGearCarrier | null | undefined, uid: string): NpcGearItem | null;
-    takeNpcWeapon(npc: NpcGearCarrier | null | undefined, which: string): NpcGearItem | null;
+    takeNpcClothing(
+      npc: NpcGearCarrier | null | undefined,
+      slot: string,
+    ): NpcGearItem | null;
+    takeNpcItem(
+      npc: NpcGearCarrier | null | undefined,
+      uid: string,
+    ): NpcGearItem | null;
+    takeNpcWeapon(
+      npc: NpcGearCarrier | null | undefined,
+      which: string,
+    ): NpcGearItem | null;
     stripNpc(npc: NpcGearCarrier | null | undefined): NpcGearItem[];
     takeAllNpcItems(npc: NpcGearCarrier | null | undefined): NpcGearItem[];
     takeAllNpcWeapons(npc: NpcGearCarrier | null | undefined): NpcGearItem[];
-    openNpcLoot(npc: NpcGearCarrier | null | undefined, returnNode?: string | null): void;
+    openNpcLoot(
+      npc: NpcGearCarrier | null | undefined,
+      returnNode?: string | null,
+    ): void;
     currentLootNpc(): NpcGearCarrier | null;
 
     // npcs.ts
@@ -1588,21 +2057,51 @@ declare global {
     // weaponRuntime.ts
     DAMAGE_VARIANCE: Record<string, number>;
     WEAPON_SLOTS: { id: string; label: string }[];
-    getWeaponType(id: string | { id: string } | null | undefined): WeaponType | null;
+    getWeaponType(
+      id: string | { id: string } | null | undefined,
+    ): WeaponType | null;
     weaponRarityColour(rarity: string | null | undefined): string;
-    makeWeapon(id: string | null | undefined, damageType?: string | null): WeaponItem | null;
+    makeWeapon(
+      id: string | null | undefined,
+      damageType?: string | null,
+    ): WeaponItem | null;
     getMainWeapon(ch: Combatant | null | undefined): WeaponItem | null;
     getOffhandWeapon(ch: Combatant | null | undefined): WeaponItem | null;
     isTwoHandedEquipped(ch: Combatant | null | undefined): boolean;
-    weaponUsesUnarmed(weaponOrType: WeaponItem | WeaponType | null | undefined): boolean;
-    baseWeaponDamage(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): number;
-    weaponRange(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): { min: number; max: number };
-    rollWeapon(weapon: WeaponItem | null | undefined, attacker?: Combatant | null): number;
-    equipOfficialLoadout<T extends Combatant | null | undefined>(who: string, ch: T): T;
-    armMuggerFromOutfit<T extends Combatant | null | undefined>(ch: T, opts?: ArmMuggerOptions | null): T;
+    weaponUsesUnarmed(
+      weaponOrType: WeaponItem | WeaponType | null | undefined,
+    ): boolean;
+    baseWeaponDamage(
+      weapon: WeaponItem | null | undefined,
+      attacker?: Combatant | null,
+    ): number;
+    weaponRange(
+      weapon: WeaponItem | null | undefined,
+      attacker?: Combatant | null,
+    ): { min: number; max: number };
+    rollWeapon(
+      weapon: WeaponItem | null | undefined,
+      attacker?: Combatant | null,
+    ): number;
+    equipOfficialLoadout<T extends Combatant | null | undefined>(
+      who: string,
+      ch: T,
+    ): T;
+    armMuggerFromOutfit<T extends Combatant | null | undefined>(
+      ch: T,
+      opts?: ArmMuggerOptions | null,
+    ): T;
     weaponAttackName(weapon: WeaponItem | null | undefined): string;
-    parseWeaponText(text: string | null | undefined, attacker: Combatant | null | undefined, target: Combatant | null | undefined): string;
-    weaponHitText(src: Combatant | null | undefined, tgt: Combatant | null | undefined, weapon: WeaponItem | null | undefined): string;
+    parseWeaponText(
+      text: string | null | undefined,
+      attacker: Combatant | null | undefined,
+      target: Combatant | null | undefined,
+    ): string;
+    weaponHitText(
+      src: Combatant | null | undefined,
+      tgt: Combatant | null | undefined,
+      weapon: WeaponItem | null | undefined,
+    ): string;
     unequipWeapon(player: Combatant, slot: string): void;
     equipWeapon(player: Combatant, uid: string, slot: string): boolean;
     ownedWeaponIds(player: Combatant): Record<string, boolean>;
@@ -1617,9 +2116,22 @@ declare global {
     queuedEssenceCost(ch: Combatant | null | undefined): number;
     canAffordWeapon(ch: Combatant, slot: string): boolean;
     CRITICAL_DAMAGE: number;
-    isMoveCrit(ch: Combatant | null | undefined, moveId: string, turnIndex: number | null | undefined): boolean;
-    applyCrit(ch: Combatant | null | undefined, moveId: string, turnIndex: number | null | undefined, dmg: number): { dmg: number; crit: boolean };
-    consumeOneShot(ch: Combatant | null | undefined, slot: string, weapon: WeaponItem | null | undefined): void;
+    isMoveCrit(
+      ch: Combatant | null | undefined,
+      moveId: string,
+      turnIndex: number | null | undefined,
+    ): boolean;
+    applyCrit(
+      ch: Combatant | null | undefined,
+      moveId: string,
+      turnIndex: number | null | undefined,
+      dmg: number,
+    ): { dmg: number; crit: boolean };
+    consumeOneShot(
+      ch: Combatant | null | undefined,
+      slot: string,
+      weapon: WeaponItem | null | undefined,
+    ): void;
     recoverThrownAfterTurn(): string[];
     recoverThrownAfterCombat(): void;
 
@@ -1636,11 +2148,16 @@ declare global {
     canManageHouse(): boolean;
     isEmptyHouseRoom(placeType: string | null | undefined): boolean;
     currentRoomKey(): string;
-    parseRoomKey(key: string | null | undefined): { world: string; x: number; y: number } | null;
+    parseRoomKey(
+      key: string | null | undefined,
+    ): { world: string; x: number; y: number } | null;
     roomUpgradeAt(key?: string | null): HouseUpgrade | null;
     findUpgradeKey(upgradeId: string): string | null;
     countUpgrade(upgradeId: string): number;
-    applyRoomUpgradeVisual(key: string, upgrade: HouseUpgrade | null | undefined): void;
+    applyRoomUpgradeVisual(
+      key: string,
+      upgrade: HouseUpgrade | null | undefined,
+    ): void;
     refreshAllRoomVisuals(): void;
     convertRoom(upgradeId: string): string;
     normalizeSlave<T extends SlaveRecord | null | undefined>(rec: T): T;
@@ -1649,23 +2166,52 @@ declare global {
     collectPendingSlave(index: number): SlaveRecord | null;
     takeOwnership(npc: Npc | null | undefined): SlaveRecord | null;
     findSlave(id: string): SlaveRecord | null;
-    slaveJobName(rec: SlaveRecord | null | undefined, hour?: number | null): string;
-    getSlaveJob(rec: SlaveRecord | null | undefined, hour?: number | null): string;
-    isSlaveAtWork(rec: SlaveRecord | null | undefined, hour?: number | null): boolean;
-    countWorkingJob(hour: number, jobId: string, skipId?: string | null): number;
-    jobHourAvailable(jobId: string, rec: SlaveRecord, hour: number): JobAvailability;
+    slaveJobName(
+      rec: SlaveRecord | null | undefined,
+      hour?: number | null,
+    ): string;
+    getSlaveJob(
+      rec: SlaveRecord | null | undefined,
+      hour?: number | null,
+    ): string;
+    isSlaveAtWork(
+      rec: SlaveRecord | null | undefined,
+      hour?: number | null,
+    ): boolean;
+    countWorkingJob(
+      hour: number,
+      jobId: string,
+      skipId?: string | null,
+    ): number;
+    jobHourAvailable(
+      jobId: string,
+      rec: SlaveRecord,
+      hour: number,
+    ): JobAvailability;
     slavesInRoom(key?: string | null): SlaveRecord[];
     jobAvailable(jobId: string, rec: SlaveRecord): JobAvailability;
     setSlaveJobHour(rec: SlaveRecord, hour: number, jobId: string): string;
-    applySlaveHoursPreset(rec: SlaveRecord, presetId: string, jobId?: string | null, force?: boolean): string;
+    applySlaveHoursPreset(
+      rec: SlaveRecord,
+      presetId: string,
+      jobId?: string | null,
+      force?: boolean,
+    ): string;
     primarySlaveJob(rec: SlaveRecord): string;
     slaveHoursSummary(rec: SlaveRecord): string;
     setSlaveJob(rec: SlaveRecord, jobId: string): string;
     slaveHourlyIncome(rec: SlaveRecord, jobId: string): number;
     dailySlaveStamina(rec: SlaveRecord): number;
     overworkLevel(rec: SlaveRecord): number;
-    hasSlavePermission(rec: SlaveRecord | null | undefined, settingId: string): boolean;
-    setSlavePermission(rec: SlaveRecord, groupId: string, settingId: string): void;
+    hasSlavePermission(
+      rec: SlaveRecord | null | undefined,
+      settingId: string,
+    ): boolean;
+    setSlavePermission(
+      rec: SlaveRecord,
+      groupId: string,
+      settingId: string,
+    ): void;
     slaveBehaviourName(rec: SlaveRecord): string;
     assignSlaveHome(rec: SlaveRecord, key: string): string;
     slaveWorkPlace(rec: SlaveRecord): SlaveWorkPlace | null;
@@ -1677,7 +2223,10 @@ declare global {
     jobSexText(rec: SlaveRecord): string;
     maybeWorkplaceSex(): string;
     isSafeImageUrl(url: string | null | undefined): boolean;
-    setCharacterImage(id: string | null | undefined, url: string | null | undefined): boolean;
+    setCharacterImage(
+      id: string | null | undefined,
+      url: string | null | undefined,
+    ): boolean;
     getCharacterImage(id: string | null | undefined): string;
     promptCharacterImage(id: string): boolean;
     portraitHtml(id: string | null | undefined, cls?: string | null): string;
@@ -1749,7 +2298,11 @@ declare global {
       | { error: string; item?: undefined; cost?: undefined }
       | { item: CarriedThing; cost: number; error?: undefined };
     findCarriedByUid(player: EnchantCarrier, uid: string): CarriedRef;
-    replaceCarried(player: EnchantCarrier, uid: string, next: CarriedThing): boolean;
+    replaceCarried(
+      player: EnchantCarrier,
+      uid: string,
+      next: CarriedThing,
+    ): boolean;
 
     // occupations.ts
     OCCUPATIONS: Occupation[];
@@ -1774,7 +2327,10 @@ declare global {
     HAIR_COLOUR: SwatchEntry[];
     EYE: SwatchEntry[];
     hairLengthIndex(id: string): number;
-    bodyShapeOf(size: BodyEnumEntry | null | undefined, muscle: BodyEnumEntry | null | undefined): BodyShape;
+    bodyShapeOf(
+      size: BodyEnumEntry | null | undefined,
+      muscle: BodyEnumEntry | null | undefined,
+    ): BodyShape;
     findById<T extends { id: string }>(arr: T[], id: string): T;
     BODY_HAIR: EnumEntry[];
     BODY_MATERIAL: EnumEntry[];
@@ -1786,6 +2342,10 @@ declare global {
     FOOT_STRUCTURE: EnumEntry[];
     LEG_CONFIGURATION: EnumEntry[];
     WETNESS: EnumEntry[];
+    LACTATION: EnumEntry[];
+    CUM_PRODUCTION: EnumEntry[];
+    CAPACITY: EnumEntry[];
+    AGE_CATEGORY: AgeCategoryEntry[];
     ELASTICITY: EnumEntry[];
     PLASTICITY: EnumEntry[];
     ORIFICE_DEPTH: EnumEntry[];
@@ -1810,11 +2370,21 @@ declare global {
     // body.ts
     emptyOrifice(opts?: OrificeOpts): Orifice;
     createBody(opts?: Record<string, any> | null): CharacterBody;
-    syncCharacterFromBody(ch: BodyCarrier | null | undefined): BodyCarrier | null | undefined;
+    syncCharacterFromBody(
+      ch: BodyCarrier | null | undefined,
+    ): BodyCarrier | null | undefined;
+    syncBodyFromCharacter(
+      ch: BodyCarrier | null | undefined,
+    ): BodyCarrier | null | undefined;
     ensureBody(ch: BodyCarrier | null | undefined): CharacterBody | null;
-    ensureCharacterSystems(ch: BodyCarrier | null | undefined): BodyCarrier | null | undefined;
+    ensureCharacterSystems(
+      ch: BodyCarrier | null | undefined,
+    ): BodyCarrier | null | undefined;
     serializeBody(body: CharacterBody | null | undefined): CharacterBody | null;
-    applySavedBody(ch: BodyCarrier | null | undefined, data: Record<string, any> | null | undefined): BodyCarrier | null | undefined;
+    applySavedBody(
+      ch: BodyCarrier | null | undefined,
+      data: Record<string, any> | null | undefined,
+    ): BodyCarrier | null | undefined;
 
     // enums.ts
     Femininity: Record<string, FemininityEntry>;
@@ -1840,22 +2410,115 @@ declare global {
     effectiveCorruption(ch: Combatant): number;
     experienceNeeded(level: number): number;
     unarmedDamage(ch: Combatant | null | undefined): number;
-    refreshVitals<T extends Combatant | null | undefined>(ch: T, fill?: boolean): T;
+    refreshVitals<T extends Combatant | null | undefined>(
+      ch: T,
+      fill?: boolean,
+    ): T;
     incrementExperience(amount: number): string;
     createNewPlayer(): Character;
     describeBody(p: Character | null | undefined): string;
 
+    // character/npcBodies.ts
+    OFFICIAL_BODIES: Record<string, OfficialBodySpec>;
+    applyOfficialBody<T extends BodyCarrier | null | undefined>(
+      ch: T,
+      preset: OfficialBodySpec | null | undefined,
+    ): T;
+    ensureAppearance<T extends BodyCarrier | null | undefined>(ch: T): T;
+
+    // character/appearance.ts
+    knowsArea(target: CharOrNpc | null | undefined, area: string): boolean;
+    revealArea(target: CharOrNpc | null | undefined, area: string): void;
+    getBodyDescription(ch: CharOrNpc | null | undefined): string;
+    getCharacterInformationScreen(
+      ch: CharOrNpc | null | undefined,
+      opts?: CharacterInfoScreenOpts | null,
+    ): string;
+
     // combat.ts
     combat: CombatState;
     MOVES: Record<string, Move>;
-    ResponseCombat(title: string, tooltipText: string, opts: CombatStartOpts): LTResponse;
+    ResponseCombat(
+      title: string,
+      tooltipText: string,
+      opts: CombatStartOpts,
+    ): LTResponse;
+
+    // combat/tease.ts
+    TEASE_SPECIAL_IDS: string[];
+    seductionDescription(
+      src: Combatant | null | undefined,
+      tgt: Combatant | null | undefined,
+    ): string;
+    availableTeases(ch: Combatant | null | undefined): string[];
+
+    // combat/weaponSpecials.ts
+    resetMoveCooldowns(ch: Combatant | null | undefined): void;
+    getMoveCooldown(ch: Combatant | null | undefined, id: string): number;
+    setMoveCooldown(
+      ch: Combatant | null | undefined,
+      id: string,
+      turns: number,
+    ): void;
+    lowerMoveCooldowns(ch: Combatant | null | undefined): void;
+    WEAPON_SPECIALS: Record<string, WeaponSpecialDef>;
+    WEAPON_SPECIAL_IDS: string[];
+    availableSpecials(ch: Combatant | null | undefined): string[];
+
+    // combat/spells.ts
+    SPELLS: Record<string, Spell>;
+    SPELL_IDS: string[];
+    knownSpells(ch: Combatant | null | undefined): string[];
+    learnSpell(
+      ch: Combatant | null | undefined,
+      id: string | null | undefined,
+    ): void;
+    spellRange(spell: Spell): { min: number; max: number };
+    rollSpell(spell: Spell): number;
+    queuedSpellCost(ch: Combatant | null | undefined): number;
+    canAffordSpell(
+      ch: Combatant | null | undefined,
+      spell: Spell | null | undefined,
+    ): boolean;
+
+    // combat/loot.ts
+    tfItemForRace(enemy: LootTarget | null | undefined): string | null;
+    getExperienceFromVictory(enemy: LootTarget | null | undefined): number;
+    getLootMoney(enemy: LootTarget | null | undefined): number;
+    getLootEssenceDrops(enemy: LootTarget | null | undefined): number;
+    getLootItemId(enemy: LootTarget | null | undefined): string | null;
+    applyCombatVictoryLoot(enemy: LootTarget | null | undefined): string;
+
+    // combat/attack.ts
+    unarmedRange(attacker: Combatant | null | undefined): {
+      min: number;
+      max: number;
+    };
+    strikeRange(
+      attacker: Combatant | null | undefined,
+      slot: string,
+    ): { min: number; max: number };
+    rollStrike(attacker: Combatant | null | undefined, slot: string): number;
+    rollUnarmed(attacker: Combatant | null | undefined): number;
+    TEASE_BASE: number;
+    MAX_LUST: number;
+    lustRange(src: Combatant | null | undefined): { min: number; max: number };
+    rollLust(src: Combatant | null | undefined): number;
+    applyLust(target: Combatant | null | undefined, amount: number): number;
 
     // status.ts
-    applyStatus(ch: Combatant | null | undefined, id: string, turns: number): void;
+    applyStatus(
+      ch: Combatant | null | undefined,
+      id: string,
+      turns: number,
+    ): void;
     // `turns` is optional: the real implementation (statusEffects.ts's
     // LT.getStatus) falls back to `rec.secondsRemaining`, which isn't
     // always set.
-    getStatus(ch: Combatant | null | undefined, id: string): { id: string; turns?: number } | null | undefined;
+    getStatus(
+      ch: Combatant | null | undefined,
+      id: string,
+    ): { id: string; turns?: number } | null | undefined;
     clearStatuses(ch: Combatant | null | undefined): void;
     apPenalty(ch: Combatant | null | undefined): number;
     consumeFlash(ch: Combatant): number;
@@ -1871,47 +2534,110 @@ declare global {
     isVulnerableToArcaneStorm(ch?: StatusEffectCarrier | null): boolean;
     STATUS_EFFECTS: Record<string, StatusEffectDef>;
     getStatusDef(id: string): StatusEffectDef | null;
-    hasStatusEffect(ch: StatusEffectCarrier | null | undefined, id: string): boolean;
-    getAppliedStatus(ch: StatusEffectCarrier | null | undefined, id: string): AppliedStatusEffect | null | undefined;
+    hasStatusEffect(
+      ch: StatusEffectCarrier | null | undefined,
+      id: string,
+    ): boolean;
+    getAppliedStatus(
+      ch: StatusEffectCarrier | null | undefined,
+      id: string,
+    ): AppliedStatusEffect | null | undefined;
     addStatusEffect(
       ch: StatusEffectCarrier | null | undefined,
       id: string,
-      duration?: number | { combatTurns?: number; secondsRemaining?: number } | null,
+      duration?:
+        | number
+        | { combatTurns?: number; secondsRemaining?: number }
+        | null,
     ): boolean;
-    removeStatusEffect(ch: StatusEffectCarrier | null | undefined, id: string): boolean;
+    removeStatusEffect(
+      ch: StatusEffectCarrier | null | undefined,
+      id: string,
+    ): boolean;
     removeCombatStatusEffects(ch: StatusEffectCarrier | null | undefined): void;
-    listStatusEffects(ch: StatusEffectCarrier | null | undefined): StatusEffectListEntry[];
+    listStatusEffects(
+      ch: StatusEffectCarrier | null | undefined,
+    ): StatusEffectListEntry[];
     statusBonus(ch: StatusEffectCarrier | null | undefined): StatusEffectBonus;
     getRestingLust(ch: StatusEffectCarrier | null | undefined): number;
     stormDoublesEssences(ch?: StatusEffectCarrier | null): boolean;
     formatStatusDuration(seconds: number): string;
-    refreshConditionalStatusEffects(ch: StatusEffectCarrier | null | undefined): void;
-    tickWorldStatusEffects(ch: StatusEffectCarrier | null | undefined, seconds: number): void;
-    applySleepEffect(ch: StatusEffectCarrier | null | undefined, additionalMinutes?: number): void;
-    applySexEndStatusEffects(ch: StatusEffectCarrier | null | undefined, orgasmed: boolean): void;
-    statusTooltip(ch: StatusEffectCarrier | null | undefined, id: string): string;
-    paintStatusEffects(ch?: StatusEffectCarrier | null): void;
-    serializeStatusEffects(
+    refreshConditionalStatusEffects(
       ch: StatusEffectCarrier | null | undefined,
-    ): Record<string, { id: string; secondsRemaining?: number; combatTurns?: number; lastApplied: number; secondsPassed?: number }>;
-    applySavedStatusEffects(ch: StatusEffectCarrier | null | undefined, data: Record<string, any> | null | undefined): void;
+    ): void;
+    tickWorldStatusEffects(
+      ch: StatusEffectCarrier | null | undefined,
+      seconds: number,
+    ): void;
+    applySleepEffect(
+      ch: StatusEffectCarrier | null | undefined,
+      additionalMinutes?: number,
+    ): void;
+    applySexEndStatusEffects(
+      ch: StatusEffectCarrier | null | undefined,
+      orgasmed: boolean,
+    ): void;
+    statusTooltip(
+      ch: StatusEffectCarrier | null | undefined,
+      id: string,
+    ): string;
+    paintStatusEffects(ch?: StatusEffectCarrier | null): void;
+    serializeStatusEffects(ch: StatusEffectCarrier | null | undefined): Record<
+      string,
+      {
+        id: string;
+        secondsRemaining?: number;
+        combatTurns?: number;
+        lastApplied: number;
+        secondsPassed?: number;
+      }
+    >;
+    applySavedStatusEffects(
+      ch: StatusEffectCarrier | null | undefined,
+      data: Record<string, any> | null | undefined,
+    ): void;
 
     // damage.ts
     SHIELD_TYPES: string[];
     resistFromStatuses(ch: Combatant | null | undefined, type: string): number;
     refreshShields(ch: Combatant | null | undefined): void;
-    shieldAbsorb(ch: Combatant | null | undefined, type: string | null | undefined, amount: number): number;
-    applyTypedDamage(target: Combatant | null | undefined, amount: number, type?: string | null): number;
+    shieldAbsorb(
+      ch: Combatant | null | undefined,
+      type: string | null | undefined,
+      amount: number,
+    ): number;
+    applyTypedDamage(
+      target: Combatant | null | undefined,
+      amount: number,
+      type?: string | null,
+    ): number;
     strikeDamageType(weapon: WeaponItem | null | undefined): string;
-    spellCostOf(ch: Combatant | null | undefined, spell: { cost?: number } | null | undefined): number;
+    spellCostOf(
+      ch: Combatant | null | undefined,
+      spell: { cost?: number } | null | undefined,
+    ): number;
     lustDamageBonus(ch: Combatant | null | undefined): number;
-    applyEnchantDamage(ch: Combatant | null | undefined, weapon: WeaponItem | null | undefined, amount: number): number;
+    applyEnchantDamage(
+      ch: Combatant | null | undefined,
+      weapon: WeaponItem | null | undefined,
+      amount: number,
+    ): number;
     lustDamageMultiplier(ch: Combatant | null | undefined): number;
-    modifyOutgoingLust(ch: Combatant | null | undefined, amount: number): number;
+    modifyOutgoingLust(
+      ch: Combatant | null | undefined,
+      amount: number,
+    ): number;
 
     // roam.ts
-    findPlaceTile(gridName: string, placeType: string | null | undefined): TileLike | null;
-    enterWorld(gridName: string, placeType?: string | null, coords?: { x: number; y: number } | null): GridTile | null;
+    findPlaceTile(
+      gridName: string,
+      placeType: string | null | undefined,
+    ): TileLike | null;
+    enterWorld(
+      gridName: string,
+      placeType?: string | null,
+      coords?: { x: number; y: number } | null,
+    ): GridTile | null;
     travelToPlace(gridName: string, placeType?: string | null): boolean;
     useTileTravel(): boolean;
 
@@ -1938,14 +2664,27 @@ declare global {
 
     // content/encounters.ts
     pickWeightedEncounter(entries: EncounterEntry[]): EncounterEntry | null;
-    rollEncounterTable(entries: EncounterEntry[] | null | undefined, force?: boolean): EncounterResult | null;
-    encounterTableIdForPlace(placeType: string | null | undefined): string | null;
+    rollEncounterTable(
+      entries: EncounterEntry[] | null | undefined,
+      force?: boolean,
+    ): EncounterResult | null;
+    encounterTableIdForPlace(
+      placeType: string | null | undefined,
+    ): string | null;
     streetEncounterEntries(): EncounterEntry[];
     parkEncounterEntries(): EncounterEntry[];
     harpyWalkwayEntries(): EncounterEntry[];
     harpyLookForTroubleEntries(): EncounterEntry[];
-    generateHarpyAttacker(opts?: { feminine?: boolean; race?: { id: string; fem: string; masc: string }; level?: number } | null): Combatant;
-    maybePlaceEncounter(opts?: { tableId?: string; force?: boolean; noRedirect?: boolean } | null): string | null;
+    generateHarpyAttacker(
+      opts?: {
+        feminine?: boolean;
+        race?: { id: string; fem: string; masc: string };
+        level?: number;
+      } | null,
+    ): Combatant;
+    maybePlaceEncounter(
+      opts?: { tableId?: string; force?: boolean; noRedirect?: boolean } | null,
+    ): string | null;
     // Reassigned by both content/weather.ts and content/encounters.ts (the
     // latter loads after weather.ts in boot.ts, so its implementation is
     // the one actually live at runtime) — typed to accept either
@@ -1989,13 +2728,22 @@ declare global {
     advanceSlaveryQuest(nextId: string): string;
 
     // ui/responses.ts
-    setResponses(responses: LTResponse[] | null | undefined, tabs: string[] | null | undefined, selectedTab?: number): void;
+    setResponses(
+      responses: LTResponse[] | null | undefined,
+      tabs: string[] | null | undefined,
+      selectedTab?: number,
+    ): void;
     renderResponses(): void;
     initResponseHotkeys(): void;
 
     // sex/sex.ts (partial — only the registry itself; LT.sex's own state bag
     // and most of sex.ts's helpers aren't typed yet)
     SEX_ACTIONS: Record<string, SexAction>;
+
+    // engine/bugReport.ts
+    bugReportErrors: BugReportErrorEntry[];
+    bugReportHistory: BugReportHistoryEntry[];
+    buildBugReport(): string;
   }
 
   interface Window {
@@ -2025,21 +2773,43 @@ declare global {
   function openUI(id: string, opts?: UIOpenOpts | null): string;
   function updateInfo(): void;
   function movePlayer(dx: number, dy: number, moveMode?: string): void;
-  function getLocation(name: string | null | undefined, locations?: GridLocation[]): GridLocation | null;
-  function getLocationByName(name: string | null | undefined, locations?: GridLocation[]): GridLocation | null;
-  function findTile(gridData: GridTile[][] | null | undefined, x: number, y: number): GridTile | null;
-  function findTileMinified(gridData: GridTile[] | null | undefined, x: number, y: number): GridTile | null;
-  function findFirstNavigableTile(inputGrid?: GridTile[][] | null): GridTile | null;
+  function getLocation(
+    name: string | null | undefined,
+    locations?: GridLocation[],
+  ): GridLocation | null;
+  function getLocationByName(
+    name: string | null | undefined,
+    locations?: GridLocation[],
+  ): GridLocation | null;
+  function findTile(
+    gridData: GridTile[][] | null | undefined,
+    x: number,
+    y: number,
+  ): GridTile | null;
+  function findTileMinified(
+    gridData: GridTile[] | null | undefined,
+    x: number,
+    y: number,
+  ): GridTile | null;
+  function findFirstNavigableTile(
+    inputGrid?: GridTile[][] | null,
+  ): GridTile | null;
   function goToTileLocation(locationName: string): boolean;
   function selectTile(row: number, col: number): void;
   function showGrid(setState?: boolean): void;
   function hideGrid(setState?: boolean): void;
   function unhideGrid(setState?: boolean): void;
   function renderGrid(): void;
-  function loadGrid(newGrid: string | TileLike[] | TileLike[][] | null | undefined, tile?: { x?: number; y?: number } | null): void;
+  function loadGrid(
+    newGrid: string | TileLike[] | TileLike[][] | null | undefined,
+    tile?: { x?: number; y?: number } | null,
+  ): void;
   function cycleGridZoom(): void;
   function createEmptyGrid(size?: number): GridTile[][];
-  function createClusteredGrid(size: number, locations?: GridLocation[]): GridTile[][];
+  function createClusteredGrid(
+    size: number,
+    locations?: GridLocation[],
+  ): GridTile[][];
   function generateGrid(mode?: string): void;
   function generateContinent(grid: number[][]): number[][];
   function generateCellular(grid: number[][]): number[][];
@@ -2049,7 +2819,13 @@ declare global {
   function addRooms(grid: number[][]): void;
   function addBetterRooms(grid: number[][]): void;
   function declareGridVariables(): void;
-  function getMinifiedGrid(gridData: GridTile[][] | null | undefined): GridTile[];
-  function getMaxifiedGrid(minimizedGrid: TileLike[] | TileLike[][] | null | undefined, gridSize?: number, gridHeight?: number): GridTile[][];
+  function getMinifiedGrid(
+    gridData: GridTile[][] | null | undefined,
+  ): GridTile[];
+  function getMaxifiedGrid(
+    minimizedGrid: TileLike[] | TileLike[][] | null | undefined,
+    gridSize?: number,
+    gridHeight?: number,
+  ): GridTile[][];
   function startDrawing(...args: any[]): any;
 }

@@ -1,5 +1,5 @@
 (function () {
-  var QUEST_ORDER = [
+  var QUEST_ORDER: string[] = [
     "MAIN_1_A_LILAYAS_TESTS",
     "MAIN_1_B_DEMON_HOME",
     "MAIN_1_C_WOLFS_DEN",
@@ -10,7 +10,7 @@
     "MAIN_1_H_THE_GREAT_ESCAPE",
   ];
 
-  var QUEST_NAMES = {
+  var QUEST_NAMES: Record<string, string> = {
     MAIN_1_A_LILAYAS_TESTS: "Lilaya's Tests",
     MAIN_1_B_DEMON_HOME: "The search for Arthur; Demon Home",
     MAIN_1_C_WOLFS_DEN: "The search for Arthur; The Wolf's Den",
@@ -21,7 +21,7 @@
     MAIN_1_H_THE_GREAT_ESCAPE: "The search for Arthur; The Great Escape",
   };
 
-  var QUEST_XP = {
+  var QUEST_XP: Record<string, number> = {
     MAIN_PROLOGUE: 5,
     MAIN_1_A_LILAYAS_TESTS: 10,
     MAIN_1_B_DEMON_HOME: 10,
@@ -33,20 +33,20 @@
     MAIN_1_H_THE_GREAT_ESCAPE: 200,
   };
 
-  function xml(tag) {
+  function xml(tag: string) {
     return LT.parseFromXML("places/dominion/arthursApartment/apartment", tag);
   }
 
-  function p(html) {
+  function p(html: string) {
     return "<p>" + html + "</p>";
   }
 
-  LT.questReached = function (id) {
+  LT.questReached = function (id: string) {
     var cur = LT.game.flags && LT.game.flags.quest;
     return QUEST_ORDER.indexOf(cur) >= QUEST_ORDER.indexOf(id) && QUEST_ORDER.indexOf(id) >= 0;
   };
 
-  LT.advanceMainQuest = function (nextId) {
+  LT.advanceMainQuest = function (nextId: string) {
     var prev = LT.game.flags.quest;
     LT.game.flags.quest = nextId;
     if (typeof LT.syncQuestWorld === "function") LT.syncQuestWorld();
@@ -193,7 +193,7 @@
     return list;
   }
 
-  function defineStreet(id, title) {
+  function defineStreet(id: string, title: string) {
     LT.defineNode({
       id: id,
       ui: "dialogue",

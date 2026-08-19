@@ -48,16 +48,26 @@ logic), `src/com/lilithsthrone/game/character/GameCharacter.java` (the
 canonical character model this fork's `src/character/character.ts` is
 re-typing a JS/TS port of).
 
-## Typing philosophy: pragmatic, not exhaustive
+## Typing philosophy
 
-`tsconfig.json` uses `strict: true` with `noImplicitAny` and `noImplicitThis`
-turned back off. This codebase is classic ES5-style prototype/closure code —
-`Foo.prototype.method = function () { this.x }` and untyped callback params
-are the norm on nearly every file. Requiring an explicit type on every one of
-those would turn a mechanical migration into a full typing rewrite. Turning
-those two checks off keeps real safety (`strictNullChecks`,
-`strictFunctionTypes`, etc.) while letting untyped `this`/params stay
-implicitly `any`, same as they always effectively were at runtime.
+`tsconfig.json` is plain `strict: true` — every field it implies, including
+`noImplicitAny` and `noImplicitThis`, is genuinely on. Early in the
+migration those two were turned back off, since this codebase is classic
+ES5-style prototype/closure code (`Foo.prototype.method = function () {
+this.x }`, untyped callback params everywhere) and requiring an explicit
+type on every one of those upfront would have turned a mechanical
+conversion into a full typing rewrite before a single file could land. Once
+the mechanical conversion and the subsequent deep-typing passes (real
+`Character`/`Item`/`Combat*`/etc. types, index-signature enumeration, an
+`extends`-based inheritance audit) had covered the codebase, the two flags
+were flipped back on in a dedicated final pass — every remaining implicit
+`any`/`this` was fixed file-by-file first (verified clean under the real
+flags via CLI override, `npx tsc --noEmit --noImplicitAny --noImplicitThis`,
+while the committed tsconfig stayed permissive so the build never went red
+mid-pass), then the tsconfig was updated last. There is no longer a
+sanctioned way to add new implicit `any`/`this` to this codebase — every
+function parameter and callback needs a real type, same bar as everything
+else `strict` already enforced.
 
 Beyond that, a handful of literal-inference edge cases show up constantly
 enough that they're worth knowing about if you touch more code here:
@@ -92,8 +102,13 @@ original JS — left as-is; fixing them would be a logic change, not a typing
 one.
 
 Deep typing (real `Character`/`Item`/`CombatState` interfaces instead of
-`any`) is deliberately out of scope for this pass — that's follow-up work,
-done incrementally per module as needed.
+`any`) was out of scope for the original mechanical-conversion pass, but has
+since been done: every module has real, centralized types in
+`src/types/global.d.ts` (see below), `noImplicitAny`/`noImplicitThis` are
+both genuinely on, and index-signature catch-alls (`[key: string]: any`)
+have been enumerated wherever the real property set was knowable — see
+"Rules for converting a file" and the file's own section headings for the
+current shape of things.
 
 ## Rules for converting a file
 

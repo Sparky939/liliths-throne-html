@@ -19,7 +19,7 @@
             if ((src.essences || 0) < cost)
                 wep = null;
             else
-                src.essences -= cost;
+                src.essences = (src.essences || 0) - cost;
         }
         var dmg = wep && typeof LT.rollStrike === "function" ? LT.rollStrike(src, slot) : LT.rollUnarmed(src);
         var moveId = slot === "offhand" ? "offhand" : "strike";

@@ -1,5 +1,5 @@
 (function () {
-  var ALWAYS_DANGEROUS = {
+  var ALWAYS_DANGEROUS: Record<string, boolean> = {
     DOMINION_BACK_ALLEYS: true,
     DOMINION_DARK_ALLEYS: true,
     DOMINION_ALLEYS_CANAL_CROSSING: true,
@@ -8,7 +8,7 @@
   };
 
   /* Official PlaceType.isDangerous() during MAGIC_STORM only. Alleys are always dangerous. */
-  var STORM_STREETS = {
+  var STORM_STREETS: Record<string, boolean> = {
     DOMINION_STREET: true,
     DOMINION_SHOPPING_ARCADE: true,
     DOMINION_NYAN_APARTMENT: true,
@@ -28,7 +28,7 @@
     DOMINION_EXIT_TO_BAT_CAVERNS: true,
   };
 
-  var STREET_TEXT = {
+  var STREET_TEXT: Record<string, string> = {
     DOMINION_STREET: "STREET",
     DOMINION_NYAN_APARTMENT: "STREET",
     DOMINION_CALLIE_BAKERY: "STREET",
@@ -42,7 +42,7 @@
     return LT.game.flags;
   }
 
-  function randInt(n) {
+  function randInt(n: number) {
     return Math.floor(Math.random() * n);
   }
 
@@ -58,11 +58,11 @@
     return LT.currentWeather() === "MAGIC_STORM";
   };
 
-  LT.isStormStreet = function (placeType) {
+  LT.isStormStreet = function (placeType?: string | null): boolean {
     return !!(placeType && STORM_STREETS[placeType]);
   };
 
-  LT.isOutdoorPlace = function (placeType) {
+  LT.isOutdoorPlace = function (placeType?: string | null): boolean {
     if (!placeType) return false;
     if (ALWAYS_DANGEROUS[placeType] || STORM_STREETS[placeType]) return true;
     if (placeType === "DOMINION_PLAZA" || placeType === "DOMINION_BOULEVARD") return true;
@@ -72,11 +72,11 @@
     return false;
   };
 
-  LT.isStormImmunePlace = function (placeType) {
+  LT.isStormImmunePlace = function (placeType?: string | null): boolean {
     return !LT.isOutdoorPlace(placeType);
   };
 
-  LT.isDangerousTile = function (placeType) {
+  LT.isDangerousTile = function (placeType?: string | null): boolean {
     if (!placeType) return false;
     if (ALWAYS_DANGEROUS[placeType]) return true;
     return !!(LT.isArcaneStorm() && STORM_STREETS[placeType]);
@@ -106,7 +106,7 @@
     }
   };
 
-  LT.setWeatherInSeconds = function (weather, secondsRemaining) {
+  LT.setWeatherInSeconds = function (weather: string, secondsRemaining: number) {
     var f = flags();
     f.weather = weather;
     f.weatherTimeRemaining = secondsRemaining;
@@ -123,7 +123,7 @@
     f.weatherTimeRemaining = Math.max(60, (f.gatheringStormDuration || 0) - (now - f.nextStormTime));
   }
 
-  function handleAtmosphericConditions(seconds) {
+  function handleAtmosphericConditions(seconds: number) {
     var f = flags();
     f.weatherTimeRemaining -= seconds;
     if (f.weatherTimeRemaining >= 0) return;
@@ -180,13 +180,13 @@
     }
   }
 
-  LT.tickWeather = function (seconds) {
+  LT.tickWeather = function (seconds: number) {
     if (!LT.game || !seconds) return;
     LT.ensureWeather();
     handleAtmosphericConditions(seconds);
   };
 
-  LT.dominionPlaceText = function (placeType) {
+  LT.dominionPlaceText = function (placeType: string) {
     var tag = STREET_TEXT[placeType];
     if (!tag || typeof LT.parseFromXML !== "function") return "";
     var html = LT.parseFromXML("places/dominion/dominionPlaces", tag === "STREET_SHADED" ? "STREET" : tag);

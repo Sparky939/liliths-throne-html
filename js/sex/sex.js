@@ -284,6 +284,10 @@
     function setOngoing(id, giver, receiver, label) {
         LT.sex.ongoing = { id: id, giver: giver, receiver: receiver, label: label };
     }
+    // penetrator/receiver are read unguarded below (receiver.sex, .vaginaVirgin)
+    // exactly as the original JS did — a genuinely-missing receiver would throw
+    // there just as it always would have, so the `!` assertions preserve that
+    // behavior rather than silently swallowing it behind a new null guard.
     function takeVirgin(penetrator, receiver) {
         var flag = receiver.sex && receiver.sex.vaginaVirgin;
         if (receiver.vaginaVirgin != null)
@@ -358,23 +362,27 @@
         });
         if (!spec.receive)
             return;
+        // Captured into a local so the closures below (whose bodies TS can't
+        // prove still see the same `spec.receive` at call time) narrow to
+        // SexPairReceiveSpec instead of SexPairReceiveSpec | undefined.
+        var receive = spec.receive;
         register({
             id: spec.id + "_receive_start",
             pair: spec.id,
-            name: spec.receive.start.name,
+            name: receive.start.name,
             tab: 0,
             type: "START_ONGOING",
-            selfArousal: spec.receive.start.selfA,
-            targetArousal: spec.receive.start.tgtA,
+            selfArousal: receive.start.selfA,
+            targetArousal: receive.start.tgtA,
             canUse: function (src, tgt) {
                 return !pairOngoing(spec.id) && spec.ok(tgt, src);
             },
             tooltip: function (src, tgt) {
-                return parseSex(spec.receive.start.tip, src, tgt);
+                return parseSex(receive.start.tip, src, tgt);
             },
             perform: function (src, tgt) {
                 setOngoing(spec.id, tgt, src, spec.label);
-                var text = parseSex(pick(spec.receive.start.lines), src, tgt);
+                var text = parseSex(pick(receive.start.lines), src, tgt);
                 if (spec.onReceiveStart)
                     text += spec.onReceiveStart(src, tgt) || "";
                 return text;
@@ -383,25 +391,25 @@
         register({
             id: spec.id + "_receive",
             pair: spec.id,
-            name: spec.receive.ongoing.name,
+            name: receive.ongoing.name,
             tab: 0,
             type: "ONGOING",
-            selfArousal: spec.receive.ongoing.selfA,
-            targetArousal: spec.receive.ongoing.tgtA,
+            selfArousal: receive.ongoing.selfA,
+            targetArousal: receive.ongoing.tgtA,
             canUse: function (src) {
                 return pairOngoing(spec.id) && LT.sex.ongoing.receiver === src;
             },
             tooltip: function (src, tgt) {
-                return parseSex(spec.receive.ongoing.tip, src, tgt);
+                return parseSex(receive.ongoing.tip, src, tgt);
             },
             perform: function () {
-                return parseSex(pick(spec.receive.ongoing.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
+                return parseSex(pick(receive.ongoing.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
             },
         });
         register({
             id: spec.id + "_receive_stop",
             pair: spec.id,
-            name: spec.receive.stop.name,
+            name: receive.stop.name,
             tab: 0,
             type: "STOP_ONGOING",
             selfArousal: "TWO_LOW",
@@ -410,10 +418,10 @@
                 return pairOngoing(spec.id) && LT.sex.ongoing.receiver === src;
             },
             tooltip: function (src, tgt) {
-                return parseSex(spec.receive.stop.tip, src, tgt);
+                return parseSex(receive.stop.tip, src, tgt);
             },
             perform: function () {
-                var text = parseSex(pick(spec.receive.stop.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
+                var text = parseSex(pick(receive.stop.lines), LT.sex.ongoing.receiver, LT.sex.ongoing.giver);
                 LT.sex.ongoing = null;
                 return text;
             },
@@ -1809,6 +1817,10 @@
             return "Quickly pull clothing out of the way, exposing both of you.";
         },
         perform: function (src, tgt) {
+            // ch's `.equipped` access below is unguarded for null/undefined, same
+            // as the original JS (a genuinely missing ch would throw there, same
+            // as it always would have) — `!` preserves that rather than adding a
+            // new silent-return guard.
             function strip(ch) {
                 ["BREASTS", "PENIS", "VAGINA", "ANUS", "FOOT"].forEach(function (area) {
                     LT.setSexExposed(ch, area, true);

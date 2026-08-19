@@ -25,26 +25,30 @@
     n.speechColour = n.speechColour || opts.speechColour;
     n.relationToPlayer = n.relationToPlayer || opts.relationToPlayer || "";
     if (!n.location || typeof n.location !== "object") n.location = opts.location;
-    n.getName = n.getName || function () {
-      return this.name;
+    // name/speechColour/raceName are all required fields on HouseNpcOpts
+    // (opts) and always assigned just above, even though Npc's own fields
+    // stay optional for other constructors — `!` reflects that, matching
+    // the same reasoning as simpleNpc's own getName/getSpeechColour below.
+    n.getName = n.getName || function (this: Npc) {
+      return this.name!;
     };
     n.isFeminine = n.isFeminine || function () {
       return true;
     };
-    n.getSpeechColour = n.getSpeechColour || function () {
-      return this.speechColour;
+    n.getSpeechColour = n.getSpeechColour || function (this: Npc) {
+      return this.speechColour!;
     };
-    n.getRaceName = n.getRaceName || function () {
-      return this.raceName;
+    n.getRaceName = n.getRaceName || function (this: Npc) {
+      return this.raceName!;
     };
     n.gender = n.gender || LT.Gender.FEMALE;
-    n.hasVagina = n.hasVagina || function () {
+    n.hasVagina = n.hasVagina || function (this: Npc) {
       return !!(this.gender && this.gender.hasVagina);
     };
-    n.hasPenis = n.hasPenis || function () {
+    n.hasPenis = n.hasPenis || function (this: Npc) {
       return !!(this.gender && this.gender.hasPenis);
     };
-    n.hasBreasts = n.hasBreasts || function () {
+    n.hasBreasts = n.hasBreasts || function (this: Npc) {
       return !!(this.gender && this.gender.hasBreasts);
     };
     if (!n.sex) n.sex = { vaginaVirgin: false, penisVirgin: true };
@@ -282,17 +286,22 @@
       feminine: feminine,
       speechColour: feminine ? LT.Colour.FEMININE : LT.Colour.ANDROGYNOUS,
       gender: feminine ? LT.Gender.FEMALE : LT.Gender.ANDROGYNOUS,
+      // name/speechColour are always set immediately above in this same
+      // literal (simpleNpc's required id/name/feminine params), even though
+      // Npc's own name/speechColour fields stay optional for the sake of
+      // other npc constructors — `!` reflects this constructor's own
+      // guarantee, not Npc's general contract.
       getName: function () {
-        return this.name;
+        return this.name!;
       },
       getFullName: function () {
-        return this.name;
+        return this.name!;
       },
       isFeminine: function () {
         return !!this.feminine;
       },
       getSpeechColour: function () {
-        return this.speechColour;
+        return this.speechColour!;
       },
       hasVagina: function () {
         return !!(this.gender && this.gender.hasVagina);

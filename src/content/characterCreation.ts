@@ -1,17 +1,17 @@
 (function () {
   var Colour = LT.Colour;
 
-  function cap(s) {
+  function cap(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
-  function ordinal(n) {
+  function ordinal(n: number): string {
     var s = ["th", "st", "nd", "rd"];
     var v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
 
-  function escapeHtml(s) {
+  function escapeHtml(s: unknown): string {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -19,7 +19,7 @@
       .replace(/"/g, "&quot;");
   }
 
-  function pill(active, id, label, colour) {
+  function pill(active: boolean, id: string, label: string, colour: string): string {
     if (active) {
       return '<div class="cosmetics-button active"><span style="color:' + colour + ';">' + label + "</span></div>";
     }
@@ -34,7 +34,7 @@
     );
   }
 
-  function femPills(female, fem) {
+  function femPills(female: boolean, fem: FemininityEntry): string {
     var opts = female
       ? [LT.Femininity.ANDROGYNOUS, LT.Femininity.FEMININE, LT.Femininity.FEMININE_STRONG]
       : [LT.Femininity.ANDROGYNOUS, LT.Femininity.MASCULINE, LT.Femininity.MASCULINE_STRONG];
@@ -45,7 +45,7 @@
     return html;
   }
 
-  function stepper(title, id, value, decDisabled, incDisabled) {
+  function stepper(title: string, id: string, value: string, decDisabled: boolean, incDisabled: boolean): string {
     return (
       '<div class="date-col"><p style="width:100%;margin:0;padding:0;text-align:center;"><b>' +
       title +
@@ -76,7 +76,7 @@
     );
   }
 
-  function birthdayBlock(p) {
+  function birthdayBlock(p: Character): string {
     var age = p.getAgeValue();
     var b = p.birthday;
     return (
@@ -181,7 +181,7 @@
     );
   }
 
-  function stepDate(p, field, act) {
+  function stepDate(p: Character, field: string, act: string) {
     var large = /_LARGE$/.test(act);
     var dir = act.indexOf("DECREASE") >= 0 ? -1 : 1;
     var amount = large ? (field === "age" ? 5 : field === "month" ? 3 : 7) : 1;
@@ -193,14 +193,14 @@
     LT.clampPlayerAge(p);
   }
 
-  LT.clampPlayerAge = function (p) {
+  LT.clampPlayerAge = function (p: Character | null | undefined) {
     if (!p || !p.getAgeValue) return;
     var age = p.getAgeValue();
     if (age < 18) p.setAge(18);
     if (age > 50) p.setAge(50);
   };
 
-  function handleAct(act) {
+  function handleAct(act: string) {
     var p = LT.game.player!;
     if (act === "CHOOSE_GENDER_MALE") p.setGender(LT.Gender.MALE);
     else if (act === "CHOOSE_GENDER_FEMALE") p.setGender(LT.Gender.FEMALE);
@@ -241,7 +241,8 @@
       var btn = target && target.closest("[data-act]");
       if (!btn || btn.classList.contains("disabled")) return;
       if (!LT.game.player) return;
-      handleAct(btn.getAttribute("data-act"));
+      // btn was matched via the "[data-act]" selector above, so the attribute is always present here.
+      handleAct(btn.getAttribute("data-act")!);
     });
     document.getElementById("ui-stage")!.addEventListener("input", function (e: Event) {
       if (!LT.game.player) return;
@@ -273,6 +274,18 @@
     ui: "creation-name",
     title: "A Night Out",
     chrome: { left: true, right: false },
+    applyPreParsingEffects: function () {
+      var p = LT.game.player;
+      if (!p || p._nameRolled) return;
+      p._nameRolled = true;
+      var names = p.names || {};
+      var unknown = !names.masculine || names.masculine === "Unknown" || !names.feminine || names.feminine === "Unknown";
+      if (!unknown) return;
+      if (typeof LT.randomHumanNameTriplet === "function") {
+        var trip = LT.randomHumanNameTriplet();
+        p.setName(trip[0], trip[1], trip[2]);
+      }
+    },
     getContent: nameHtml,
     getResponses: function () {
       return [

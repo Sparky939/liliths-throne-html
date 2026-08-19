@@ -4,7 +4,7 @@
     return Math.max(0, Math.min(100, (value / max) * 100));
   }
 
-  function escapeHtml(s) {
+  function escapeHtml(s: unknown) {
     return String(s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")

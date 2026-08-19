@@ -238,6 +238,7 @@
                 return;
             if (!LT.game.player)
                 return;
+            // btn was matched via the "[data-act]" selector above, so the attribute is always present here.
             handleAct(btn.getAttribute("data-act"));
         });
         document.getElementById("ui-stage").addEventListener("input", function (e) {
@@ -273,6 +274,20 @@
         ui: "creation-name",
         title: "A Night Out",
         chrome: { left: true, right: false },
+        applyPreParsingEffects: function () {
+            var p = LT.game.player;
+            if (!p || p._nameRolled)
+                return;
+            p._nameRolled = true;
+            var names = p.names || {};
+            var unknown = !names.masculine || names.masculine === "Unknown" || !names.feminine || names.feminine === "Unknown";
+            if (!unknown)
+                return;
+            if (typeof LT.randomHumanNameTriplet === "function") {
+                var trip = LT.randomHumanNameTriplet();
+                p.setName(trip[0], trip[1], trip[2]);
+            }
+        },
         getContent: nameHtml,
         getResponses: function () {
             return [

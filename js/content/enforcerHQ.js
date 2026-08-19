@@ -65,8 +65,10 @@
                 if (typeof LT.ensureBrax === "function")
                     LT.ensureBrax();
             },
+            // tag is only ever null at call sites that also always provide their own
+            // extras.getContent, so this fallback never actually runs with a null tag.
             getContent: extras.getContent || function () {
-                return generic(tag);
+                return generic(tag || "");
             },
             getResponses: extras.getResponses || function () {
                 return LT.travelResponses ? LT.travelResponses() : [null];

@@ -1,10 +1,10 @@
 (function () {
-  function slot(index, response) {
+  function slot(index: number, response: LTResponse | null) {
     if (response) response._index = index;
     return response;
   }
 
-  function actionColour(act) {
+  function actionColour(act: SexAction | null | undefined) {
     if (!act) return null;
     if (act.endsSex) return LT.Colour.GENERIC_BAD;
     if (act.isOrgasm) return LT.Colour.ATTRIBUTE_AROUSAL;
@@ -40,7 +40,7 @@
       }
       return html;
     },
-    getResponses: function (game, tabIndex) {
+    getResponses: function (game: unknown, tabIndex: number) {
       var s = LT.sex;
       if (!s || !s.active) return [null];
       if (s.finished) {
@@ -53,7 +53,7 @@
           ),
         ];
       }
-      var list = [null];
+      var list: (LTResponse | null)[] = [null];
       var actions = s.availableActions(tabIndex);
       var i;
       for (i = 0; i < actions.length; i++) {

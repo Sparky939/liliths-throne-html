@@ -1,6 +1,6 @@
 (function () {
   LT.ALLEY_ATTACK_CHANCE = 0.15;
-  var CANAL = {
+  var CANAL: Record<string, boolean> = {
     DOMINION_ALLEYS_CANAL_CROSSING: true,
     DOMINION_CANAL: true,
     DOMINION_CANAL_END: true,
@@ -27,23 +27,23 @@
   var FEM_NAMES = ["Kara", "Nisha", "Sable", "Rin", "Mira", "Tasha", "Vesper"];
   var MAS_NAMES = ["Rook", "Dane", "Ash", "Bram", "Jace", "Cole", "Vex"];
 
-  function pick(list) {
+  function pick<T>(list: T[]): T {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function placeXml(tag) {
+  function placeXml(tag: string): string {
     return LT.parseFromXML("places/dominion/dominionPlaces", tag);
   }
 
-  function attackXml(tag) {
+  function attackXml(tag: string): string {
     return LT.parseFromXML("encounters/dominion/alleywayAttack", tag);
   }
 
-  function hookerXml(tag) {
+  function hookerXml(tag: string): string {
     return LT.parseFromXML("encounters/dominion/prostitute", tag);
   }
 
-  LT.prostitutePrice = function (npc) {
+  LT.prostitutePrice = function (npc: Npc | null | undefined): number {
     var p = 1;
     if (npc && npc.isFeminine && npc.isFeminine()) p += 0.5;
     if (npc && npc.hasVagina && npc.hasVagina()) p += 0.15;
@@ -62,7 +62,7 @@
     return (loc.world || "") + "," + loc.x + "," + loc.y;
   }
 
-  function bindMugger(mugger) {
+  function bindMugger(mugger: Npc): Npc {
     LT.game.npcs = LT.game.npcs || {};
     LT.game.npcs.alleyMugger = mugger;
     LT.game.npcs.npc = mugger;
@@ -84,7 +84,16 @@
     }
   };
 
-  LT.generateAlleyMugger = function (opts) {
+  interface AlleyMuggerOpts {
+    dark?: boolean;
+    feminine?: boolean;
+    race?: { id: string; fem: string; masc: string };
+    level?: number;
+    storm?: boolean;
+    prostitute?: boolean;
+  }
+
+  LT.generateAlleyMugger = function (opts?: AlleyMuggerOpts | null): Npc {
     opts = opts || {};
     var dark = !!opts.dark;
     var feminine = opts.feminine != null ? opts.feminine : Math.random() < 0.5;
@@ -186,7 +195,7 @@
     return list;
   }
 
-  function defineAlley(id, title, tag, dangerous) {
+  function defineAlley(id: string, title: string, tag: string, dangerous: boolean) {
     LT.defineNode({
       id: id,
       ui: "dialogue",
@@ -214,7 +223,7 @@
   defineAlley("place.DOMINION_CANAL", "Canal", "BACK_ALLEYS_CANAL", true);
   defineAlley("place.DOMINION_CANAL_END", "Canal", "BACK_ALLEYS_CANAL", true);
 
-  function muggerDemand() {
+  function muggerDemand(): number {
     var n = LT.game.npcs && LT.game.npcs.alleyMugger;
     return 50 + 10 * ((n && n.level) || 1);
   }
@@ -289,7 +298,7 @@
     },
   });
 
-  function enslaveXml(tag, npc) {
+  function enslaveXml(tag: string, npc: Npc | null | undefined): string {
     var raw = (LT.TEXT["characters/enslavement"] && LT.TEXT["characters/enslavement"][tag]) || "";
     raw = raw.replace(/\[#SPECIAL_PARSE_0\]/g, "metal collar").replace(/\[#SPECIAL_PARSE_1\]/g, "it");
     if (typeof LT.addSpecialParse === "function") LT.addSpecialParse("metal collar", true);
@@ -301,7 +310,13 @@
     return LT.parse(raw);
   }
 
-  function canEnslave(mugger) {
+  interface EnslaveCheck {
+    ok: boolean;
+    reason?: string;
+    tag?: string;
+  }
+
+  function canEnslave(mugger: Npc | null | undefined): EnslaveCheck {
     if (!mugger) return { ok: false, reason: "There is nobody here to enslave." };
     if (mugger.occupation === "prostitute" && mugger.playerKnowsName) {
       /* alley prostitutes are still unregistered criminals */
@@ -318,7 +333,7 @@
     return { ok: true };
   }
 
-  function enslaveResponse(mugger) {
+  function enslaveResponse(mugger: Npc | null | undefined): LTResponse {
     var check = canEnslave(mugger);
     var resp = new LT.Response("Enslave", "Lock a slave collar around their neck and have them teleported to Slavery Administration.", "alley.enslave");
     if (!check.ok) resp.disable(check.reason);
@@ -434,7 +449,7 @@
     },
   });
 
-  function alleyAfter(id, title, tag) {
+  function alleyAfter(id: string, title: string, tag: string) {
     LT.defineNode({
       id: id,
       ui: "dialogue",
@@ -495,7 +510,7 @@
           LT.clearAlleyMugger();
         },
       );
-      function paid(title, tip, dom, startTag) {
+      function paid(title: string, tip: string, dom: boolean, startTag: string): LTResponse {
         var resp = LT.ResponseSex(title, tip, {
           partner: n,
           playerDom: !!dom,

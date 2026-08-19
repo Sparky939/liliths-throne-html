@@ -75,7 +75,7 @@
   }
   LT.Item = ItemInstance;
 
-  var ITEMS = (LT.ITEMS = {
+  var ITEMS: Record<string, ItemCatalogEntry> = (LT.ITEMS = {
     innoxia_items_essence_arcane: {
       id: "innoxia_items_essence_arcane",
       kind: "essence",

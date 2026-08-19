@@ -1,5 +1,5 @@
 (function () {
-  function xml(tag) {
+  function xml(tag: string) {
     return LT.parseFromXML("places/dominion/lilayasHome/lab", tag);
   }
 
@@ -9,7 +9,7 @@
     return !!(n && n.location && n.location.place === "LILAYA_HOME_LAB");
   }
 
-  function houseTabs(game, tab) {
+  function houseTabs(game: unknown, tab: number) {
     if (tab === 1 && LT.game.renderMap) {
       return LT.getNode("place.LILAYA_HOME_CORRIDOR").getResponses(game, 1);
     }

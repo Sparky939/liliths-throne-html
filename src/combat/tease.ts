@@ -1,19 +1,19 @@
 (function () {
-  function nameOf(ch) {
+  function nameOf(ch: Combatant | null | undefined): string {
     if (!ch) return "someone";
     if (ch.getName) return ch.getName();
     return ch.name || "someone";
   }
 
-  function fem(ch) {
+  function fem(ch: Combatant | null | undefined): boolean {
     return !!(ch && ch.isFeminine && ch.isFeminine());
   }
 
-  function pick(list) {
+  function pick<T>(list: T[]): T {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function parsePair(text, src, tgt) {
+  function parsePair(text: string, src: Combatant | null | undefined, tgt: Combatant | null | undefined): string {
     if (typeof LT.parse !== "function") return text;
     if (typeof LT.withParseTargets === "function") {
       return LT.withParseTargets({ pc: src && src.player ? src : LT.game.player, npc: tgt, npc2: tgt }, function () {
@@ -25,7 +25,7 @@
 
   LT.seductionDescription = function (src, tgt) {
     var feminine = fem(src);
-    var lines;
+    var lines: string[];
     if (typeof LT.getStatus === "function" && LT.getStatus(src, "TELEPATHIC_COMMUNICATION")) {
       if (feminine) {
         lines = [
@@ -76,7 +76,7 @@
     return parsePair(pick(lines), src, tgt);
   };
 
-  function applyTease(src, tgt, turnIndex, moveId, base, flavour) {
+  function applyTease(src: Combatant | null | undefined, tgt: Combatant | null | undefined, turnIndex: number | undefined, moveId: string, base: number, flavour: string): string {
     var dmg = base;
     if (typeof LT.modifyOutgoingLust === "function") dmg = LT.modifyOutgoingLust(src, dmg);
     var crit = typeof LT.applyCrit === "function" ? LT.applyCrit(src, moveId, turnIndex, dmg) : { dmg: dmg, crit: false };
@@ -94,7 +94,7 @@
     );
   }
 
-  function teaseMove(def) {
+  function teaseMove(def: TeaseDef): void {
     LT.MOVES[def.id] = {
       id: def.id,
       name: def.name,
@@ -125,7 +125,7 @@
     };
   }
 
-  function targetFem(tgt) {
+  function targetFem(tgt: Combatant | null | undefined): boolean {
     return !!(tgt && tgt.isFeminine && tgt.isFeminine());
   }
 
@@ -229,7 +229,10 @@
     for (var i = 0; i < LT.TEASE_SPECIAL_IDS.length; i++) {
       var id = LT.TEASE_SPECIAL_IDS[i];
       var move = LT.MOVES[id];
-      if (move && (!move.canUse || move.canUse(ch))) out.push(id);
+      // Move.canUse's declared type wants a definite Combatant, but every
+      // real implementation here defensively checks `src &&` first, so a
+      // null/undefined ch behaves identically to any other falsy check.
+      if (move && (!move.canUse || move.canUse(ch!))) out.push(id);
     }
     return out;
   };
